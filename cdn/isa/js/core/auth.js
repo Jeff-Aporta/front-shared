@@ -1,5 +1,6 @@
 import { AUTH_DEFAULTS as D } from "./constants.js";
 import { wrapPassword } from "./caesar.js";
+import { createTokenStore, isTokenValid } from "./token-store.js";
 
 /** Auth consumer — login contra system-login (sesión compartida). */
 export function createAuth(opts = {}) {
@@ -9,28 +10,29 @@ export function createAuth(opts = {}) {
   const authLocal = opts.authLocal || D.authLocal;
   const authOnline = opts.authOnline || D.authOnline;
   const loginUrl = opts.loginUrl || D.loginUrl;
+  const store = createTokenStore(sessionKey);
 
   function read() {
-    try {
-      const v = sessionStorage.getItem(sessionKey);
-      return v ? JSON.parse(v) : null;
-    } catch (e) {
+    const data = store.read();
+    if (!data) return null;
+    if (!isTokenValid(data)) {
+      store.clear();
       return null;
     }
+    return data;
   }
 
   function authBase() {
     try {
       if (localStorage.getItem(authLocalKey) === "1") return authLocal;
-    } catch (e) {}
+    } catch (e) {
+      /* ignore */
+    }
     return authOnline;
   }
 
   function isLoggedIn() {
-    const s = read();
-    if (!s?.token) return false;
-    if (s.expiresAt && new Date(s.expiresAt).getTime() < Date.now()) return false;
-    return true;
+    return isTokenValid(read());
   }
 
   function username() {
@@ -50,23 +52,20 @@ export function createAuth(opts = {}) {
     });
     const data = await res.json();
     if (!res.ok || !data.token) throw new Error(data.error || "Login fallido");
-    sessionStorage.setItem(
-      sessionKey,
-      JSON.stringify({
-        username: data.username || user,
-        token: data.token,
-        expiresAt: data.expiresAt ?? null,
-      }),
-    );
+    store.save({
+      username: data.username || user,
+      token: data.token,
+      expiresAt: data.expiresAt ?? null,
+    });
     window.dispatchEvent(new Event(authEvt));
   }
 
   function logout() {
-    sessionStorage.removeItem(sessionKey);
+    store.clear();
     window.dispatchEvent(new Event(authEvt));
   }
 
-  return {
+  const auth = {
     isLoggedIn,
     username,
     authHeader,
@@ -76,6 +75,12 @@ export function createAuth(opts = {}) {
     EVENT: authEvt,
     AUTH_ONLINE: authOnline,
   };
+
+  if (isLoggedIn()) {
+    window.dispatchEvent(new Event(authEvt));
+  }
+
+  return auth;
 }
 
 export function registerAuth(ns, opts) {

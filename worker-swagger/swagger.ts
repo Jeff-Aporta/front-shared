@@ -3,7 +3,7 @@
  * Swagger UI + OpenAPI JSON en /ui y /doc, con panel de JWT de prueba (system-login).
  */
 import { swaggerUI } from "@hono/swagger-ui";
-import type { Hono } from "hono";
+import type { Env, Hono } from "hono";
 
 export type OpenApiSpec = {
   openapi: string;
@@ -20,19 +20,22 @@ export const SYSTEM_LOGIN_URL_LOCAL = "http://localhost:8781";
 export type MountSwaggerOpts = {
   docPath?: string;
   uiPath?: string;
-  /** URL base de system-login para el panel de JWT de prueba. */
+  /**
+   * Base URL para el panel JWT. Por defecto "" = mismo origen (requiere mountAuthProxy).
+   * Pasa SYSTEM_LOGIN_URL_PROD solo si no usas proxy.
+   */
   authLoginUrl?: string;
   title?: string;
 };
 
-export function mountSwagger<E>(
-  app: Hono<{ Bindings: E }>,
+export function mountSwagger<E extends Env = Env>(
+  app: Hono<E>,
   spec: OpenApiSpec,
   opts: MountSwaggerOpts = {},
 ) {
   const docPath = opts.docPath ?? "/doc";
   const uiPath = opts.uiPath ?? "/ui";
-  const authLoginUrl = opts.authLoginUrl ?? SYSTEM_LOGIN_URL_PROD;
+  const authLoginUrl = opts.authLoginUrl ?? "";
   const title = opts.title ?? spec.info.title + " — Swagger";
 
   app.get(docPath, (c) => c.json(spec));
@@ -68,6 +71,61 @@ export function bearerComponents() {
   };
 }
 
+const authCredBody = {
+  required: true,
+  content: {
+    "application/json": {
+      schema: {
+        type: "object",
+        required: ["username", "password"],
+        properties: {
+          username: { type: "string", example: "admin" },
+          password: {
+            type: "string",
+            description: "Contraseña con transporte César (el panel Swagger la codifica automáticamente).",
+          },
+        },
+      },
+    },
+  },
+};
+
+/** Rutas Auth documentadas en cada Worker (proxy → system-login, salvo system-login nativo). */
+export function authOpenApiPaths(opts: { proxied?: boolean } = {}) {
+  const note = opts.proxied !== false
+    ? "Proxy al servicio system-login (autenticación centralizada)."
+    : "Autenticación centralizada Jeff-Aporta.";
+  return {
+    "/auth/token": {
+      post: {
+        tags: ["Auth"],
+        summary: "Login — JWT 30 días",
+        description: note,
+        requestBody: authCredBody,
+        responses: {
+          "200": jsonResponse("JWT emitido"),
+          "401": jsonResponse("Credenciales inválidas"),
+          "429": jsonResponse("Penalización por intentos"),
+        },
+      },
+    },
+    "/auth/test-token": {
+      post: {
+        tags: ["Auth"],
+        summary: "JWT de prueba Swagger — 1 hora",
+        description:
+          note + " Emite JWT con purpose=swagger-test. Usar desde el panel superior o Try it out.",
+        requestBody: authCredBody,
+        responses: {
+          "200": jsonResponse("JWT de prueba emitido"),
+          "401": jsonResponse("Credenciales inválidas"),
+          "429": jsonResponse("Penalización por intentos"),
+        },
+      },
+    },
+  };
+}
+
 function escHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
@@ -83,7 +141,9 @@ function buildSwaggerUiFragment(
   authLoginUrl: string,
 ): string {
   const specUrl = escHtml(docPath);
-  const authBase = escHtml(authLoginUrl.replace(/\/$/, ""));
+  const authBase = authLoginUrl
+    ? escHtml(authLoginUrl.replace(/\/$/, ""))
+    : "";
   const cssLinks = asset.css.map((url) => `<link rel="stylesheet" href="${escHtml(url)}" />`).join("\n");
   const jsScripts = asset.js
     .map((url) => `<script src="${escHtml(url)}" crossorigin="anonymous"><\/script>`)
@@ -124,7 +184,7 @@ function buildSwaggerUiFragment(
     <button type="button" id="swagger-auth-clear" style="background:#455a64">Limpiar</button>
   </div>
   <div id="swagger-auth-status"></div>
-  <div id="swagger-auth-hint">Llama a ${authBase}/auth/test-token · Válido 1 h · purpose=swagger-test</div>
+  <div id="swagger-auth-hint">POST /auth/test-token${authBase ? " → " + authBase : " (proxy system-login)"} · Válido 1 h · purpose=swagger-test</div>
 </div>
 <div id="swagger-ui"></div>
 ${cssLinks}
@@ -132,9 +192,12 @@ ${jsScripts}
 <script>
 (function () {
   var specUrl = "${specUrl}";
-  var AUTH_BASE = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
-    ? "http://localhost:8781"
-    : "${authBase}";
+  var AUTH_BASE = "${authBase}";
+  if (!AUTH_BASE) {
+    AUTH_BASE = location.origin;
+  } else if ((location.hostname === "localhost" || location.hostname === "127.0.0.1") && AUTH_BASE.indexOf("system-login.jeffaporta") >= 0) {
+    AUTH_BASE = "http://localhost:8781";
+  }
   var PREFIX = "abc123";
   var SUFFIX = "xyz987";
   var STORAGE_KEY = "jeffaporta:swagger-test-jwt";

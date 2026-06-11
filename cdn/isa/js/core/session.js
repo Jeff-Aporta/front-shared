@@ -1,5 +1,6 @@
 import { AUTH_DEFAULTS as D } from "./constants.js";
 import { wrapPassword } from "./caesar.js";
+import { createTokenStore, isTokenValid } from "./token-store.js";
 
 /** Sesión JWT enriquecida (rol) — system-login front y apps con login propio. */
 export function registerSession(ns, opts = {}) {
@@ -8,11 +9,14 @@ export function registerSession(ns, opts = {}) {
   const authLocalKey = opts.authLocalKey || D.authLocalKey;
   const authLocal = opts.authLocal || D.authLocal;
   const authOnline = opts.authOnline || D.authOnline;
+  const store = createTokenStore(sessionKey);
 
   function authBase() {
     try {
       if (localStorage.getItem(authLocalKey) === "1") return authLocal;
-    } catch (e) {}
+    } catch (e) {
+      /* ignore */
+    }
     return authOnline;
   }
 
@@ -21,44 +25,40 @@ export function registerSession(ns, opts = {}) {
   }
 
   function readSession() {
-    try {
-      const v = sessionStorage.getItem(sessionKey);
-      return v ? JSON.parse(v) : null;
-    } catch (e) {
+    const data = store.read();
+    if (!data) return null;
+    if (!isTokenValid(data)) {
+      store.clear();
       return null;
     }
+    return data;
   }
 
   function saveSession(data) {
-    sessionStorage.setItem(
-      sessionKey,
-      JSON.stringify({
-        username: data.username,
-        role: data.role ?? null,
-        token: data.token,
-        expiresAt: data.expiresAt ?? null,
-      }),
-    );
+    store.save({
+      username: data.username,
+      role: data.role ?? null,
+      token: data.token,
+      expiresAt: data.expiresAt ?? null,
+    });
     window.dispatchEvent(new Event(authEvt));
   }
 
   function clearSession() {
-    sessionStorage.removeItem(sessionKey);
+    store.clear();
     window.dispatchEvent(new Event(authEvt));
   }
 
   let session = readSession();
 
   function current() {
-    session = session ?? readSession();
+    session = readSession();
     return session;
   }
 
   function isLoggedIn() {
-    session = session ?? readSession();
-    if (!session?.token) return false;
-    if (session.expiresAt && new Date(session.expiresAt).getTime() < Date.now()) return false;
-    return true;
+    session = readSession();
+    return isTokenValid(session);
   }
 
   function username() {
@@ -130,4 +130,8 @@ export function registerSession(ns, opts = {}) {
     AUTH_ONLINE: authOnline,
   };
   window[ns] = bag;
+
+  if (isLoggedIn()) {
+    window.dispatchEvent(new Event(authEvt));
+  }
 }

@@ -6,25 +6,10 @@
  */
 (function () {
   "use strict";
-  const React = (window as any).React;
-  const MUI = (window as any).MaterialUI;
-
-  interface AppShellProps {
-    ns: string;
-    title: string;
-    children: any;
-    icon?: string;
-    toolbarExtra?: any;
-    showTarget?: boolean;
-    showTheme?: boolean;
-    showAuthChip?: boolean;
-    showLogout?: boolean;
-    loginGate?: boolean;
-  }
+  const MUI = MaterialUI;
 
   function AppShell(props: AppShellProps) {
-    const w = window as any;
-    const bag = w[props.ns];
+    const bag = (window as unknown as Record<string, AppNamespace | undefined>)[props.ns];
     if (!bag?.Theme || !bag?.UI) {
       throw new Error("AppShell: registrar ISAFront para " + props.ns + " antes de renderizar");
     }
@@ -89,8 +74,7 @@
     );
   }
 
-  const ISA = (window as any).ISAFront || {};
-  ISA.Layout = ISA.Layout || {};
-  ISA.Layout.AppShell = AppShell;
-  (window as any).ISAFront = ISA;
+  window.ISAFront = window.ISAFront || ({} as IsaFrontApi);
+  window.ISAFront.Layout = window.ISAFront.Layout || ({} as IsaFrontApi["Layout"]);
+  window.ISAFront.Layout.AppShell = AppShell;
 })();

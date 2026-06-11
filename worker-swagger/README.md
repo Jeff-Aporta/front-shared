@@ -6,40 +6,49 @@ Cada backend expone:
 |------|-----------|
 | `GET /doc` | Especificación OpenAPI 3.0 (`openapi.json`) |
 | `GET /ui` | Swagger UI interactiva + panel JWT de prueba |
+| `POST /auth/token` | Proxy → system-login (excepto system-login nativo) |
+| `POST /auth/test-token` | Proxy → system-login — JWT Swagger 1 h |
 
 ## JWT de prueba en Swagger
 
-Todas las UIs incluyen un panel **«JWT de prueba (1 hora)»** que llama a system-login:
+Todas las UIs incluyen un panel **«JWT de prueba (1 hora)»** arriba de la documentación:
+
+1. Ingresa usuario y contraseña de la organización.
+2. El panel llama `POST /auth/test-token` en **el mismo Worker** (proxy a system-login).
+3. El JWT se aplica automáticamente al esquema **Bearer** de Swagger.
 
 ```
-POST {system-login}/auth/test-token
+POST /auth/test-token
 { "username": "…", "password": "…" }   // contraseña con transporte César (automático en el panel)
 ```
 
-Respuesta: JWT con `purpose=swagger-test` y expiración **1 hora**. El token se aplica automáticamente al esquema **Bearer** de Swagger.
+Respuesta: JWT con `purpose=swagger-test` y expiración **1 hora**.
 
-- Producción auth: `https://system-login.jeffaporta.workers.dev`
-- Local auth: `http://localhost:8781` (detectado en el navegador)
+- Auth real: `https://system-login.jeffaporta.workers.dev`
+- Local auth: `http://localhost:8781` (el proxy lo resuelve en `wrangler dev`)
 
 Login normal de apps (`POST /auth/token`) sigue emitiendo JWT de **30 días**.
 
 ## Integración
 
-1. Copiar `swagger.ts` → `{backend}/src/lib/swagger.ts`
-2. Crear `{backend}/src/openapi/spec.ts` con paths del servicio
+1. Copiar `swagger.ts` y `auth-proxy.ts` → `{backend}/src/lib/`
+2. Crear `{backend}/src/openapi/spec.ts` con paths del servicio + `...authOpenApiPaths()`
 3. En `index.ts`:
 
 ```typescript
+import { mountAuthProxy } from "./lib/auth-proxy.js";
 import { mountSwagger } from "./lib/swagger.js";
 import { openApiSpec } from "./openapi/spec.js";
 
+// No montar mountAuthProxy en system-login (rutas nativas).
+mountAuthProxy(app);
 mountSwagger(app, openApiSpec);
 ```
 
-4. Dependencias: `@hono/swagger-ui`, `zod` (schemas futuros con `@hono/zod-openapi`)
+4. Dependencias: `@hono/swagger-ui`, `hono`
 
 ## Actualizar documentación
 
-Editar `src/openapi/spec.ts` cuando agregues rutas. Opcional: migrar rutas a `createRoute` + `app.openapi()` para autogeneración con Zod.
+Editar `src/openapi/spec.ts` cuando agregues rutas.
 
-Tras cambiar `swagger.ts` canónico, volver a copiar a todos los backends.
+Tras cambiar `swagger.ts` o `auth-proxy.ts` canónicos, volver a copiar a todos los backends y **desplegar** los Workers.

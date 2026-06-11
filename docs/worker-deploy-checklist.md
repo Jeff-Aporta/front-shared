@@ -21,7 +21,12 @@ Cada Worker expone:
 |------|-----|
 | `/` | Health JSON |
 | `/doc` | OpenAPI 3.0 |
-| `/ui` | Swagger UI |
+| `/ui` | Swagger UI + panel **JWT de prueba** |
+| `POST /auth/test-token` | Proxy → system-login (JWT 1 h para Swagger) |
+| `POST /auth/token` | Proxy → system-login (login normal) |
+
+En `/ui`: panel superior con usuario/contraseña → obtiene JWT y autoriza Bearer automáticamente.
+Auth real siempre en **system-login**; los demás Workers solo hacen proxy.
 
 | Servicio | Swagger UI |
 |----------|------------|
