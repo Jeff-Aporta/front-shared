@@ -1,0 +1,30 @@
+/* ISA Front UI Common — layout + scrollbars dodgerblue */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+body {
+  margin: 0;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+}
+#root {
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel {
+  border: 1px solid rgba(30, 144, 255, 0.25);
+  border-radius: 12px;
+  padding: 16px 20px;
+  background: rgba(30, 144, 255, 0.04);
+}
+
+.rule-mono { font-family: Consolas, monospace; font-size: 0.82rem; word-break: break-all; }
+
+* { scrollbar-width: thin; scrollbar-color: rgba(30, 144, 255, 0.5) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: rgba(30, 144, 255, 0.45); border-radius: 6px; }

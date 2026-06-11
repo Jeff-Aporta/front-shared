@@ -1,0 +1,7 @@
+{
+  "name": "front-shared",
+  "private": true,
+  "scripts": {
+    "refresh:mui-llms": "curl -fsSL -o docs/mui-llms.txt https://mui.com/material-ui/llms.txt"
+  }
+}
