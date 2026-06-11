@@ -43,6 +43,6 @@ async function forwardAuthPost(c: Context, path: string): Promise<Response> {
 
 /** Monta proxy de auth (excepto en system-login, que ya expone las rutas nativas). */
 export function mountAuthProxy<E extends Env = Env>(app: Hono<E>): void {
-  app.post("/auth/token", (c) => forwardAuthPost(c, "/auth/token"));
-  app.post("/auth/test-token", (c) => forwardAuthPost(c, "/auth/test-token"));
+  app.post("/auth/token", (c) => forwardAuthPost(c, "/api/auth/token"));
+  app.post("/auth/test-token", (c) => forwardAuthPost(c, "/api/auth/test-token"));
 }

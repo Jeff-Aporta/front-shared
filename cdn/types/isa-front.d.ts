@@ -91,13 +91,40 @@ interface IsaFrontApi {
   rewriteViaGateway(url: string, gatewayBase: string): string;
   rewriteFlsItem(item: FlsFileItem, gatewayBase: string): FlsFileItem;
   registerApp(opts: Record<string, unknown>): void;
+  REALTIME: { CHECKS_UPDATED: string };
+  REALTIME_EVENT: string;
+  wsUrlFromHttpBase(httpBase: string): string;
+  showToast(opts: { message: string; severity?: string; durationMs?: number }): void;
   Layout: { AppShell: FC<AppShellProps> };
   Caesar?: { wrapPassword(plain: string): string };
+}
+
+interface IsaRealtime {
+  start(): void;
+  disconnect(): void;
+  ping(): void;
+  getStatus(): string;
+}
+
+interface IsaToast {
+  show(opts: { message: string; severity?: string; durationMs?: number }): void;
+}
+
+type RealtimeStatus = "disconnected" | "connecting" | "connected" | "reconnecting" | "error";
+
+interface ChecksUpdatedMessage {
+  type: "checks.updated";
+  project: string;
+  revisadoKey: string;
+  checked: boolean;
+  at: number;
 }
 
 interface AppNamespace {
   Auth?: IsaAuth;
   Session?: IsaSession;
+  Realtime?: IsaRealtime;
+  Toast?: IsaToast;
   UI: IsaUi;
   Theme: IsaTheme;
   Config?: IsaConfig;
@@ -239,27 +266,16 @@ interface IsajNs extends AppNamespace {
   Api: IsajApi;
   Session: IsaSession;
   Config: IsaConfig;
-  useSignalR?: (onMessage?: (payload: unknown) => void) => SignalRStatus;
+  Realtime?: IsaRealtime;
+  Toast?: IsaToast;
+  useRealtimeNotifications?: (opts: {
+    project: string;
+    onChecksUpdated?: (msg: ChecksUpdatedMessage) => void;
+  }) => RealtimeStatus;
   Storage?: {
     local: { get<T>(key: string): T | null; set(key: string, value: unknown): boolean; del(key: string): void };
     big: { get<T>(key: string): Promise<T | null>; set(key: string, value: unknown): Promise<boolean>; del(key: string): Promise<boolean> };
   };
-}
-
-type SignalRStatus = "disconnected" | "connecting" | "connected" | "reconnecting" | "error";
-
-interface SignalRHub {
-  on(event: string, handler: (payload: unknown) => void): void;
-  onreconnecting(handler: () => void): void;
-  onreconnected(handler: () => void): void;
-  start(): Promise<void>;
-  stop(): Promise<void>;
-}
-
-interface SignalRBuilder {
-  withUrl(url: string, opts: { accessTokenFactory: () => string }): SignalRBuilder;
-  withAutomaticReconnect(): SignalRBuilder;
-  build(): SignalRHub;
 }
 
 declare const React: ReactHooks;
@@ -276,5 +292,4 @@ interface Window {
   SLG: SlgNs;
   ISAJ: IsajNs;
   marked?: { parse(src: string): string };
-  signalR?: { HubConnectionBuilder: new () => SignalRBuilder };
 }

@@ -22,6 +22,7 @@ $repos = @(
   @{ R = "Jeff-Aporta/main-orchestrator-back"; Extra = @{} },
   @{ R = "Jeff-Aporta/system-login-back"; Extra = @{ AUTH_DATABASE_URL = $neon } },
   @{ R = "Jeff-Aporta/jagudeloe-back"; Extra = @{ ISADOC_DATABASE_URL = $neon } },
+  @{ R = "Jeff-Aporta/jagudeloe-tks-back"; Extra = @{ ISADOC_DATABASE_URL = $neon } },
   @{ R = "Jeff-Aporta/iatools-back"; Extra = @{ NEON_DATABASE_URL = $neon } },
   @{ R = "Jeff-Aporta/conversations-back"; Extra = @{ NEON_DATABASE_URL = $neon } },
   @{ R = "Jeff-Aporta/flsjeff-back"; Extra = @{ NEON_DATABASE_URL = $neon } }

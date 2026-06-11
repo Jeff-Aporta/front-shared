@@ -70,7 +70,7 @@ export function registerSession(ns, opts = {}) {
   }
 
   async function login(user, pass) {
-    const res = await fetch(authUrl("/auth/token"), {
+    const res = await fetch(authUrl("/api/auth/token"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: user.trim(), password: wrapPassword(pass) }),

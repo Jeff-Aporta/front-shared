@@ -11,6 +11,8 @@ import { makeDodgerTheme, createThemeApi, registerTheme } from "./ui/theme.js";
 import { createWidgets, registerWidgets } from "./ui/widgets.js";
 import { createLoginGates, registerLoginGates } from "./ui/login-gate.js";
 import { registerApp } from "./core/register-app.js";
+import { REALTIME, wsUrlFromHttpBase, createRealtime, registerRealtime, REALTIME_EVENT } from "./core/realtime.js";
+import { showToast, registerToast, TOAST_EVENT } from "./ui/toast.js";
 
 window.ISAFront = {
   CDN_BASE,
@@ -34,6 +36,14 @@ window.ISAFront = {
   createLoginGates,
   registerLoginGates,
   registerApp,
+  REALTIME,
+  REALTIME_EVENT,
+  wsUrlFromHttpBase,
+  createRealtime,
+  registerRealtime,
+  showToast,
+  registerToast,
+  TOAST_EVENT,
   Layout: {},
 };
 

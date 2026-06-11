@@ -20,23 +20,23 @@ Cada Worker expone:
 | Ruta | Uso |
 |------|-----|
 | `/` | Health JSON |
-| `/doc` | OpenAPI 3.0 |
-| `/ui` | Swagger UI + panel **JWT de prueba** |
-| `POST /auth/test-token` | Proxy → system-login (JWT 1 h para Swagger) |
-| `POST /auth/token` | Proxy → system-login (login normal) |
+| `/api/doc` | OpenAPI 3.0 |
+| `/api/ui` | Swagger UI + panel **JWT de prueba** |
+| `POST /api/auth/test-token` | Proxy → system-login (JWT 1 h para Swagger) |
+| `POST /api/auth/token` | Proxy → system-login (login normal) |
 
-En `/ui`: barra superior con **Iniciar sesión** (usuario/contraseña → JWT 1 h) y **Pegar JWT** (token manual). El botón **Authorize** nativo de Swagger UI sigue disponible.
+En `/api/ui`: barra superior con **Iniciar sesión** (usuario/contraseña → JWT 1 h) y **Pegar JWT** (token manual). El botón **Authorize** nativo de Swagger UI sigue disponible.
 Auth real siempre en **system-login**; los demás Workers solo hacen proxy.
 
 | Servicio | Swagger UI |
 |----------|------------|
-| **main-orchestrator** | https://main-orchestrator.jeffaporta.workers.dev/ui |
+| **main-orchestrator** | https://main-orchestrator.jeffaporta.workers.dev/api/ui |
 | **main-orchestrator (hub)** | https://jeff-aporta.github.io/main-orchestrator-front/ |
-| flsjeff | https://flsjeff.jeffaporta.workers.dev/ui |
-| system-login | https://system-login.jeffaporta.workers.dev/ui |
-| iatools | https://iatools.jeffaporta.workers.dev/ui |
-| conversations | https://conversations.jeffaporta.workers.dev/ui |
-| jagudeloe | https://jagudeloe.jeffaporta.workers.dev/ui |
+| flsjeff | https://flsjeff.jeffaporta.workers.dev/api/ui |
+| system-login | https://system-login.jeffaporta.workers.dev/api/ui |
+| iatools | https://iatools.jeffaporta.workers.dev/api/ui |
+| conversations | https://conversations.jeffaporta.workers.dev/api/ui |
+| jagudeloe | https://jagudeloe.jeffaporta.workers.dev/api/ui |
 
 Los **fronts** usan solo `MAIN_ORCHESTRATOR_URL_PROD` en front-shared. Borrar worker CF `langlab` tras migrar.
 

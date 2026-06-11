@@ -4,6 +4,8 @@ import { registerSession } from "./session.js";
 import { registerTheme } from "../ui/theme.js";
 import { registerWidgets } from "../ui/widgets.js";
 import { registerLoginGates } from "../ui/login-gate.js";
+import { registerRealtime } from "./realtime.js";
+import { registerToast } from "../ui/toast.js";
 
 /**
  * Registra módulos compartidos en window[ns].
@@ -38,5 +40,13 @@ export function registerApp(opts) {
     if (lg === "redirect" || (typeof lg === "object" && lg.mode === "redirect")) {
       window[ns].UI.LoginGate = window[ns].UI.LoginGateRedirect;
     }
+  }
+
+  if (opts.realtime) {
+    registerRealtime(ns, typeof opts.realtime === "object" ? opts.realtime : {});
+  }
+
+  if (opts.toast !== false) {
+    registerToast(ns);
   }
 }

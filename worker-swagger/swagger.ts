@@ -65,7 +65,7 @@ export function bearerComponents() {
         scheme: "bearer",
         bearerFormat: "JWT",
         description:
-          "JWT de system-login. Usa el panel «JWT de prueba» arriba (POST /auth/test-token, 1 h) o Authorize con un token propio.",
+          "JWT de system-login. Usa el panel «JWT de prueba» arriba (POST /api/auth/test-token, 1 h) o Authorize con un token propio.",
       },
     },
   };
@@ -96,7 +96,7 @@ export function authOpenApiPaths(opts: { proxied?: boolean } = {}) {
     ? "Proxy al servicio system-login (autenticación centralizada)."
     : "Autenticación centralizada Jeff-Aporta.";
   return {
-    "/auth/token": {
+    "/api/auth/token": {
       post: {
         tags: ["Auth"],
         summary: "Login — JWT 30 días",
@@ -109,7 +109,7 @@ export function authOpenApiPaths(opts: { proxied?: boolean } = {}) {
         },
       },
     },
-    "/auth/test-token": {
+    "/api/auth/test-token": {
       post: {
         tags: ["Auth"],
         summary: "JWT de prueba Swagger — 1 hora",
@@ -207,7 +207,7 @@ function buildSwaggerUiFragment(
   <div class="swagger-modal-backdrop" data-close="login"></div>
   <div class="swagger-modal-dialog" role="dialog" aria-labelledby="swagger-login-title">
     <h3 id="swagger-login-title">Iniciar sesión</h3>
-    <p class="swagger-modal-hint">Obtiene JWT de prueba (1 h) vía POST /auth/test-token${authBase ? " → " + authBase : " (proxy system-login)"}.</p>
+    <p class="swagger-modal-hint">Obtiene JWT de prueba (1 h) vía POST /api/auth/test-token${authBase ? " → " + authBase : " (proxy system-login)"}.</p>
     <label>Usuario<input id="swagger-auth-user" type="text" autocomplete="username" placeholder="usuario"/></label>
     <label>Contraseña<input id="swagger-auth-pass" type="password" autocomplete="current-password" placeholder="••••"/></label>
     <div class="swagger-modal-actions">
@@ -286,7 +286,7 @@ ${jsScripts}
   }
 
   async function fetchTestJwt(username, password) {
-    var res = await fetch(AUTH_BASE + "/auth/test-token", {
+    var res = await fetch(AUTH_BASE + "/api/auth/test-token", {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({ username: username, password: wrapPassword(password) }),
