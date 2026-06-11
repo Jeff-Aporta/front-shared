@@ -2,6 +2,7 @@
  * ISA Front — punto de entrada ESM (runtime, sin build).
  * jsDelivr: …/front-shared@main/cdn/isa/js/index.js
  */
+import "./core/caesar.js";
 import { CDN_BASE, UI_CDN_BASE } from "./core/constants.js";
 import { createApiConfig, registerConfig } from "./core/config.js";
 import { createAuth, registerAuth } from "./core/auth.js";

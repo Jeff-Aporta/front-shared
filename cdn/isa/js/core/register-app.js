@@ -1,5 +1,6 @@
 import { registerConfig } from "./config.js";
 import { registerAuth } from "./auth.js";
+import { registerSession } from "./session.js";
 import { registerTheme } from "../ui/theme.js";
 import { registerWidgets } from "../ui/widgets.js";
 import { registerLoginGates } from "../ui/login-gate.js";
@@ -14,7 +15,9 @@ export function registerApp(opts) {
 
   if (opts.api) registerConfig(ns, opts.api);
 
-  if (opts.auth !== false) {
+  if (opts.session) {
+    registerSession(ns, typeof opts.session === "object" ? opts.session : {});
+  } else if (opts.auth !== false) {
     registerAuth(ns, typeof opts.auth === "object" ? opts.auth : {});
   }
 

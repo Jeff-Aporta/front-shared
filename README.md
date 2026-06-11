@@ -39,6 +39,8 @@ Añadir un TSX nuevo: crear bajo `cdn/ui/` y registrar la ruta en `SHARED_UI_FIL
 
 Debe permanecer **público** — jsDelivr solo sirve repos públicos con `@main`. Tras cambios en `cdn/`, hacer push a `main` (puede tardar 1–2 min en propagarse).
 
+Los fronts **no duplican** `caesar`, `auth-api`, `session`, `stack` ni `AppShell`: todo se carga desde jsDelivr vía `boot-helper.mjs`.
+
 ## jsDelivr
 
 ```
@@ -47,7 +49,7 @@ https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@main/cdn/isa/js/index.js
 https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@main/cdn/ui/layouts/AppShell.tsx
 ```
 
-Local: `../../front-shared/cdn/…` desde `apps/<app>/frontend/`.
+Local: solo desarrollo de `front-shared` en la misma máquina; en GH Pages todo es jsDelivr.
 
 ## MUI llms
 

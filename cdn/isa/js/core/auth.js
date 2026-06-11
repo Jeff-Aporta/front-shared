@@ -1,4 +1,5 @@
 import { AUTH_DEFAULTS as D } from "./constants.js";
+import { wrapPassword } from "./caesar.js";
 
 /** Auth consumer — login contra system-login (sesión compartida). */
 export function createAuth(opts = {}) {
@@ -45,7 +46,7 @@ export function createAuth(opts = {}) {
     const res = await fetch(authBase().replace(/\/$/, "") + "/auth/token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: user, password: pass }),
+      body: JSON.stringify({ username: user, password: wrapPassword(pass) }),
     });
     const data = await res.json();
     if (!res.ok || !data.token) throw new Error(data.error || "Login fallido");

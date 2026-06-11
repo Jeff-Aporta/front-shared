@@ -1,27 +1,16 @@
 /**
  * Arranque compartido — usado desde loader.ts (Paty ISA) vía import() dinámico.
+ * Todo el CDN desde jsDelivr (repo público Jeff-Aporta/front-shared).
  */
 
-export function isaCdnBase() {
-  const { hostname } = globalThis.location;
-  if (hostname === "localhost" || hostname === "127.0.0.1") {
-    return new URL("../../front-shared/cdn/isa", document.baseURI).href.replace(/\/$/, "");
-  }
-  return "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@main/cdn/isa";
+const CDN = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@main/cdn";
+
+export function sharedCdnBase() {
+  return CDN;
 }
 
 export async function importShared(subpath) {
-  const cdn = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@main/cdn/" + subpath;
-  const { hostname } = globalThis.location;
-  if (hostname === "localhost" || hostname === "127.0.0.1") {
-    const local = new URL("../../front-shared/cdn/" + subpath, document.baseURI).href;
-    try {
-      return await import(local);
-    } catch (_) {
-      /* fallback jsDelivr */
-    }
-  }
-  return import(cdn);
+  return import(CDN + "/" + subpath);
 }
 
 export function showBootError(msg) {
@@ -40,30 +29,8 @@ export function assertStack() {
 }
 
 export async function loadIsaFront() {
-  const cdn = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@main/cdn/isa/js/index.js";
-  const { hostname } = globalThis.location;
-  if (hostname === "localhost" || hostname === "127.0.0.1") {
-    const local = new URL("../../front-shared/cdn/isa/js/index.js", document.baseURI).href;
-    try {
-      await import(local);
-      return;
-    } catch (_) {
-      /* jsDelivr */
-    }
-  }
-  await import(cdn);
+  await import(CDN + "/isa/js/index.js");
 }
-
-export function sharedUiBase() {
-  const { hostname } = globalThis.location;
-  if (hostname === "localhost" || hostname === "127.0.0.1") {
-    return new URL("../../front-shared/cdn/ui", document.baseURI).href.replace(/\/$/, "");
-  }
-  return "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@main/cdn/ui";
-}
-
-/** TSX compartidos — transpilados en runtime (mismo Babel que la app). */
-export const SHARED_UI_FILES = ["layouts/AppShell.tsx"];
 
 export async function transpileUrl(url, Babel) {
   if (!Babel?.transform) throw new Error("Babel standalone no cargó");
@@ -76,8 +43,11 @@ export async function transpileUrl(url, Babel) {
   eval(code);
 }
 
+/** TSX compartidos — transpilados en runtime (mismo Babel que la app). */
+export const SHARED_UI_FILES = ["layouts/AppShell.tsx"];
+
 export async function loadSharedUi(Babel) {
-  const base = sharedUiBase();
+  const base = CDN + "/ui";
   for (const file of SHARED_UI_FILES) {
     await transpileUrl(base + "/" + file, Babel);
   }
