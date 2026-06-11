@@ -2,6 +2,27 @@
 
 Notificaciones en tiempo real vía **Cloudflare Durable Objects** en el orquestador (`main-orchestrator`).
 
+## Arquitectura
+
+```mermaid
+flowchart LR
+  subgraph clients [Fronts]
+    J[jagudeloe-front]
+  end
+  subgraph orch [main-orchestrator]
+    WS["/api/ws"]
+    DO[SocketHub DO]
+    PX[proxy]
+  end
+  subgraph back [jagudeloe worker]
+    CH[POST /api/isa/.../checks]
+  end
+  J -->|WebSocket wss| WS --> DO
+  J -->|REST| PX --> CH
+  PX -->|checks.updated broadcast| DO
+  DO -->|push| J
+```
+
 ## Endpoint
 
 | Ruta | Uso |

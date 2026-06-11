@@ -2,6 +2,31 @@
 
 Recursos compartidos para micro-frontends Jeff-Aporta (GH Pages + Babel + MUI 9).
 
+## Arquitectura
+
+```mermaid
+flowchart LR
+  subgraph pages [Fronts GH Pages]
+    F1[jagudeloe-front]
+    F2[iatools-front]
+    FN[…]
+  end
+  subgraph cdn [front-shared jsDelivr]
+    BOOT[boot-helper.mjs]
+    ISA[cdn/isa/js]
+    UI[cdn/ui TSX]
+    CONST[constants.js]
+  end
+  subgraph orch [main-orchestrator]
+    API["/api/*"]
+  end
+  pages -->|import| BOOT
+  BOOT --> ISA & UI
+  ISA --> CONST
+  pages -->|REST| API
+  CONST -->|MAIN_ORCHESTRATOR_URL| pages
+```
+
 **Estructura detallada:** [`docs/STRUCTURE.md`](docs/STRUCTURE.md)
 
 ## Resumen

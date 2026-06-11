@@ -1,24 +1,42 @@
 # Swagger / OpenAPI — Workers Jeff-Aporta
 
-Cada backend expone:
+Cada backend expone documentación bajo **`/api/`** (salud en `/`).
+
+## Arquitectura
+
+```mermaid
+flowchart LR
+  CANON[worker-swagger canónico]
+  subgraph workers [Cada *-back]
+    SW[src/lib/swagger.ts]
+    UI["GET /api/ui dark"]
+    DOC["GET /api/doc"]
+    AUTH["POST /api/auth/test-token"]
+  end
+  SL[system-login]
+  CANON -->|copiar| SW
+  SW --> UI & DOC & AUTH
+  AUTH -->|proxy| SL
+```
 
 | Ruta | Contenido |
 |------|-----------|
-| `GET /doc` | Especificación OpenAPI 3.0 (`openapi.json`) |
+| `GET /` | Health JSON |
+| `GET /api/doc` | Especificación OpenAPI 3.0 (`openapi.json`) |
 | `GET /api/ui` | Swagger UI interactiva (dark mode) + panel JWT de prueba |
-| `POST /auth/token` | Proxy → system-login (excepto system-login nativo) |
-| `POST /auth/test-token` | Proxy → system-login — JWT Swagger 1 h |
+| `POST /api/auth/token` | Proxy → system-login (excepto system-login nativo) |
+| `POST /api/auth/test-token` | Proxy → system-login — JWT Swagger 1 h |
 
 ## JWT de prueba en Swagger
 
 Todas las UIs incluyen un panel **«JWT de prueba (1 hora)»** arriba de la documentación:
 
 1. Ingresa usuario y contraseña de la organización.
-2. El panel llama `POST /auth/test-token` en **el mismo Worker** (proxy a system-login).
+2. El panel llama `POST /api/auth/test-token` en **el mismo Worker** (proxy a system-login).
 3. El JWT se aplica automáticamente al esquema **Bearer** de Swagger.
 
 ```
-POST /auth/test-token
+POST /api/auth/test-token
 { "username": "…", "password": "…" }   // contraseña con transporte César (automático en el panel)
 ```
 
@@ -27,7 +45,7 @@ Respuesta: JWT con `purpose=swagger-test` y expiración **1 hora**.
 - Auth real: `https://system-login.jeffaporta.workers.dev`
 - Local auth: `http://localhost:8781` (el proxy lo resuelve en `wrangler dev`)
 
-Login normal de apps (`POST /auth/token`) sigue emitiendo JWT de **30 días**.
+Login normal de apps (`POST /api/auth/token`) sigue emitiendo JWT de **30 días**.
 
 ## Integración
 
