@@ -148,9 +148,31 @@ interface MoRouteRow {
   stripApi?: boolean;
 }
 
+interface MoCatalogEntry {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  frontUrl?: string;
+  swaggerUrl: string;
+  docUrl: string;
+  apiBase: string;
+  orchestratorPrefixes?: string[];
+  infra?: boolean;
+  orchestratorSwagger?: string;
+}
+
+interface MoCatalogResponse {
+  ok: boolean;
+  orchestratorBase: string;
+  note: string;
+  apps: MoCatalogEntry[];
+}
+
 interface MoApi {
   health(): Promise<{ ok: boolean; service: string; role: string }>;
   routes(): Promise<{ ok: boolean; routes: MoRouteRow[] }>;
+  catalog(): Promise<MoCatalogResponse>;
 }
 
 interface MoNs extends AppNamespace {

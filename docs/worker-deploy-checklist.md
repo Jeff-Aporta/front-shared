@@ -25,13 +25,13 @@ Cada Worker expone:
 | `POST /auth/test-token` | Proxy → system-login (JWT 1 h para Swagger) |
 | `POST /auth/token` | Proxy → system-login (login normal) |
 
-En `/ui`: panel superior con usuario/contraseña → obtiene JWT y autoriza Bearer automáticamente.
+En `/ui`: barra superior con **Iniciar sesión** (usuario/contraseña → JWT 1 h) y **Pegar JWT** (token manual). El botón **Authorize** nativo de Swagger UI sigue disponible.
 Auth real siempre en **system-login**; los demás Workers solo hacen proxy.
 
 | Servicio | Swagger UI |
 |----------|------------|
 | **main-orchestrator** | https://main-orchestrator.jeffaporta.workers.dev/ui |
-| **main-orchestrator (admin)** | https://jeff-aporta.github.io/main-orchestrator-front/ (repo privado) |
+| **main-orchestrator (hub)** | https://jeff-aporta.github.io/main-orchestrator-front/ |
 | flsjeff | https://flsjeff.jeffaporta.workers.dev/ui |
 | system-login | https://system-login.jeffaporta.workers.dev/ui |
 | iatools | https://iatools.jeffaporta.workers.dev/ui |

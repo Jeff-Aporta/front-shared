@@ -7,7 +7,7 @@ export const DODGER = "#1e90ff";
  */
 export const MAIN_ORCHESTRATOR_URL_PROD = "https://main-orchestrator.jeffaporta.workers.dev";
 export const MAIN_ORCHESTRATOR_URL_LOCAL = "http://localhost:8780";
-/** Panel admin (repo privado GH Pages). */
+/** Panel hub del ecosistema (GitHub Pages). */
 export const MAIN_ORCHESTRATOR_PAGES_URL = "https://jeff-aporta.github.io/main-orchestrator-front/";
 export const MAIN_ORCHESTRATOR_LS_KEY = "jeff:gateway-local";
 export const MAIN_ORCHESTRATOR_EVENT = "jeff:gateway-target";

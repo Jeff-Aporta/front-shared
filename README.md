@@ -33,13 +33,13 @@ React.createElement(Shell, {
 
 Añadir un TSX nuevo: crear bajo `cdn/ui/` y registrar la ruta en `SHARED_UI_FILES`.
 
-## Repositorio (público)
+## Repositorio GitHub
 
-**GitHub:** [Jeff-Aporta/front-shared](https://github.com/Jeff-Aporta/front-shared)
-
-Debe permanecer **público** — jsDelivr solo sirve repos públicos con `@main`. Tras cambios en `cdn/`, hacer push a `main` (puede tardar 1–2 min en propagarse).
+[jsDelivr](https://www.jsdelivr.com/) sirve `@main` solo desde repos accesibles. Tras cambios en `cdn/`, hacer push a `main` (puede tardar 1–2 min en propagarse).
 
 Los fronts **no duplican** `caesar`, `auth-api`, `session`, `stack` ni `AppShell`: todo se carga desde jsDelivr vía `boot-helper.mjs`.
+
+**GitHub:** [Jeff-Aporta/front-shared](https://github.com/Jeff-Aporta/front-shared)
 
 ## Main Orchestrator (URL central)
 
@@ -49,7 +49,7 @@ Todos los micro-frontends ISA usan **una sola URL**, definida solo aquí:
 |------|-----------|-------|
 | Producción | `MAIN_ORCHESTRATOR_URL_PROD` | `https://main-orchestrator.jeffaporta.workers.dev` |
 | Local | `MAIN_ORCHESTRATOR_URL_LOCAL` | `http://localhost:8780` |
-| Panel admin (privado) | `MAIN_ORCHESTRATOR_PAGES_URL` | `https://jeff-aporta.github.io/main-orchestrator-front/` |
+| Panel hub (GH Pages) | `MAIN_ORCHESTRATOR_PAGES_URL` | `https://jeff-aporta.github.io/main-orchestrator-front/` |
 
 Archivo: `cdn/isa/js/core/constants.js`
 

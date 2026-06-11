@@ -151,40 +151,82 @@ function buildSwaggerUiFragment(
 
   return `
 <style>
-  #swagger-auth-panel {
+  #swagger-auth-bar {
     font-family: system-ui, sans-serif;
-    padding: 12px 16px;
+    padding: 10px 16px;
     background: #1b2638;
     color: #e8eef7;
     border-bottom: 1px solid #2d3a4f;
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
   }
-  #swagger-auth-panel h2 { margin: 0 0 8px; font-size: 14px; font-weight: 600; }
-  #swagger-auth-panel .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-  #swagger-auth-panel label { font-size: 12px; display: flex; flex-direction: column; gap: 2px; }
-  #swagger-auth-panel input {
-    padding: 6px 8px; border-radius: 4px; border: 1px solid #3d4f6a;
-    background: #0f1623; color: #e8eef7; min-width: 140px;
-  }
-  #swagger-auth-panel button {
+  #swagger-auth-bar h2 { margin: 0; font-size: 14px; font-weight: 600; flex: 1 1 auto; }
+  #swagger-auth-bar button {
     padding: 7px 12px; border-radius: 4px; border: none; background: #1976d2;
     color: #fff; cursor: pointer; font-size: 13px;
   }
-  #swagger-auth-panel button:disabled { opacity: 0.6; cursor: wait; }
-  #swagger-auth-status { margin-top: 8px; font-size: 12px; min-height: 1.2em; }
+  #swagger-auth-bar button.secondary { background: #455a64; }
+  #swagger-auth-bar button:disabled { opacity: 0.6; cursor: wait; }
+  #swagger-auth-status { font-size: 12px; flex: 1 1 100%; min-height: 1.2em; }
   #swagger-auth-status.ok { color: #81c784; }
   #swagger-auth-status.err { color: #ff8a80; }
-  #swagger-auth-hint { font-size: 11px; opacity: 0.75; margin-top: 4px; }
+  .swagger-modal {
+    position: fixed; inset: 0; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .swagger-modal.hidden { display: none; }
+  .swagger-modal-backdrop {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.55);
+  }
+  .swagger-modal-dialog {
+    position: relative; z-index: 1; width: min(420px, 92vw);
+    background: #1b2638; color: #e8eef7; border-radius: 8px;
+    border: 1px solid #2d3a4f; padding: 16px 18px 18px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+  }
+  .swagger-modal-dialog h3 { margin: 0 0 12px; font-size: 16px; }
+  .swagger-modal-dialog label {
+    display: flex; flex-direction: column; gap: 4px;
+    font-size: 12px; margin-bottom: 10px;
+  }
+  .swagger-modal-dialog input, .swagger-modal-dialog textarea {
+    padding: 8px 10px; border-radius: 4px; border: 1px solid #3d4f6a;
+    background: #0f1623; color: #e8eef7; font-family: inherit; font-size: 13px;
+  }
+  .swagger-modal-dialog textarea { min-height: 100px; resize: vertical; font-family: ui-monospace, monospace; }
+  .swagger-modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+  .swagger-modal-hint { font-size: 11px; opacity: 0.75; margin: 0 0 10px; }
 </style>
-<div id="swagger-auth-panel">
-  <h2>JWT de prueba (1 hora)</h2>
-  <div class="row">
+<div id="swagger-auth-bar">
+  <h2>Autenticación Swagger</h2>
+  <button type="button" id="swagger-open-login">Iniciar sesión</button>
+  <button type="button" id="swagger-open-jwt" class="secondary">Pegar JWT</button>
+  <button type="button" id="swagger-auth-clear" class="secondary">Limpiar</button>
+  <div id="swagger-auth-status"></div>
+</div>
+<div id="swagger-login-modal" class="swagger-modal hidden" aria-hidden="true">
+  <div class="swagger-modal-backdrop" data-close="login"></div>
+  <div class="swagger-modal-dialog" role="dialog" aria-labelledby="swagger-login-title">
+    <h3 id="swagger-login-title">Iniciar sesión</h3>
+    <p class="swagger-modal-hint">Obtiene JWT de prueba (1 h) vía POST /auth/test-token${authBase ? " → " + authBase : " (proxy system-login)"}.</p>
     <label>Usuario<input id="swagger-auth-user" type="text" autocomplete="username" placeholder="usuario"/></label>
     <label>Contraseña<input id="swagger-auth-pass" type="password" autocomplete="current-password" placeholder="••••"/></label>
-    <button type="button" id="swagger-auth-btn">Obtener JWT y autorizar</button>
-    <button type="button" id="swagger-auth-clear" style="background:#455a64">Limpiar</button>
+    <div class="swagger-modal-actions">
+      <button type="button" class="secondary" data-close="login">Cancelar</button>
+      <button type="button" id="swagger-auth-btn">Obtener JWT y autorizar</button>
+    </div>
   </div>
-  <div id="swagger-auth-status"></div>
-  <div id="swagger-auth-hint">POST /auth/test-token${authBase ? " → " + authBase : " (proxy system-login)"} · Válido 1 h · purpose=swagger-test</div>
+</div>
+<div id="swagger-jwt-modal" class="swagger-modal hidden" aria-hidden="true">
+  <div class="swagger-modal-backdrop" data-close="jwt"></div>
+  <div class="swagger-modal-dialog" role="dialog" aria-labelledby="swagger-jwt-title">
+    <h3 id="swagger-jwt-title">Pegar JWT</h3>
+    <p class="swagger-modal-hint">Pega el token Bearer (con o sin prefijo «Bearer »). También puedes usar el botón Authorize nativo de Swagger UI.</p>
+    <label>Token<textarea id="swagger-jwt-paste" placeholder="eyJhbG…"></textarea></label>
+    <div class="swagger-modal-actions">
+      <button type="button" class="secondary" data-close="jwt">Cancelar</button>
+      <button type="button" id="swagger-jwt-apply">Aplicar JWT</button>
+    </div>
+  </div>
 </div>
 <div id="swagger-ui"></div>
 ${cssLinks}
@@ -259,6 +301,43 @@ ${jsScripts}
     return data;
   }
 
+  function openModal(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove("hidden");
+    el.setAttribute("aria-hidden", "false");
+  }
+  function closeModal(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add("hidden");
+    el.setAttribute("aria-hidden", "true");
+  }
+
+  function normalizeJwt(raw) {
+    var t = (raw || "").trim();
+    if (/^bearer\\s+/i.test(t)) t = t.replace(/^bearer\\s+/i, "");
+    return t;
+  }
+
+  function applyJwtPaste() {
+    var ta = document.getElementById("swagger-jwt-paste");
+    var token = normalizeJwt(ta ? ta.value : "");
+    if (!token) {
+      setStatus("Pega un JWT válido.", "err");
+      return;
+    }
+    if (!authorizeSwagger(token)) {
+      setStatus("No se pudo autorizar. Comprueba el token.", "err");
+      return;
+    }
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ token: token }));
+    } catch (e) { /* ignore */ }
+    setStatus("JWT aplicado manualmente.", "ok");
+    closeModal("swagger-jwt-modal");
+  }
+
   async function onAuthClick() {
     var userEl = document.getElementById("swagger-auth-user");
     var passEl = document.getElementById("swagger-auth-pass");
@@ -283,6 +362,7 @@ ${jsScripts}
         return;
       }
       setStatus("Autorizado como " + data.username + " · expira " + (data.expiresAt || "en 1 h"), "ok");
+      closeModal("swagger-login-modal");
     } catch (e) {
       setStatus(e.message || String(e), "err");
     } finally {
@@ -312,6 +392,16 @@ ${jsScripts}
 
   document.getElementById("swagger-auth-btn").addEventListener("click", onAuthClick);
   document.getElementById("swagger-auth-clear").addEventListener("click", clearSwaggerAuth);
+  document.getElementById("swagger-open-login").addEventListener("click", function () { openModal("swagger-login-modal"); });
+  document.getElementById("swagger-open-jwt").addEventListener("click", function () { openModal("swagger-jwt-modal"); });
+  document.getElementById("swagger-jwt-apply").addEventListener("click", applyJwtPaste);
+  document.querySelectorAll("[data-close]").forEach(function (el) {
+    el.addEventListener("click", function () {
+      var which = el.getAttribute("data-close");
+      if (which === "login") closeModal("swagger-login-modal");
+      if (which === "jwt") closeModal("swagger-jwt-modal");
+    });
+  });
 
   window.onload = function () {
     if (typeof SwaggerUIBundle === "undefined") {
