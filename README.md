@@ -9,6 +9,7 @@ Recursos compartidos para micro-frontends Jeff-Aporta (GH Pages + Babel + MUI 9)
 | Ruta | Rol |
 |------|-----|
 | `cdn/stack.mjs`, `boot-helper.mjs` | Arranque: React ESM único + pipeline loader |
+| `cdn/isa/js/core/app-meta.js` | Metadatos HTML por front (title, OG, favicon vía Iconify API) |
 | `cdn/isa/` | Runtime JS: `ISAFront.registerApp`, tema, auth, widgets, login |
 | `cdn/ui/` | **TSX compartidos** (layouts/componentes) vía CDN + Babel |
 | `docs/` | Stack, MUI llms, CORS, deploy |
@@ -32,6 +33,25 @@ React.createElement(Shell, {
 ```
 
 Añadir un TSX nuevo: crear bajo `cdn/ui/` y registrar la ruta en `SHARED_UI_FILES`.
+
+## Metadatos por front (`JeffAppMeta`)
+
+Cada `index.html` de micro-frontend puede declarar identidad propia (title, description, Open Graph, favicon):
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@main/cdn/isa/js/core/app-meta.js"></script>
+<script>
+JeffAppMeta.apply({
+  title: "Mi App — Jeff-Aporta",
+  description: "…",
+  icon: "mdi:robot-outline",
+  themeColor: "#e65100",
+  url: "https://jeff-aporta.github.io/mi-front/",
+});
+</script>
+```
+
+Favicon y miniatura OG usan temporalmente la [Iconify API](https://iconify.design/docs/api/icon.html) (`api.iconify.design`). Iconos alineados con `catalog.ts` del orquestador.
 
 ## Repositorio GitHub
 
