@@ -94,6 +94,8 @@ interface IsaFrontApi {
   REALTIME: { CHECKS_UPDATED: string };
   REALTIME_EVENT: string;
   wsUrlFromHttpBase(httpBase: string): string;
+  formatLocalDate?(value: unknown): string;
+  formatLocalDateTime?(value: unknown): string;
   showToast(opts: { message: string; severity?: string; durationMs?: number }): void;
   Layout: { AppShell: FC<AppShellProps> };
   Caesar?: { wrapPassword(plain: string): string };
@@ -255,6 +257,9 @@ interface IsajApi {
   getTicket(project: string, iticket: string | number): Promise<unknown>;
   getChecks(project: string): Promise<unknown>;
   setCheck(project: string, key: string, checked: boolean): Promise<unknown>;
+  getRevisadoMap?(project: string, force?: boolean): Promise<Record<string, boolean>>;
+  invalidateRevisadoCache?(project?: string): void;
+  execSql?(project: string, payload: { sql: string; dbTarget?: string; segmentId?: string }): Promise<unknown>;
 }
 
 interface IsajNs extends AppNamespace {

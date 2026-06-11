@@ -1,0 +1,12 @@
+flowchart LR
+  CANON[worker-swagger canónico]
+  subgraph workers [Cada *-back]
+    SW[src/lib/swagger.ts]
+    UI["GET /api/ui dark"]
+    DOC["GET /api/doc"]
+    AUTH["POST /api/auth/test-token"]
+  end
+  SL[system-login]
+  CANON -->|copiar| SW
+  SW --> UI & DOC & AUTH
+  AUTH -->|proxy| SL

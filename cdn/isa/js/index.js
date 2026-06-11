@@ -13,6 +13,7 @@ import { createLoginGates, registerLoginGates } from "./ui/login-gate.js";
 import { registerApp } from "./core/register-app.js";
 import { REALTIME, wsUrlFromHttpBase, createRealtime, registerRealtime, REALTIME_EVENT } from "./core/realtime.js";
 import { showToast, registerToast, TOAST_EVENT } from "./ui/toast.js";
+import { formatLocalDate, formatLocalDateTime } from "./core/format.js";
 
 window.ISAFront = {
   CDN_BASE,
@@ -44,6 +45,8 @@ window.ISAFront = {
   showToast,
   registerToast,
   TOAST_EVENT,
+  formatLocalDate,
+  formatLocalDateTime,
   Layout: {},
 };
 

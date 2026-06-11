@@ -39,6 +39,14 @@ Write-Host "`n=== jagudeloe tk_* ===" -ForegroundColor Cyan
 Push-Location (Join-Path $root "apps\jagudeloe\backend")
 try { node scripts/apply-tk-schema.mjs } finally { Pop-Location }
 
+Write-Host "`n=== devops BD_LANGLAB ===" -ForegroundColor Cyan
+Push-Location (Join-Path $root "apps\scripts")
+try {
+  if (-not (Test-Path node_modules\pg)) { npm install --silent 2>$null }
+  npm run db:apply-devops
+  npm run db:seed-devops
+} finally { Pop-Location }
+
 if ($Migrate -and -not $SkipAuthMigrate) {
   Write-Host "`n=== system-login migrate + seed ===" -ForegroundColor Cyan
   Push-Location (Join-Path $root "apps\system-login\backend")

@@ -3,10 +3,31 @@
  * Swagger UI + OpenAPI JSON en /ui y /doc, con panel de JWT de prueba (system-login).
  */
 import { swaggerUI } from "@hono/swagger-ui";
-import type { Env, Hono } from "hono";
+import type { Context, Env, Hono } from "hono";
 
 /** Swagger UI 5.31+ — estilos dark-mode nativos (`html.dark-mode`). */
 const SWAGGER_UI_VERSION = "5.31.0";
+
+export type FrontLink = { label: string; url: string };
+
+/** Paneles GH Pages por servicio (sincronizar con main-orchestrator/src/catalog.ts). */
+export const GH_PAGES_FRONTS: Record<string, FrontLink> = {
+  "main-orchestrator": {
+    label: "main-orchestrator-front",
+    url: "https://jeff-aporta.github.io/main-orchestrator-front/",
+  },
+  "system-login": {
+    label: "system-login-front",
+    url: "https://jeff-aporta.github.io/system-login-front/",
+  },
+  flsjeff: { label: "flsjeff-front", url: "https://jeff-aporta.github.io/flsjeff-front/" },
+  conversations: {
+    label: "conversations-front",
+    url: "https://jeff-aporta.github.io/conversations-front/",
+  },
+  iatools: { label: "iatools-front", url: "https://jeff-aporta.github.io/iatools-front/" },
+  jagudeloe: { label: "jagudeloe-front", url: "https://jeff-aporta.github.io/jagudeloe-front/" },
+};
 
 export type OpenApiSpec = {
   openapi: string;
@@ -34,7 +55,27 @@ export type MountSwaggerOpts = {
    */
   authLoginUrl?: string;
   title?: string;
+  /** Lookup en GH_PAGES_FRONTS si no pasas frontUrl/frontLinks. */
+  serviceId?: string;
+  /** Enlace único al panel GH Pages (override). */
+  frontUrl?: string;
+  frontLabel?: string;
+  /** Varios enlaces al pie (p. ej. Swagger agregado del orquestador). */
+  frontLinks?: FrontLink[];
+  /** Si se define, /doc devuelve el spec agregado en runtime. */
+  resolveSpec?: (c: Context) => Promise<OpenApiSpec> | OpenApiSpec;
 };
+
+function resolveFrontLinks(opts: MountSwaggerOpts): FrontLink[] {
+  if (opts.frontLinks?.length) return opts.frontLinks;
+  if (opts.frontUrl) {
+    return [{ label: opts.frontLabel ?? "GitHub Pages", url: opts.frontUrl }];
+  }
+  if (opts.serviceId && GH_PAGES_FRONTS[opts.serviceId]) {
+    return [GH_PAGES_FRONTS[opts.serviceId]];
+  }
+  return [];
+}
 
 export function mountSwagger<E extends Env = Env>(
   app: Hono<E>,
@@ -47,8 +88,24 @@ export function mountSwagger<E extends Env = Env>(
   const specUrl = apiPrefix ? `${apiPrefix}${docPath}` : docPath;
   const authLoginUrl = opts.authLoginUrl ?? "";
   const title = opts.title ?? spec.info.title + " — Swagger";
+  const frontFooterHtml = buildFrontFooterHtml(resolveFrontLinks(opts));
 
-  app.get(docPath, (c) => c.json(spec));
+  app.get(docPath, async (c) => {
+    if (opts.resolveSpec) {
+      const url = new URL(c.req.url);
+      if (url.searchParams.has("fresh")) {
+        try {
+          const { clearAggregatedSpecCache } = await import("../openapi/aggregate.js");
+          clearAggregatedSpecCache();
+        } catch {
+          /* solo main-orchestrator */
+        }
+      }
+      const resolved = await opts.resolveSpec(c);
+      return c.json(resolved);
+    }
+    return c.json(spec);
+  });
   app.get(
     uiPath,
     swaggerUI({
@@ -56,7 +113,8 @@ export function mountSwagger<E extends Env = Env>(
       url: specUrl,
       persistAuthorization: true,
       title,
-      manuallySwaggerUIHtml: (asset) => buildSwaggerUiFragment(asset, specUrl, authLoginUrl),
+      manuallySwaggerUIHtml: (asset) =>
+        buildSwaggerUiFragment(asset, specUrl, authLoginUrl, frontFooterHtml),
     }),
   );
 }
@@ -76,7 +134,7 @@ export function bearerComponents() {
         scheme: "bearer",
         bearerFormat: "JWT",
         description:
-          "JWT de system-login. Usa el panel «JWT de prueba» arriba (POST /api/auth/test-token, 1 h) o Authorize con un token propio.",
+          "Token de acceso. Pide uno de prueba con el botón superior o pega el tuyo en Authorize.",
       },
     },
   };
@@ -93,7 +151,7 @@ const authCredBody = {
           username: { type: "string", example: "admin" },
           password: {
             type: "string",
-            description: "Contraseña con transporte César (el panel Swagger la codifica automáticamente).",
+            description: "Tu contraseña (el panel la envía codificada automáticamente).",
           },
         },
       },
@@ -104,8 +162,8 @@ const authCredBody = {
 /** Rutas Auth documentadas en cada Worker (proxy → system-login, salvo system-login nativo). */
 export function authOpenApiPaths(opts: { proxied?: boolean } = {}) {
   const note = opts.proxied !== false
-    ? "Proxy al servicio system-login (autenticación centralizada)."
-    : "Autenticación centralizada Jeff-Aporta.";
+    ? "Usa el mismo login que el resto del ecosistema."
+    : "Inicio de sesión del ecosistema Jeff-Aporta.";
   return {
     "/api/auth/token": {
       post: {
@@ -125,7 +183,7 @@ export function authOpenApiPaths(opts: { proxied?: boolean } = {}) {
         tags: ["Auth"],
         summary: "JWT de prueba Swagger — 1 hora",
         description:
-          note + " Emite JWT con purpose=swagger-test. Usar desde el panel superior o Try it out.",
+          note + " Token de prueba válido 1 hora. Úsalo desde el panel superior.",
         requestBody: authCredBody,
         responses: {
           "200": jsonResponse("JWT de prueba emitido"),
@@ -145,11 +203,30 @@ function escHtml(s: string): string {
     .replace(/>/g, "&gt;");
 }
 
+function buildFrontFooterHtml(links: FrontLink[]): string {
+  if (!links.length) return "";
+  const items = links
+    .map(
+      (l) =>
+        `<li><a href="${escHtml(l.url)}" target="_blank" rel="noopener noreferrer">${escHtml(l.label)}</a></li>`,
+    )
+    .join("\n      ");
+  const heading = links.length > 1 ? "Paneles en GitHub Pages" : "Panel en GitHub Pages";
+  return `
+<footer id="swagger-front-footer">
+  <p>${heading}</p>
+  <ul>
+      ${items}
+  </ul>
+</footer>`;
+}
+
 /** Fragmento HTML insertado en <body> por @hono/swagger-ui (no documento completo). */
 function buildSwaggerUiFragment(
   asset: { css: string[]; js: string[] },
   docPath: string,
   authLoginUrl: string,
+  frontFooterHtml: string,
 ): string {
   const specUrl = escHtml(docPath);
   const authBase = authLoginUrl
@@ -212,6 +289,19 @@ function buildSwaggerUiFragment(
   .swagger-modal-dialog textarea { min-height: 100px; resize: vertical; font-family: ui-monospace, monospace; }
   .swagger-modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
   .swagger-modal-hint { font-size: 11px; opacity: 0.75; margin: 0 0 10px; }
+  #swagger-front-footer {
+    font-family: system-ui, sans-serif;
+    margin: 32px auto 48px;
+    padding: 16px 24px;
+    max-width: 1460px;
+    border-top: 1px solid #2d3a4f;
+    color: #b0bec5;
+    font-size: 13px;
+  }
+  #swagger-front-footer p { margin: 0 0 8px; font-weight: 600; color: #e4e6e6; }
+  #swagger-front-footer ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 8px 20px; }
+  #swagger-front-footer a { color: #64b5f6; text-decoration: none; }
+  #swagger-front-footer a:hover { text-decoration: underline; }
 </style>
 <div id="swagger-auth-bar">
   <h2>Autenticación Swagger</h2>
@@ -246,6 +336,7 @@ function buildSwaggerUiFragment(
   </div>
 </div>
 <div id="swagger-ui"></div>
+${frontFooterHtml}
 ${cssLinks}
 ${jsScripts}
 <script>
@@ -280,6 +371,19 @@ ${jsScripts}
     if (!el) return;
     el.textContent = msg || "";
     el.className = kind || "";
+  }
+
+  function formatLocalDateTime(iso) {
+    if (!iso) return "";
+    var s = String(iso).trim();
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+    var d = m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : new Date(s);
+    if (isNaN(d.getTime())) return s;
+    return d.toLocaleString(undefined, {
+      year: "numeric", month: "short", day: "numeric",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
+      hour12: false,
+    });
   }
 
   function authorizeSwagger(token) {
@@ -378,7 +482,7 @@ ${jsScripts}
         setStatus("JWT obtenido. Usa Authorize y pega el token si no se aplicó solo.", "err");
         return;
       }
-      setStatus("Autorizado como " + data.username + " · expira " + (data.expiresAt || "en 1 h"), "ok");
+      setStatus("Autorizado como " + data.username + " · expira " + (data.expiresAt ? formatLocalDateTime(data.expiresAt) : "en 1 h"), "ok");
       closeModal("swagger-login-modal");
     } catch (e) {
       setStatus(e.message || String(e), "err");
@@ -400,7 +504,7 @@ ${jsScripts}
       if (authorizeSwagger(saved.token)) {
         setStatus(
           "Sesión restaurada" + (saved.username ? " (" + saved.username + ")" : "") +
-            (saved.expiresAt ? " · expira " + saved.expiresAt : ""),
+            (saved.expiresAt ? " · expira " + formatLocalDateTime(saved.expiresAt) : ""),
           "ok",
         );
       }

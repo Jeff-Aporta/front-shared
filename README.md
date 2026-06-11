@@ -3,29 +3,9 @@
 Recursos compartidos para micro-frontends Jeff-Aporta (GH Pages + Babel + MUI 9).
 
 ## Arquitectura
+![Diagrama de arquitectura](https://mermaid.ink/img/JSV7aW5pdDogeyJmbG93Y2hhcnQiOiB7ImN1cnZlIjogInN0ZXBBZnRlciIsICJodG1sTGFiZWxzIjogdHJ1ZSwgIm5vZGVTcGFjaW5nIjogNDQsICJyYW5rU3BhY2luZyI6IDUyLCAicGFkZGluZyI6IDE4fX19JSUKZmxvd2NoYXJ0IExSCiAgc3ViZ3JhcGggcGFnZXMgW0Zyb250cyBHSCBQYWdlc10KICAgIEYxW2phZ3VkZWxvZS1mcm9udF0KICAgIEYyW2lhdG9vbHMtZnJvbnRdCiAgICBGTlvigKZdCiAgZW5kCiAgc3ViZ3JhcGggY2RuIFtmcm9udC1zaGFyZWQganNEZWxpdnJdCiAgICBCT09UW2Jvb3QtaGVscGVyLm1qc10KICAgIElTQVtjZG4vaXNhL2pzXQogICAgVUlbY2RuL3VpIFRTWF0KICAgIENPTlNUW2NvbnN0YW50cy5qc10KICBlbmQKICBzdWJncmFwaCBvcmNoIFttYWluLW9yY2hlc3RyYXRvcl0KICAgIEFQSVsiL2FwaS8qIl0KICBlbmQKICBwYWdlcyAtLT58aW1wb3J0fCBCT09UCiAgQk9PVCAtLT4gSVNBICYgVUkKICBJU0EgLS0-IENPTlNUCiAgcGFnZXMgLS0-fFJFU1R8IEFQSQogIENPTlNUIC0tPnxNQUlOX09SQ0hFU1RSQVRPUl9VUkx8IHBhZ2Vz)
 
-```mermaid
-flowchart LR
-  subgraph pages [Fronts GH Pages]
-    F1[jagudeloe-front]
-    F2[iatools-front]
-    FN[…]
-  end
-  subgraph cdn [front-shared jsDelivr]
-    BOOT[boot-helper.mjs]
-    ISA[cdn/isa/js]
-    UI[cdn/ui TSX]
-    CONST[constants.js]
-  end
-  subgraph orch [main-orchestrator]
-    API["/api/*"]
-  end
-  pages -->|import| BOOT
-  BOOT --> ISA & UI
-  ISA --> CONST
-  pages -->|REST| API
-  CONST -->|MAIN_ORCHESTRATOR_URL| pages
-```
+> **Fuente del diagrama:** [`docs/arquitectura.mmd`](docs/arquitectura.mmd) — editar el `.mmd`; regenerar imagen: `node scripts/mermaid-ink-url.mjs front-shared/docs/arquitectura.mmd` (desde `apps/`).
 
 **Estructura detallada:** [`docs/STRUCTURE.md`](docs/STRUCTURE.md)
 

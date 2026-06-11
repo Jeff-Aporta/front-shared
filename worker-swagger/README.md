@@ -3,27 +3,15 @@
 Cada backend expone documentación bajo **`/api/`** (salud en `/`).
 
 ## Arquitectura
+![Diagrama de arquitectura](https://mermaid.ink/img/JSV7aW5pdDogeyJmbG93Y2hhcnQiOiB7ImN1cnZlIjogInN0ZXBBZnRlciIsICJodG1sTGFiZWxzIjogdHJ1ZSwgIm5vZGVTcGFjaW5nIjogNDQsICJyYW5rU3BhY2luZyI6IDUyLCAicGFkZGluZyI6IDE4fX19JSUKZmxvd2NoYXJ0IExSCiAgQ0FOT05bd29ya2VyLXN3YWdnZXIgY2Fuw7NuaWNvXQogIHN1YmdyYXBoIHdvcmtlcnMgW0NhZGEgKi1iYWNrXQogICAgU1dbc3JjL2xpYi9zd2FnZ2VyLnRzXQogICAgVUlbIkdFVCAvYXBpL3VpIGRhcmsiXQogICAgRE9DWyJHRVQgL2FwaS9kb2MiXQogICAgQVVUSFsiUE9TVCAvYXBpL2F1dGgvdGVzdC10b2tlbiJdCiAgZW5kCiAgU0xbc3lzdGVtLWxvZ2luXQogIENBTk9OIC0tPnxjb3BpYXJ8IFNXCiAgU1cgLS0-IFVJICYgRE9DICYgQVVUSAogIEFVVEggLS0-fHByb3h5fCBTTA==)
 
-```mermaid
-flowchart LR
-  CANON[worker-swagger canónico]
-  subgraph workers [Cada *-back]
-    SW[src/lib/swagger.ts]
-    UI["GET /api/ui dark"]
-    DOC["GET /api/doc"]
-    AUTH["POST /api/auth/test-token"]
-  end
-  SL[system-login]
-  CANON -->|copiar| SW
-  SW --> UI & DOC & AUTH
-  AUTH -->|proxy| SL
-```
+> **Fuente del diagrama:** [`docs/arquitectura.mmd`](docs/arquitectura.mmd) — editar el `.mmd`; regenerar imagen: `node scripts/mermaid-ink-url.mjs front-shared/worker-swagger/docs/arquitectura.mmd` (desde `apps/`).
 
 | Ruta | Contenido |
 |------|-----------|
 | `GET /` | Health JSON |
 | `GET /api/doc` | Especificación OpenAPI 3.0 (`openapi.json`) |
-| `GET /api/ui` | Swagger UI interactiva (dark mode) + panel JWT de prueba |
+| `GET /api/ui` | Swagger UI interactiva (dark mode) + panel JWT de prueba + enlace al front GH Pages |
 | `POST /api/auth/token` | Proxy → system-login (excepto system-login nativo) |
 | `POST /api/auth/test-token` | Proxy → system-login — JWT Swagger 1 h |
 
@@ -47,10 +35,18 @@ Respuesta: JWT con `purpose=swagger-test` y expiración **1 hora**.
 
 Login normal de apps (`POST /api/auth/token`) sigue emitiendo JWT de **30 días**.
 
+## Enlace al front (GitHub Pages)
+
+Al final de cada Swagger UI aparece un pie con el panel GH Pages del servicio (si existe). Configuración en `mountSwagger`:
+
+- `serviceId` — lookup en `GH_PAGES_FRONTS` (flsjeff, jagudeloe, …)
+- `frontUrl` / `frontLabel` — override manual (p. ej. jagudeloe-tks → jagudeloe-front)
+- `frontLinks` — lista de enlaces (Swagger agregado del orquestador)
+
 ## Integración
 
-1. Copiar `swagger.ts` y `auth-proxy.ts` → `{backend}/src/lib/`
-2. Crear `{backend}/src/openapi/spec.ts` con paths del servicio + `...authOpenApiPaths()`
+1. Copiar `swagger.ts`, `openapi-params.ts` y `auth-proxy.ts` → `{backend}/src/lib/`
+2. Crear `{backend}/src/openapi/spec.ts` con paths del servicio + `...authOpenApiPaths()`. Usar helpers de `openapi-params.ts` (`pathEnum`, `tkSpaceParam`, etc.) para selects y valores de prueba.
 3. En `index.ts`:
 
 ```typescript
@@ -69,6 +65,6 @@ Swagger UI se carga en **v5.31+** con clase `dark-mode` en `<html>` (tema oscuro
 
 ## Actualizar documentación
 
-Editar `src/openapi/spec.ts` cuando agregues rutas.
+Editar `src/openapi/spec.ts` cuando agregues rutas. Para parámetros restringidos preferir `pathEnum` / `queryEnum` (renderizan `<select>` en Swagger UI) y `default` + `example` para Try it out.
 
-Tras cambiar `swagger.ts` o `auth-proxy.ts` canónicos, volver a copiar a todos los backends y **desplegar** los Workers.
+Tras cambiar `swagger.ts`, `openapi-params.ts` o `auth-proxy.ts` canónicos, volver a copiar a todos los backends y **desplegar** los Workers.
