@@ -41,6 +41,22 @@ Debe permanecer **público** — jsDelivr solo sirve repos públicos con `@main`
 
 Los fronts **no duplican** `caesar`, `auth-api`, `session`, `stack` ni `AppShell`: todo se carga desde jsDelivr vía `boot-helper.mjs`.
 
+## Main Orchestrator (URL central)
+
+Todos los micro-frontends ISA usan **una sola URL**, definida solo aquí:
+
+| Modo | Constante | Valor |
+|------|-----------|-------|
+| Producción | `MAIN_ORCHESTRATOR_URL_PROD` | `https://main-orchestrator.jeffaporta.workers.dev` |
+| Local | `MAIN_ORCHESTRATOR_URL_LOCAL` | `http://localhost:8780` |
+| Panel admin (privado) | `MAIN_ORCHESTRATOR_PAGES_URL` | `https://jeff-aporta.github.io/main-orchestrator-front/` |
+
+Archivo: `cdn/isa/js/core/constants.js`
+
+Los fronts **no** repiten la URL en `isa-setup.ts`; `registerApp()` aplica estos defaults.
+
+Tras cambiar la URL: **push a front-shared** (jsDelivr) y redeploy del worker `main-orchestrator`.
+
 ## jsDelivr
 
 ```

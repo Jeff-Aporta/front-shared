@@ -84,6 +84,12 @@ interface IsaFrontApi {
   CDN_BASE: string;
   uiBase: string;
   cssUrl: string;
+  MAIN_ORCHESTRATOR_URL_PROD: string;
+  MAIN_ORCHESTRATOR_URL_LOCAL: string;
+  GATEWAY_URL_PROD: string;
+  GATEWAY_URL_LOCAL: string;
+  rewriteViaGateway(url: string, gatewayBase: string): string;
+  rewriteFlsItem(item: FlsFileItem, gatewayBase: string): FlsFileItem;
   registerApp(opts: Record<string, unknown>): void;
   Layout: { AppShell: FC<AppShellProps> };
   Caesar?: { wrapPassword(plain: string): string };
@@ -133,6 +139,24 @@ interface IatApi {
 interface IatNs extends AppNamespace {
   Api: IatApi;
   Auth: IsaAuth;
+}
+
+interface MoRouteRow {
+  service: string;
+  base: string;
+  prefixes: string[];
+  stripApi?: boolean;
+}
+
+interface MoApi {
+  health(): Promise<{ ok: boolean; service: string; role: string }>;
+  routes(): Promise<{ ok: boolean; routes: MoRouteRow[] }>;
+}
+
+interface MoNs extends AppNamespace {
+  Api: MoApi;
+  Auth: IsaAuth;
+  Config: IsaConfig;
 }
 
 interface ConvApi {
@@ -225,6 +249,7 @@ interface Window {
   ISAFront: IsaFrontApi;
   FLS: FlsNs;
   IAT: IatNs;
+  MO: MoNs;
   CONV: ConvNs;
   SLG: SlgNs;
   ISAJ: IsajNs;

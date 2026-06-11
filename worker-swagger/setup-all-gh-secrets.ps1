@@ -19,6 +19,7 @@ $neon = $v.NEON_DATABASE_URL
 $jwt = $v.LAB_JWT_SECRET
 
 $repos = @(
+  @{ R = "Jeff-Aporta/main-orchestrator-back"; Extra = @{} },
   @{ R = "Jeff-Aporta/system-login-back"; Extra = @{ AUTH_DATABASE_URL = $neon } },
   @{ R = "Jeff-Aporta/jagudeloe-back"; Extra = @{ ISADOC_DATABASE_URL = $neon } },
   @{ R = "Jeff-Aporta/iatools-back"; Extra = @{ NEON_DATABASE_URL = $neon } },

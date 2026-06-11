@@ -30,11 +30,15 @@ Auth real siempre en **system-login**; los demás Workers solo hacen proxy.
 
 | Servicio | Swagger UI |
 |----------|------------|
+| **main-orchestrator** | https://main-orchestrator.jeffaporta.workers.dev/ui |
+| **main-orchestrator (admin)** | https://jeff-aporta.github.io/main-orchestrator-front/ (repo privado) |
 | flsjeff | https://flsjeff.jeffaporta.workers.dev/ui |
 | system-login | https://system-login.jeffaporta.workers.dev/ui |
 | iatools | https://iatools.jeffaporta.workers.dev/ui |
 | conversations | https://conversations.jeffaporta.workers.dev/ui |
 | jagudeloe | https://jagudeloe.jeffaporta.workers.dev/ui |
+
+Los **fronts** usan solo `MAIN_ORCHESTRATOR_URL_PROD` en front-shared. Borrar worker CF `langlab` tras migrar.
 
 ## Badge rojo en GitHub
 

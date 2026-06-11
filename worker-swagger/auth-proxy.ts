@@ -3,6 +3,7 @@
  * Permite POST /auth/token y /auth/test-token en cada Worker (mismo origen para Swagger UI).
  */
 import type { Context, Env, Hono } from "hono";
+import { withCors } from "./cors.js";
 import { SYSTEM_LOGIN_URL_LOCAL, SYSTEM_LOGIN_URL_PROD } from "./swagger.js";
 
 export type AuthProxyEnv = { SYSTEM_LOGIN_URL?: string };
@@ -37,7 +38,7 @@ async function forwardAuthPost(c: Context, path: string): Promise<Response> {
   if (ct) headers.set("Content-Type", ct);
   const retryAfter = res.headers.get("Retry-After");
   if (retryAfter) headers.set("Retry-After", retryAfter);
-  return new Response(text, { status: res.status, headers });
+  return withCors(new Response(text, { status: res.status, headers }), c.req.header("Origin"));
 }
 
 /** Monta proxy de auth (excepto en system-login, que ya expone las rutas nativas). */

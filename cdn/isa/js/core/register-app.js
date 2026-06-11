@@ -13,7 +13,9 @@ export function registerApp(opts) {
   if (!ns) throw new Error("ISAFront.registerApp: ns requerido");
   window[ns] = window[ns] || {};
 
-  if (opts.api) registerConfig(ns, opts.api);
+  if (opts.api !== false) {
+    registerConfig(ns, opts.api && typeof opts.api === "object" ? opts.api : {});
+  }
 
   if (opts.session) {
     registerSession(ns, typeof opts.session === "object" ? opts.session : {});
