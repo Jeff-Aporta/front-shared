@@ -33,6 +33,12 @@ React.createElement(Shell, {
 
 Añadir un TSX nuevo: crear bajo `cdn/ui/` y registrar la ruta en `SHARED_UI_FILES`.
 
+## Repositorio (público)
+
+**GitHub:** [Jeff-Aporta/front-shared](https://github.com/Jeff-Aporta/front-shared)
+
+Debe permanecer **público** — jsDelivr solo sirve repos públicos con `@main`. Tras cambios en `cdn/`, hacer push a `main` (puede tardar 1–2 min en propagarse).
+
 ## jsDelivr
 
 ```
