@@ -5,6 +5,9 @@
 import { swaggerUI } from "@hono/swagger-ui";
 import type { Env, Hono } from "hono";
 
+/** Swagger UI 5.31+ — estilos dark-mode nativos (`html.dark-mode`). */
+const SWAGGER_UI_VERSION = "5.31.0";
+
 export type OpenApiSpec = {
   openapi: string;
   info: { title: string; version: string; description?: string };
@@ -42,6 +45,7 @@ export function mountSwagger<E extends Env = Env>(
   app.get(
     uiPath,
     swaggerUI({
+      version: SWAGGER_UI_VERSION,
       url: docPath,
       persistAuthorization: true,
       title,
@@ -151,6 +155,12 @@ function buildSwaggerUiFragment(
 
   return `
 <style>
+  html.dark-mode,
+  html.dark-mode body {
+    background: #1C2022;
+    color: #E4E6E6;
+    margin: 0;
+  }
   #swagger-auth-bar {
     font-family: system-ui, sans-serif;
     padding: 10px 16px;
@@ -408,11 +418,13 @@ ${jsScripts}
       setStatus("No se pudo cargar Swagger UI.", "err");
       return;
     }
+    document.documentElement.classList.add("dark-mode");
     window.ui = SwaggerUIBundle({
       url: specUrl,
       dom_id: "#swagger-ui",
       deepLinking: true,
       persistAuthorization: true,
+      syntaxHighlight: { activated: true, theme: "monokai" },
       onComplete: function () { restoreStoredJwt(); },
     });
   };

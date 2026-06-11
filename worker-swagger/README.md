@@ -5,7 +5,7 @@ Cada backend expone:
 | Ruta | Contenido |
 |------|-----------|
 | `GET /doc` | Especificación OpenAPI 3.0 (`openapi.json`) |
-| `GET /ui` | Swagger UI interactiva + panel JWT de prueba |
+| `GET /api/ui` | Swagger UI interactiva (dark mode) + panel JWT de prueba |
 | `POST /auth/token` | Proxy → system-login (excepto system-login nativo) |
 | `POST /auth/test-token` | Proxy → system-login — JWT Swagger 1 h |
 
@@ -46,6 +46,8 @@ mountSwagger(app, openApiSpec);
 ```
 
 4. Dependencias: `@hono/swagger-ui`, `hono`
+
+Swagger UI se carga en **v5.31+** con clase `dark-mode` en `<html>` (tema oscuro fijo).
 
 ## Actualizar documentación
 
