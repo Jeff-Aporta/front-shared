@@ -24,6 +24,11 @@ export type MountSwaggerOpts = {
   docPath?: string;
   uiPath?: string;
   /**
+   * Prefijo público cuando `mountSwagger` va en un sub-router montado en `/api`.
+   * Usar `""` si montas en la app raíz (p. ej. langlab legacy).
+   */
+  apiPrefix?: string;
+  /**
    * Base URL para el panel JWT. Por defecto "" = mismo origen (requiere mountAuthProxy).
    * Pasa SYSTEM_LOGIN_URL_PROD solo si no usas proxy.
    */
@@ -38,6 +43,8 @@ export function mountSwagger<E extends Env = Env>(
 ) {
   const docPath = opts.docPath ?? "/doc";
   const uiPath = opts.uiPath ?? "/ui";
+  const apiPrefix = opts.apiPrefix ?? "/api";
+  const specUrl = apiPrefix ? `${apiPrefix}${docPath}` : docPath;
   const authLoginUrl = opts.authLoginUrl ?? "";
   const title = opts.title ?? spec.info.title + " — Swagger";
 
@@ -46,10 +53,10 @@ export function mountSwagger<E extends Env = Env>(
     uiPath,
     swaggerUI({
       version: SWAGGER_UI_VERSION,
-      url: docPath,
+      url: specUrl,
       persistAuthorization: true,
       title,
-      manuallySwaggerUIHtml: (asset) => buildSwaggerUiFragment(asset, docPath, authLoginUrl),
+      manuallySwaggerUIHtml: (asset) => buildSwaggerUiFragment(asset, specUrl, authLoginUrl),
     }),
   );
 }
