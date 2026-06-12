@@ -1,5 +1,24 @@
 import { DODGER } from "../core/constants.js";
 
+/** Sin mayúsculas forzadas — cada label define su propia capitalización. */
+export const dodgerComponentOverrides = {
+  MuiButton: {
+    styleOverrides: {
+      root: { textTransform: "none" },
+    },
+  },
+  MuiTab: {
+    styleOverrides: {
+      root: { textTransform: "none" },
+    },
+  },
+  MuiToggleButton: {
+    styleOverrides: {
+      root: { textTransform: "none" },
+    },
+  },
+};
+
 export function makeDodgerTheme(MUI, mode) {
   const dark = mode === "dark";
   return MUI.createTheme({
@@ -16,6 +35,7 @@ export function makeDodgerTheme(MUI, mode) {
     },
     shape: { borderRadius: 10 },
     typography: { fontFamily: '"IBM Plex Sans", system-ui, sans-serif' },
+    components: dodgerComponentOverrides,
   });
 }
 

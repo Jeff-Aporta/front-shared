@@ -6,6 +6,27 @@ import {
   MAIN_ORCHESTRATOR_URL_PROD,
 } from "./constants.js";
 
+/**
+ * Primera visita en localhost → orquestador local por defecto.
+ * Si ya hay preferencia ("0" o "1"), no se sobrescribe (persiste tras F5).
+ */
+export function initGatewayPreference(opts = {}) {
+  const lsKey = opts.lsKey || MAIN_ORCHESTRATOR_LS_KEY;
+  try {
+    if (localStorage.getItem(lsKey) != null) return;
+  } catch {
+    return;
+  }
+  const host = globalThis.location?.hostname || "";
+  const isDev = host === "localhost" || host === "127.0.0.1" || host === "[::1]";
+  if (!isDev) return;
+  try {
+    localStorage.setItem(lsKey, "1");
+  } catch {
+    /* ignore */
+  }
+}
+
 export function createApiConfig(opts = {}) {
   const local = opts.local || MAIN_ORCHESTRATOR_URL_LOCAL;
   const online = opts.online || MAIN_ORCHESTRATOR_URL_PROD;
@@ -45,6 +66,7 @@ export function createApiConfig(opts = {}) {
 }
 
 export function registerConfig(ns, opts) {
+  initGatewayPreference(opts);
   window[ns] = window[ns] || {};
   window[ns].Config = createApiConfig(opts);
 }

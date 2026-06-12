@@ -20,7 +20,7 @@ apps/front-shared/
 │   │       └── ui/            # theme, widgets, login-gate
 │   └── ui/                    # TSX compartido (Babel en runtime, homogeneidad visual)
 │       └── layouts/
-│           └── AppShell.tsx   # AppBar + tema + TargetSwitch + LoginGate
+│           └── AppShell.jsx   # AppBar + tema + TargetSwitch + LoginGate
 ├── docs/                      # front-cdn-stack, cors, mui-llms, deploy
 ├── scripts/                   # Neon, ops
 └── worker-swagger/            # OpenAPI compartido Workers (no es CDN)
@@ -71,7 +71,7 @@ index.html (import map + Babel)
 Un solo repo GitHub **`Jeff-Aporta/front-shared`**, rama `@main` en jsDelivr:
 
 - `…/cdn/isa/js/index.js`
-- `…/cdn/ui/layouts/AppShell.tsx`
+- `…/cdn/ui/layouts/AppShell.jsx`
 - `…/cdn/stack.mjs`
 
-Local: `../../front-shared/cdn/…` desde `apps/<app>/frontend/`.
+Local monorepo: `boot-resolver.mjs` + `boot-helper.mjs` desde `apps/front-shared/cdn/`; assets (stack/isa/ui) vía jsDelivr.

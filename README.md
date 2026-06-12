@@ -13,10 +13,10 @@ Recursos compartidos para micro-frontends Jeff-Aporta (GH Pages + Babel + MUI 9)
 
 | Ruta | Rol |
 |------|-----|
-| `cdn/stack.mjs`, `boot-helper.mjs` | Arranque: React ESM único + pipeline loader |
+| `cdn/stack.mjs`, `boot-helper.mjs`, `boot-resolver.mjs` | Arranque: React ESM único + pipeline loader |
 | `cdn/isa/js/core/app-meta.js` | Metadatos HTML por front (title, OG, favicon vía Iconify API) |
 | `cdn/isa/` | Runtime JS: `ISAFront.registerApp`, tema, auth, widgets, login |
-| `cdn/ui/` | **TSX compartidos** (layouts/componentes) vía CDN + Babel |
+| `cdn/ui/` | **JSX compartidos** (layouts/componentes) vía jsDelivr + Babel |
 | `docs/` | Stack, MUI llms, CORS, deploy |
 | `worker-swagger/` | OpenAPI Workers (no CDN) |
 | `scripts/` | Ops (Neon, etc.) |
@@ -29,15 +29,12 @@ Uso en una app:
 
 ```javascript
 const Shell = window.ISAFront.Layout.AppShell;
-React.createElement(Shell, {
-  ns: "IAT",
-  title: "Herramientas de IA",
-  icon: "mdi:robot-outline",
-  loginGate: true,
-}, /* contenido */);
+<Shell ns="IAT" title="Herramientas de IA" icon="mdi:robot-outline" loginGate>
+  {/* contenido */}
+</Shell>
 ```
 
-Añadir un TSX nuevo: crear bajo `cdn/ui/` y registrar la ruta en `SHARED_UI_FILES`.
+Añadir un JSX nuevo: crear bajo `cdn/ui/` con extensión `.jsx` y registrar la ruta en `SHARED_UI_FILES`.
 
 ## Metadatos por front (`JeffAppMeta`)
 
@@ -87,10 +84,10 @@ Tras cambiar la URL: **push a front-shared** (jsDelivr) y redeploy del worker `m
 ```
 https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@main/cdn/isa/css/base.css
 https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@main/cdn/isa/js/index.js
-https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@main/cdn/ui/layouts/AppShell.tsx
+https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@main/cdn/ui/layouts/AppShell.jsx
 ```
 
-Local: solo desarrollo de `front-shared` en la misma máquina; en GH Pages todo es jsDelivr.
+Local (Live Server en monorepo): los loaders importan `boot-resolver.mjs` y `boot-helper.mjs` desde `apps/front-shared/cdn/`; **stack, isa y ui** siguen yendo a jsDelivr. GH Pages: todo el arranque desde jsDelivr.
 
 ## MUI llms
 

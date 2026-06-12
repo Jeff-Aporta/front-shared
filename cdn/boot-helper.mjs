@@ -32,19 +32,26 @@ export async function loadIsaFront() {
   await import(CDN + "/isa/js/index.js");
 }
 
+function babelPresets(url) {
+  const reactClassic = ["react", { runtime: "classic" }];
+  if (url.endsWith(".jsx")) return [reactClassic];
+  if (url.endsWith(".tsx")) return ["typescript", reactClassic];
+  return ["typescript"];
+}
+
 export async function transpileUrl(url, Babel) {
   if (!Babel?.transform) throw new Error("Babel standalone no cargó");
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error("No se pudo cargar " + url + " (" + res.status + ")");
   const src = await res.text();
-  const presets = url.endsWith(".tsx") ? ["typescript", "react"] : ["typescript"];
+  const presets = babelPresets(url);
   const code = Babel.transform(src, { presets, filename: url }).code;
   // eslint-disable-next-line no-eval
   eval(code);
 }
 
-/** TSX compartidos — transpilados en runtime (mismo Babel que la app). */
-export const SHARED_UI_FILES = ["layouts/AppShell.tsx"];
+/** JSX compartidos — transpilados en runtime (mismo Babel que la app). */
+export const SHARED_UI_FILES = ["layouts/AppShell.jsx"];
 
 export async function loadSharedUi(Babel) {
   const base = CDN + "/ui";
@@ -59,7 +66,7 @@ export async function transpileFiles(files, Babel) {
     const res = await fetch(file, { cache: "no-store" });
     if (!res.ok) throw new Error("No se pudo cargar " + file + " (" + res.status + ")");
     const src = await res.text();
-    const presets = file.endsWith(".tsx") ? ["typescript", "react"] : ["typescript"];
+    const presets = babelPresets(file);
     const code = Babel.transform(src, { presets, filename: file }).code;
     // eslint-disable-next-line no-eval
     eval(code);

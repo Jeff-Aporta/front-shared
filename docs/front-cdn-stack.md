@@ -24,12 +24,13 @@ Patrón **Paty ISA** para el loader; **MUI 9 exige React ESM único** (no mezcla
 
 ## `loader.ts`
 
-1. `import()` de `boot-helper.mjs` (local o jsDelivr).
-2. `bootApp` → **`stack.mjs` primero** → `cdn/isa` → módulos `.ts/.tsx`.
-3. `App.tsx` llama `NS.mount()` al final (Paty ISA).
+1. `import()` de `boot-resolver.mjs` (monorepo local o jsDelivr).
+2. `importBootHelper()` → `boot-helper.mjs` (assets compartidos **siempre jsDelivr**).
+3. `bootApp` → **`stack.mjs`** → `cdn/isa` → `AppShell.jsx` → módulos `.ts/.jsx` de la app.
+4. `App.jsx` llama `NS.mount()` al final.
 
-## jsDelivr (producción)
+## jsDelivr (assets compartidos)
 
 `https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@main/cdn/…`
 
-Local: `../../front-shared/cdn/…` desde `apps/<app>/frontend/`.
+No resolver rutas `../../front-shared` para stack/isa/ui en runtime — solo el script `boot-helper.mjs` puede cargarse local en dev monorepo.

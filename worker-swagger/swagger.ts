@@ -276,19 +276,57 @@ function buildSwaggerUiFragment(
     background: #1b2638; color: #e8eef7; border-radius: 8px;
     border: 1px solid #2d3a4f; padding: 16px 18px 18px;
     box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   }
-  .swagger-modal-dialog h3 { margin: 0 0 12px; font-size: 16px; }
+  .swagger-modal-dialog h3 { margin: 0 0 12px; font-size: 16px; font-weight: 600; }
   .swagger-modal-dialog label {
-    display: flex; flex-direction: column; gap: 4px;
-    font-size: 12px; margin-bottom: 10px;
+    display: flex; flex-direction: column; gap: 6px;
+    font-size: 12px; font-weight: 500; margin-bottom: 12px;
+    color: #b0bec5;
   }
-  .swagger-modal-dialog input, .swagger-modal-dialog textarea {
-    padding: 8px 10px; border-radius: 4px; border: 1px solid #3d4f6a;
-    background: #0f1623; color: #e8eef7; font-family: inherit; font-size: 13px;
+  .swagger-modal-dialog input[type="text"],
+  .swagger-modal-dialog input[type="password"],
+  .swagger-modal-dialog textarea {
+    display: block; width: 100%; box-sizing: border-box;
+    padding: 9px 11px; border-radius: 6px; border: 1px solid #3d4f6a;
+    background: #0f1623; color: #e8eef7; font-family: inherit; font-size: 14px;
+    line-height: 1.35; outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
   }
-  .swagger-modal-dialog textarea { min-height: 100px; resize: vertical; font-family: ui-monospace, monospace; }
-  .swagger-modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
-  .swagger-modal-hint { font-size: 11px; opacity: 0.75; margin: 0 0 10px; }
+  .swagger-modal-dialog input::placeholder,
+  .swagger-modal-dialog textarea::placeholder { color: #6b7a90; opacity: 1; }
+  .swagger-modal-dialog input:focus,
+  .swagger-modal-dialog textarea:focus {
+    border-color: #64b5f6;
+    box-shadow: 0 0 0 2px rgba(100, 181, 246, 0.28);
+  }
+  .swagger-modal-dialog textarea { min-height: 100px; resize: vertical; font-family: ui-monospace, monospace; font-size: 13px; }
+  .swagger-modal-actions {
+    display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; flex-wrap: wrap;
+  }
+  .swagger-modal-dialog button,
+  .swagger-modal-actions button {
+    padding: 8px 14px; border-radius: 6px; border: none;
+    background: #1976d2; color: #fff; cursor: pointer;
+    font-size: 13px; font-weight: 500; font-family: inherit;
+    line-height: 1.25; transition: filter 0.15s, opacity 0.15s;
+  }
+  .swagger-modal-dialog button.secondary,
+  .swagger-modal-actions button.secondary { background: #455a64; color: #eceff1; }
+  .swagger-modal-dialog button:hover:not(:disabled),
+  .swagger-modal-actions button:hover:not(:disabled) { filter: brightness(1.08); }
+  .swagger-modal-dialog button:active:not(:disabled),
+  .swagger-modal-actions button:active:not(:disabled) { filter: brightness(0.95); }
+  .swagger-modal-dialog button:disabled,
+  .swagger-modal-actions button:disabled { opacity: 0.6; cursor: wait; }
+  .swagger-modal-hint { font-size: 11px; opacity: 0.75; margin: 0 0 12px; line-height: 1.45; }
+  .swagger-modal-remember {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; margin: 0 0 12px; color: #b0bec5; cursor: pointer; user-select: none;
+  }
+  .swagger-modal-remember input[type="checkbox"] {
+    width: 15px; height: 15px; margin: 0; padding: 0; accent-color: #1976d2; cursor: pointer;
+  }
   #swagger-front-footer {
     font-family: system-ui, sans-serif;
     margin: 32px auto 48px;
@@ -317,6 +355,7 @@ function buildSwaggerUiFragment(
     <p class="swagger-modal-hint">Obtiene JWT de prueba (1 h) vía POST /api/auth/test-token${authBase ? " → " + authBase : " (proxy system-login)"}.</p>
     <label>Usuario<input id="swagger-auth-user" type="text" autocomplete="username" placeholder="usuario"/></label>
     <label>Contraseña<input id="swagger-auth-pass" type="password" autocomplete="current-password" placeholder="••••"/></label>
+    <label class="swagger-modal-remember"><input id="swagger-auth-remember" type="checkbox" checked /> Recordar usuario y contraseña</label>
     <div class="swagger-modal-actions">
       <button type="button" class="secondary" data-close="login">Cancelar</button>
       <button type="button" id="swagger-auth-btn">Obtener JWT y autorizar</button>
@@ -351,6 +390,7 @@ ${jsScripts}
   var PREFIX = "abc123";
   var SUFFIX = "xyz987";
   var STORAGE_KEY = "jeffaporta:swagger-test-jwt";
+  var CREDENTIALS_KEY = "jeffaporta:swagger-login-creds";
 
   function caesarShiftForDate(d) { return d.getUTCDate(); }
   function caesarEncode(text, shift) {
@@ -364,6 +404,51 @@ ${jsScripts}
   function wrapPassword(plain) {
     if (!plain) return plain;
     return caesarEncode(PREFIX + plain + SUFFIX, caesarShiftForDate(new Date()));
+  }
+
+  function encodeStoredSecret(plain) {
+    if (!plain) return "";
+    try { return btoa(unescape(encodeURIComponent(PREFIX + plain + SUFFIX))); } catch (e) { return ""; }
+  }
+  function decodeStoredSecret(enc) {
+    if (!enc) return "";
+    try {
+      var raw = decodeURIComponent(escape(atob(enc)));
+      if (raw.indexOf(PREFIX) === 0 && raw.slice(-SUFFIX.length) === SUFFIX) {
+        return raw.slice(PREFIX.length, raw.length - SUFFIX.length);
+      }
+      return "";
+    } catch (e) { return ""; }
+  }
+
+  function loadCredentials() {
+    var userEl = document.getElementById("swagger-auth-user");
+    var passEl = document.getElementById("swagger-auth-pass");
+    var remEl = document.getElementById("swagger-auth-remember");
+    try {
+      var raw = localStorage.getItem(CREDENTIALS_KEY);
+      if (!raw) return;
+      var saved = JSON.parse(raw);
+      if (userEl && saved.username) userEl.value = saved.username;
+      if (passEl && saved.passwordEnc) passEl.value = decodeStoredSecret(saved.passwordEnc);
+      if (remEl) remEl.checked = saved.remember !== false;
+    } catch (e) { /* ignore */ }
+  }
+
+  function saveCredentials(username, password) {
+    var remEl = document.getElementById("swagger-auth-remember");
+    var remember = remEl ? !!remEl.checked : false;
+    try {
+      if (!remember) {
+        localStorage.removeItem(CREDENTIALS_KEY);
+        return;
+      }
+      localStorage.setItem(CREDENTIALS_KEY, JSON.stringify({
+        remember: true,
+        username: username,
+        passwordEnc: encodeStoredSecret(password),
+      }));
+    } catch (e) { /* ignore */ }
   }
 
   function setStatus(msg, kind) {
@@ -384,6 +469,28 @@ ${jsScripts}
       hour: "2-digit", minute: "2-digit", second: "2-digit",
       hour12: false,
     });
+  }
+
+  function getStoredJwt() {
+    try {
+      var raw = sessionStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      var saved = JSON.parse(raw);
+      if (!saved.token) return null;
+      if (saved.expiresAt && new Date(saved.expiresAt).getTime() <= Date.now()) {
+        sessionStorage.removeItem(STORAGE_KEY);
+        return null;
+      }
+      return saved.token;
+    } catch (e) { return null; }
+  }
+
+  function injectBearerIfNeeded(req) {
+    if (!req.headers) req.headers = {};
+    if (req.headers.Authorization || req.headers.authorization) return req;
+    var token = getStoredJwt();
+    if (token) req.headers.Authorization = "Bearer " + token;
+    return req;
   }
 
   function authorizeSwagger(token) {
@@ -425,6 +532,7 @@ ${jsScripts}
   function openModal(id) {
     var el = document.getElementById(id);
     if (!el) return;
+    if (id === "swagger-login-modal") loadCredentials();
     el.classList.remove("hidden");
     el.setAttribute("aria-hidden", "false");
   }
@@ -482,6 +590,7 @@ ${jsScripts}
         setStatus("JWT obtenido. Usa Authorize y pega el token si no se aplicó solo.", "err");
         return;
       }
+      saveCredentials(username, password);
       setStatus("Autorizado como " + data.username + " · expira " + (data.expiresAt ? formatLocalDateTime(data.expiresAt) : "en 1 h"), "ok");
       closeModal("swagger-login-modal");
     } catch (e) {
@@ -516,6 +625,19 @@ ${jsScripts}
   document.getElementById("swagger-open-login").addEventListener("click", function () { openModal("swagger-login-modal"); });
   document.getElementById("swagger-open-jwt").addEventListener("click", function () { openModal("swagger-jwt-modal"); });
   document.getElementById("swagger-jwt-apply").addEventListener("click", applyJwtPaste);
+  var rememberEl = document.getElementById("swagger-auth-remember");
+  if (rememberEl) {
+    rememberEl.addEventListener("change", function () {
+      if (!rememberEl.checked) {
+        try { localStorage.removeItem(CREDENTIALS_KEY); } catch (e) { /* ignore */ }
+      } else {
+        var userEl = document.getElementById("swagger-auth-user");
+        var passEl = document.getElementById("swagger-auth-pass");
+        saveCredentials((userEl && userEl.value || "").trim(), passEl ? passEl.value : "");
+      }
+    });
+  }
+  loadCredentials();
   document.querySelectorAll("[data-close]").forEach(function (el) {
     el.addEventListener("click", function () {
       var which = el.getAttribute("data-close");
@@ -536,6 +658,7 @@ ${jsScripts}
       deepLinking: true,
       persistAuthorization: true,
       syntaxHighlight: { activated: true, theme: "monokai" },
+      requestInterceptor: injectBearerIfNeeded,
       onComplete: function () { restoreStoredJwt(); },
     });
   };

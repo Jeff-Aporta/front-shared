@@ -4,7 +4,7 @@
  */
 import "./core/caesar.js";
 import { CDN_BASE, UI_CDN_BASE, MAIN_ORCHESTRATOR_URL_LOCAL, MAIN_ORCHESTRATOR_URL_PROD, GATEWAY_URL_LOCAL, GATEWAY_URL_PROD } from "./core/constants.js";
-import { createApiConfig, registerConfig } from "./core/config.js";
+import { createApiConfig, registerConfig, initGatewayPreference } from "./core/config.js";
 import { rewriteFlsItem, rewriteViaGateway } from "./core/gateway-url.js";
 import { createAuth, registerAuth } from "./core/auth.js";
 import { makeDodgerTheme, createThemeApi, registerTheme } from "./ui/theme.js";
@@ -27,6 +27,7 @@ window.ISAFront = {
   rewriteFlsItem,
   createApiConfig,
   registerConfig,
+  initGatewayPreference,
   createAuth,
   registerAuth,
   makeDodgerTheme,
