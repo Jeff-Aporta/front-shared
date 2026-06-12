@@ -15,6 +15,7 @@ import { REALTIME, wsUrlFromHttpBase, createRealtime, registerRealtime, REALTIME
 import { showToast, registerToast, TOAST_EVENT } from "./ui/toast.js";
 import { createSqlExec, registerSqlExec } from "./ui/sql-exec.js";
 import { CAPABILITY_CATALOG, blockReasonFor, resolveCapId } from "./core/capabilities.js";
+import { sanitizeUserMessage } from "./core/sanitize-user-message.js";
 import {
   registerFeedback,
   registerFeedbackGlobal,
@@ -32,6 +33,7 @@ import {
 } from "./ui/feedback/toast-bus.js";
 import { createProcessRunner, FEEDBACK_PROCESS_EVENT } from "./ui/feedback/process-bus.js";
 import { formatLocalDate, formatLocalDateTime } from "./core/format.js";
+import { estimatePromptTokens } from "./core/prompt-tokens.js";
 
 window.ISAFront = {
   CDN_BASE,
@@ -66,9 +68,11 @@ window.ISAFront = {
   TOAST_EVENT,
   formatLocalDate,
   formatLocalDateTime,
+  estimatePromptTokens,
   CAPABILITY_CATALOG,
   blockReasonFor,
   resolveCapId,
+  sanitizeUserMessage,
   createSqlExec,
   registerSqlExec,
   registerFeedback,

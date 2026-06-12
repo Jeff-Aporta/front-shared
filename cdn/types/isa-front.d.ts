@@ -67,17 +67,49 @@ interface IsaConfig {
   base?(): string;
 }
 
+interface NavTabDef {
+  id: string;
+  label?: string;
+  title?: string;
+  icon: string;
+}
+
+interface NavRowProps {
+  id?: string;
+  ns?: string;
+  value: string;
+  onChange: (id: string) => void;
+  tabs: NavTabDef[];
+  minHeight?: number;
+  sx?: Record<string, unknown>;
+  variant?: string;
+}
+
 interface AppShellProps {
   ns: string;
-  title: string;
+  title?: string;
   children?: ReactNode;
   icon?: string;
+  iconSize?: number;
+  showTitle?: boolean;
+  navRows?: NavRowProps[];
   toolbarExtra?: ReactNode;
+  toolbarActions?: ReactNode;
+  toolbarEnd?: ReactNode;
   showTarget?: boolean;
   showTheme?: boolean;
   showAuthChip?: boolean;
   showLogout?: boolean;
   loginGate?: boolean;
+  bodyScroll?: boolean;
+}
+
+interface ViewFrameProps {
+  ns?: string;
+  navRow?: NavRowProps;
+  scroll?: boolean;
+  bodySx?: Record<string, unknown>;
+  children?: ReactNode;
 }
 
 interface IsaFrontApi {
@@ -96,8 +128,14 @@ interface IsaFrontApi {
   wsUrlFromHttpBase(httpBase: string): string;
   formatLocalDate?(value: unknown): string;
   formatLocalDateTime?(value: unknown): string;
+  estimatePromptTokens?(text: unknown): number;
   showToast(opts: { message: string; severity?: string; durationMs?: number }): void;
-  Layout: { AppShell: FC<AppShellProps> };
+  Layout: {
+    AppShell: FC<AppShellProps>;
+    NavTabRow: FC<NavRowProps>;
+    NavTabLabel: FC<{ ns?: string; UI?: IsaUi; icon: string; label: string }>;
+    ViewFrame: FC<ViewFrameProps>;
+  };
   Caesar?: { wrapPassword(plain: string): string };
 }
 
