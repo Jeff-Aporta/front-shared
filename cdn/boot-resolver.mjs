@@ -3,7 +3,7 @@
  * stack, isa, ui y boot-helper se consumen solo desde CDN; nunca rutas locales ../../front-shared.
  */
 /** Bump al publicar front-shared (evita caché stale de jsDelivr @main). */
-export const FRONT_SHARED_REF = "566a93f";
+export const FRONT_SHARED_REF = "92fc510";
 
 export const BOOT_HELPER_CDN =
   "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@" + FRONT_SHARED_REF + "/cdn/boot-helper.mjs";
