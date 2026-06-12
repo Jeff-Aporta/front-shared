@@ -6,7 +6,7 @@ export function createSqlExec(React, MUI) {
   const { useState, useEffect, useRef } = React;
   const {
     Paper, Typography, Dialog, DialogTitle, DialogContent, DialogActions,
-    Stack, Tooltip, Button, Alert, Box, Chip, IconButton,
+    Stack, Tooltip, Button, Alert, Box, Chip, IconButton, CircularProgress,
   } = MUI;
 
   function feedbackApi() {
@@ -19,6 +19,30 @@ export function createSqlExec(React, MUI) {
     return globalThis.ISAFront?.UI?.Icon
       || (typeof window !== "undefined" && window.ISAJ?.UI?.Icon)
       || null;
+  }
+
+  function ExecIconButton({ tip, disabled, busy, onClick, color = "primary" }) {
+    const Icon = uiIcon();
+    return React.createElement(
+      Tooltip,
+      { title: tip },
+      React.createElement(
+        "span",
+        null,
+        React.createElement(IconButton, {
+          size: "small",
+          color,
+          disabled: disabled || busy,
+          onClick,
+          "aria-label": tip,
+          sx: { bgcolor: color === "success" ? "success.main" : "primary.main", color: "#fff", "&:hover": { opacity: 0.92 }, "&.Mui-disabled": { bgcolor: "action.disabledBackground" } },
+        }, busy
+          ? React.createElement(CircularProgress, { size: 18, color: "inherit" })
+          : Icon
+            ? React.createElement(Icon, { icon: "mdi:play-circle-outline", size: 22 })
+            : "▶"),
+      ),
+    );
   }
 
   const PROGRESS_STEPS = [
@@ -72,16 +96,13 @@ export function createSqlExec(React, MUI) {
         React.createElement(
           "span",
           null,
-          React.createElement(Button, {
-            size: "small",
-            variant: "contained",
+          React.createElement(ExecIconButton, {
+            tip: runTitle,
+            busy,
+            disabled: !unlocked || disabled,
+            onClick: () => { if (unlocked && !busy && !disabled) onRun?.(); },
             color: "success",
-            disabled: !unlocked || busy || disabled,
-            onClick: () => {
-              if (unlocked && !busy && !disabled) onRun?.();
-            },
-            "aria-label": runTitle,
-          }, busy ? "Ejecutando…" : "Ejecutar"),
+          }),
         ),
       ),
     );
@@ -413,20 +434,12 @@ export function createSqlExec(React, MUI) {
           label: "BD: " + db,
         }),
         extraToolbar,
-        React.createElement(
-          Tooltip,
-          { title: tip },
-          React.createElement(
-            "span",
-            null,
-            React.createElement(Button, {
-              size: "small",
-              variant: "contained",
-              disabled: !allowed || exec || !onExecute,
-              onClick: run,
-            }, exec ? "Ejecutando…" : "Ejecutar"),
-          ),
-        ),
+        React.createElement(ExecIconButton, {
+          tip,
+          busy: exec,
+          disabled: !allowed || !onExecute,
+          onClick: run,
+        }),
       ),
       React.createElement(Box, { ref, className: "sql-cm sql-cm-scroll" }),
       res && React.createElement(
