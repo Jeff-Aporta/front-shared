@@ -2,8 +2,11 @@
  * Componentes compartidos de ejecución SQL (JAGUDELOE + isa-patyia).
  * El front solo deshabilita botones; la autorización la valida el backend.
  */
+import { createCodeMirrorPanel } from "./code-mirror.js";
+
 export function createSqlExec(React, MUI) {
   const { useState, useEffect, useRef } = React;
+  const { CodeMirrorPanel } = createCodeMirrorPanel(React, MUI);
   const {
     Paper, Typography, Dialog, DialogTitle, DialogContent, DialogActions,
     Stack, Tooltip, Button, Alert, Box, Chip, IconButton, CircularProgress,
@@ -109,14 +112,14 @@ export function createSqlExec(React, MUI) {
   }
 
   function SqlViewer({ value, height = "240px" }) {
-    return React.createElement(
-      "pre",
-      {
-        className: "sql-viewer custom-scrollbar",
-        style: { maxHeight: height, minHeight: height },
-      },
-      value || "-- SQL vacío",
-    );
+    return React.createElement(CodeMirrorPanel, {
+      value: value || "-- SQL vacío",
+      readOnly: true,
+      mode: "sql",
+      minHeight: height,
+      maxHeight: height,
+      className: "sql-viewer custom-scrollbar",
+    });
   }
 
   function SqlExecCard({
@@ -347,8 +350,6 @@ export function createSqlExec(React, MUI) {
     extraToolbar,
     Icon,
   }) {
-    const ref = useRef(null);
-    const cm = useRef(null);
     const [exec, setExec] = useState(false);
     const [res, setRes] = useState(null);
     const [err, setErr] = useState(null);
@@ -357,27 +358,6 @@ export function createSqlExec(React, MUI) {
     const tip = allowed
       ? `Ejecutar en BD ${db} (servicio autorizado)`
       : (typeof blockReason === "function" ? blockReason(capId) : String(blockReason || "Sin permiso de ejecución SQL"));
-
-    useEffect(() => {
-      const CM = window.CodeMirror;
-      if (ref.current && CM && !cm.current) {
-        cm.current = CM(ref.current, {
-          value: sql,
-          mode: "text/x-sql",
-          theme: "dracula",
-          lineNumbers: true,
-          readOnly: true,
-          viewportMargin: Infinity,
-        });
-        setTimeout(() => cm.current && cm.current.refresh(), 30);
-      } else if (!CM && ref.current) {
-        ref.current.innerHTML = "";
-        const pre = document.createElement("pre");
-        pre.className = "sql-body";
-        pre.textContent = sql;
-        ref.current.appendChild(pre);
-      }
-    }, []);
 
     function run() {
       if (!allowed || !onExecute) return;
@@ -441,7 +421,13 @@ export function createSqlExec(React, MUI) {
           onClick: run,
         }),
       ),
-      React.createElement(Box, { ref, className: "sql-cm sql-cm-scroll" }),
+      React.createElement(CodeMirrorPanel, {
+        value: sql,
+        readOnly: true,
+        mode: "sql",
+        minHeight: "6rem",
+        className: "sql-cm sql-cm-scroll",
+      }),
       res && React.createElement(
         Alert,
         { severity: "success", sx: { m: 1 } },
