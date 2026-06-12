@@ -1,0 +1,88 @@
+/* CodeMirror panel compartido (ISAFront.CodeMirrorPanel) */
+.isa-cm-panel {
+  position: relative;
+  border: 1px solid rgba(30, 144, 255, 0.22);
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.isa-cm-panel--fill {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+.isa-cm-panel__toolbar {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 3;
+  display: flex;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.isa-cm-panel__toolbar > * {
+  pointer-events: auto;
+}
+
+.isa-cm-panel__copy {
+  background: rgba(15, 23, 42, 0.82) !important;
+  border: 1px solid rgba(148, 163, 184, 0.35) !important;
+  color: #e2e8f0 !important;
+  backdrop-filter: blur(4px);
+}
+
+.isa-cm-panel__copy:hover {
+  background: rgba(30, 41, 59, 0.95) !important;
+  border-color: rgba(30, 144, 255, 0.45) !important;
+}
+
+.isa-cm-host {
+  min-height: 8rem;
+}
+
+.isa-cm-panel--fill .isa-cm-host {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+.isa-cm-host .CodeMirror {
+  height: 100% !important;
+  font-family: ui-monospace, Consolas, "Cascadia Code", monospace;
+  font-size: 0.8rem;
+}
+
+.isa-cm-panel:not(.isa-cm-panel--fill) .isa-cm-host .CodeMirror {
+  height: auto !important;
+  min-height: inherit;
+}
+
+.isa-cm-host .CodeMirror-scroll {
+  overflow: auto !important;
+}
+
+.isa-cm-fallback {
+  width: 100%;
+  min-height: 8rem;
+  resize: vertical;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.8rem;
+  background: rgba(15, 23, 42, 0.6);
+  color: #e2e8f0;
+  border: 0;
+  border-radius: 0;
+  padding: 0.65rem 0.75rem;
+  overflow: auto;
+}
+
+.isa-cm-panel--fill .isa-cm-fallback {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  resize: none;
+}
