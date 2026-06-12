@@ -17,6 +17,17 @@ export const dodgerComponentOverrides = {
       root: { textTransform: "none" },
     },
   },
+  MuiAppBar: {
+    styleOverrides: {
+      root: ({ theme }) =>
+        theme.palette.mode === "light"
+          ? {
+              backgroundColor: theme.palette.background.paper,
+              color: theme.palette.text.primary,
+            }
+          : {},
+    },
+  },
 };
 
 export function makeDodgerTheme(MUI, mode) {
