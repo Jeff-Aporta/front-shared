@@ -5,9 +5,12 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
-$settingsPath = Join-Path $root "apps\langlab\local.settings.json"
-if (-not (Test-Path $settingsPath)) { throw "No se encontró $settingsPath" }
+$appsRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+$settingsPath = Join-Path $appsRoot "langlab-azure\local.settings.json"
+if (-not (Test-Path $settingsPath)) {
+  $settingsPath = Join-Path $appsRoot "langlab\local.settings.json"
+}
+if (-not (Test-Path $settingsPath)) { throw "No se encontro langlab/local.settings.json ni langlab-azure/local.settings.json" }
 
 $settings = Get-Content $settingsPath | ConvertFrom-Json
 $neon = ($settings.Values.NEON_DATABASE_URL -replace '&channel_binding=require', '')
@@ -20,7 +23,7 @@ $env:LANGLAB_DATABASE_URL = $neon
 $env:ISADOC_DATABASE_URL = $neon
 
 function Invoke-DbApply($app, $extra = @{}) {
-  $dir = Join-Path $root "apps\$app\backend"
+  $dir = Join-Path $appsRoot $app "backend"
   Write-Host "`n=== $app ===" -ForegroundColor Cyan
   Push-Location $dir
   try {
@@ -36,11 +39,11 @@ Invoke-DbApply "iatools"
 Invoke-DbApply "conversations"
 
 Write-Host "`n=== jagudeloe tk_* ===" -ForegroundColor Cyan
-Push-Location (Join-Path $root "apps\jagudeloe\backend")
+Push-Location (Join-Path $appsRoot "jagudeloe\backend")
 try { node scripts/apply-tk-schema.mjs } finally { Pop-Location }
 
 Write-Host "`n=== devops BD_LANGLAB ===" -ForegroundColor Cyan
-Push-Location (Join-Path $root "apps\scripts")
+Push-Location (Join-Path $appsRoot "scripts")
 try {
   if (-not (Test-Path node_modules\pg)) { npm install --silent 2>$null }
   npm run db:apply-devops
@@ -49,7 +52,7 @@ try {
 
 if ($Migrate -and -not $SkipAuthMigrate) {
   Write-Host "`n=== system-login migrate + seed ===" -ForegroundColor Cyan
-  Push-Location (Join-Path $root "apps\system-login\backend")
+  Push-Location (Join-Path $appsRoot "system-login\backend")
   try {
     npm run db:migrate
     npm run db:seed-permissions
@@ -57,7 +60,7 @@ if ($Migrate -and -not $SkipAuthMigrate) {
 }
 
 Write-Host "`n=== verificación ===" -ForegroundColor Cyan
-Push-Location (Join-Path $root "apps\system-login\backend")
+Push-Location (Join-Path $appsRoot "system-login\backend")
 try { node scripts/verify-schemas.mjs } finally { Pop-Location }
 
 Write-Host "`nListo." -ForegroundColor Green
