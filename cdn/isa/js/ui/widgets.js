@@ -7,7 +7,7 @@ export function createWidgets(React, MUI, ns, opts = {}) {
     return React.createElement("iconify-icon", {
       icon: props.icon,
       style: Object.assign(
-        { fontSize: props.size || 20, verticalAlign: "middle" },
+        { fontSize: props.size || 20, display: "inline-flex", alignItems: "center", verticalAlign: "middle" },
         props.style,
       ),
     });
@@ -61,15 +61,15 @@ export function createWidgets(React, MUI, ns, opts = {}) {
     const isLocal = loggedIn && local;
     const label = cfg().label();
     const tip = loggedIn
-      ? "Conexión: " + label
+      ? (isLocal ? "Entorno de desarrollo (local)" : "Entorno de producción")
       : "Producción (inicia sesión para cambiar el entorno)";
 
     return React.createElement(
       MUI.Tooltip,
       { title: tip },
       React.createElement(
-        "span",
-        null,
+        MUI.Box,
+        { sx: { display: "inline-flex", alignItems: "center" } },
         React.createElement(MUI.Chip, {
           size: "small",
           color: isLocal ? "warning" : "primary",
