@@ -6,12 +6,18 @@ export function createSqlExec(React, MUI) {
   const { useState, useEffect, useRef } = React;
   const {
     Paper, Typography, Dialog, DialogTitle, DialogContent, DialogActions,
-    Stack, Tooltip, Button, Alert, Box, Chip,
+    Stack, Tooltip, Button, Alert, Box, Chip, IconButton,
   } = MUI;
 
   function feedbackApi() {
     return globalThis.ISAFront?.Feedback
       || (typeof window !== "undefined" && window.ISAJ?.Feedback)
+      || null;
+  }
+
+  function uiIcon() {
+    return globalThis.ISAFront?.UI?.Icon
+      || (typeof window !== "undefined" && window.ISAJ?.UI?.Icon)
       || null;
   }
 
@@ -204,6 +210,54 @@ export function createSqlExec(React, MUI) {
     }
 
     const lockDisabled = disabled || !allowRun;
+    const Icon = uiIcon();
+
+    async function copySql() {
+      if (!sql?.trim()) return;
+      try {
+        await navigator.clipboard.writeText(sql);
+        setMsg("SQL copiado");
+        feedbackApi()?.toast?.info?.("SQL copiado al portapapeles");
+        setTimeout(() => setMsg(""), 1600);
+      } catch (e) {
+        const errMsg = e instanceof Error ? e.message : String(e);
+        setErr(errMsg);
+        feedbackApi()?.toast?.error?.(errMsg);
+      }
+    }
+
+    function toolbarIcon(icon, tip, onClick, extra = {}) {
+      if (Icon) {
+        return React.createElement(
+          Tooltip,
+          { title: tip },
+          React.createElement(
+            "span",
+            null,
+            React.createElement(Icon, {
+              icon,
+              title: tip,
+              onClick,
+              disabled: extra.disabled,
+            }),
+          ),
+        );
+      }
+      return React.createElement(
+        Tooltip,
+        { title: tip },
+        React.createElement(
+          "span",
+          null,
+          React.createElement(IconButton, {
+            size: "small",
+            disabled: extra.disabled,
+            onClick,
+            "aria-label": tip,
+          }, extra.label || "…"),
+        ),
+      );
+    }
 
     return React.createElement(
       Paper,
@@ -215,6 +269,8 @@ export function createSqlExec(React, MUI) {
         React.createElement(
           Stack,
           { direction: "row", spacing: 0.25, alignItems: "center" },
+          toolbarIcon("mdi:content-copy", "Copiar SQL", copySql, { disabled: !sql?.trim() }),
+          toolbarIcon("mdi:eye-outline", "Abrir SQL", () => setModalOpen(true), { disabled: !sql?.trim(), label: "Ver" }),
           allowRun && executeSql && React.createElement(RunButton, {
             unlocked: approved,
             onToggle: setApproved,
