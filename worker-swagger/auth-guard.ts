@@ -78,6 +78,7 @@ export async function verifyAccess(
   header: string | undefined,
   method: string,
   apiPath: string,
+  appId?: string | null,
 ): Promise<{ username: string; allowed: boolean } | Response> {
   const m = method.toUpperCase();
   const path = normalizePath(apiPath);
@@ -91,6 +92,7 @@ export async function verifyAccess(
   }
 
   const base = (env.SYSTEM_LOGIN_URL || "https://system-login.jeffaporta.workers.dev").replace(/\/$/, "");
+  const app = appId?.trim() || undefined;
   try {
     const res = await fetch(`${base}/api/auth/verify-access`, {
       method: "POST",
@@ -98,8 +100,9 @@ export async function verifyAccess(
         "Content-Type": "application/json",
         Accept: "application/json",
         ...(header ? { Authorization: header } : {}),
+        ...(app ? { "X-App-Id": app } : {}),
       },
-      body: JSON.stringify({ method: m, path }),
+      body: JSON.stringify({ method: m, path, ...(app ? { app } : {}) }),
     });
     const data = (await res.json().catch(() => ({}))) as {
       ok?: boolean;
@@ -138,7 +141,13 @@ export function apiAuthGuard<E extends AuthGuardEnv>(): MiddlewareHandler<{ Bind
     const method = c.req.method;
     if (isPublicRequest(method, path)) return next();
 
-    const result = await verifyAccess(c.env, c.req.header("authorization"), method, path);
+    const result = await verifyAccess(
+      c.env,
+      c.req.header("authorization"),
+      method,
+      path,
+      c.req.header("X-App-Id"),
+    );
     if (result instanceof Response) return result;
     c.set("authUser", result.username);
     return next();

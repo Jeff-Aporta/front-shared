@@ -59,7 +59,7 @@ export function createApiConfig(opts = {}) {
   }
 
   function label() {
-    return isLocal() ? "Orquestador local" : "Orquestador producción";
+    return isLocal() ? "Local" : "Producción";
   }
 
   return { isLocal, setLocal, base, apiUrl, label, EVENT: evt, ONLINE: online, LOCAL: local, lsKey };

@@ -13,16 +13,23 @@ import { registerToast } from "../ui/toast.js";
 export function registerApp(opts) {
   const ns = opts.ns;
   if (!ns) throw new Error("ISAFront.registerApp: ns requerido");
+  const appId = String(opts.appId || opts.app || "").trim();
   window[ns] = window[ns] || {};
+  if (appId) window[ns].APP_ID = appId;
 
   if (opts.api !== false) {
     registerConfig(ns, opts.api && typeof opts.api === "object" ? opts.api : {});
   }
 
   if (opts.session) {
-    registerSession(ns, typeof opts.session === "object" ? opts.session : {});
+    if (!appId) throw new Error("ISAFront.registerApp: app/appId requerido con session");
+    const sessionOpts =
+      typeof opts.session === "object" ? { ...opts.session, appId } : { appId };
+    registerSession(ns, sessionOpts);
   } else if (opts.auth !== false) {
-    registerAuth(ns, typeof opts.auth === "object" ? opts.auth : {});
+    if (!appId) throw new Error("ISAFront.registerApp: app/appId requerido con auth/loginGate");
+    const authOpts = typeof opts.auth === "object" ? { ...opts.auth, appId } : { appId };
+    registerAuth(ns, authOpts);
   }
 
   if (opts.theme !== false) {

@@ -28,35 +28,69 @@ export function createWidgets(React, MUI, ns, opts = {}) {
     );
   }
 
+  function sessionApi() {
+    const bag = window[ns] || {};
+    return bag.Session || bag.Auth || null;
+  }
+
   function TargetSwitchChip() {
-    const [local, setLocal] = React.useState(cfg().isLocal());
+    const sess = sessionApi();
+    const [loggedIn, setLoggedIn] = React.useState(() => sess?.isLoggedIn?.() ?? false);
+    const [local, setLocal] = React.useState(() => (loggedIn ? cfg().isLocal() : false));
+
     React.useEffect(() => {
-      const onEvt = () => setLocal(cfg().isLocal());
+      const onAuth = () => setLoggedIn(sess?.isLoggedIn?.() ?? false);
+      const authEvt = sess?.EVENT;
+      if (authEvt) window.addEventListener(authEvt, onAuth);
+      return () => { if (authEvt) window.removeEventListener(authEvt, onAuth); };
+    }, []);
+
+    React.useEffect(() => {
+      const onEvt = () => setLocal(loggedIn ? cfg().isLocal() : false);
       window.addEventListener(cfg().EVENT, onEvt);
       return () => window.removeEventListener(cfg().EVENT, onEvt);
-    }, []);
+    }, [loggedIn]);
+
+    React.useEffect(() => {
+      if (!loggedIn) {
+        if (cfg().isLocal()) cfg().setLocal(false);
+        setLocal(false);
+      }
+    }, [loggedIn]);
+
+    const isLocal = loggedIn && local;
+    const label = cfg().label();
+    const tip = loggedIn
+      ? "Conexión: " + label
+      : "Producción (inicia sesión para cambiar el entorno)";
+
     return React.createElement(
       MUI.Tooltip,
-      { title: "Conexión: " + cfg().label() },
-      React.createElement(MUI.Chip, {
-        size: "small",
-        color: local ? "warning" : "primary",
-        variant: "outlined",
-        icon: React.createElement(Icon, {
-          icon: local ? "mdi:laptop" : "mdi:cloud-outline",
-          size: 16,
+      { title: tip },
+      React.createElement(
+        "span",
+        null,
+        React.createElement(MUI.Chip, {
+          size: "small",
+          color: isLocal ? "warning" : "primary",
+          variant: "outlined",
+          disabled: !loggedIn,
+          icon: React.createElement(Icon, {
+            icon: isLocal ? "mdi:laptop" : "mdi:cloud-outline",
+            size: 16,
+          }),
+          label: loggedIn ? label : "Producción",
+          onClick: loggedIn ? () => cfg().setLocal(!local) : undefined,
+          sx: {
+            cursor: loggedIn ? "pointer" : "default",
+            height: "auto",
+            minHeight: 28,
+            py: 0.375,
+            "& .MuiChip-label": { px: 1.25, py: 0.25 },
+            "& .MuiChip-icon": { ml: 0.75, mr: -0.25 },
+          },
         }),
-        label: cfg().label(),
-        onClick: () => cfg().setLocal(!local),
-        sx: {
-          cursor: "pointer",
-          height: "auto",
-          minHeight: 28,
-          py: 0.375,
-          "& .MuiChip-label": { px: 1.25, py: 0.25 },
-          "& .MuiChip-icon": { ml: 0.75, mr: -0.25 },
-        },
-      }),
+      ),
     );
   }
 

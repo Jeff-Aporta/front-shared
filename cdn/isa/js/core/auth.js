@@ -2,9 +2,11 @@ import { AUTH_DEFAULTS as D, MAIN_ORCHESTRATOR_LS_KEY } from "./constants.js";
 import { wrapPassword } from "./caesar.js";
 import { createTokenStore, isTokenValid } from "./token-store.js";
 
-/** Auth consumer — login contra system-login (sesión compartida). */
+/** Auth consumer — login contra system-login (sesión por app). */
 export function createAuth(opts = {}) {
-  const sessionKey = opts.sessionKey || D.sessionKey;
+  const appId = String(opts.appId || opts.app || "").trim();
+  if (!appId) throw new Error("createAuth: appId requerido");
+  const sessionKey = opts.sessionKey || `${D.sessionKey}:${appId}`;
   const authEvt = opts.authEvent || D.authEvent;
   const authLocalKey = opts.authLocalKey || D.authLocalKey;
   const authLocal = opts.authLocal || D.authLocal;
@@ -15,6 +17,10 @@ export function createAuth(opts = {}) {
   function read() {
     const data = store.read();
     if (!data) return null;
+    if (data.app && data.app !== appId) {
+      store.clear();
+      return null;
+    }
     if (!isTokenValid(data)) {
       store.clear();
       return null;
@@ -39,23 +45,29 @@ export function createAuth(opts = {}) {
     return read()?.username ?? null;
   }
 
+  function appHeader() {
+    return { "X-App-Id": appId };
+  }
+
   function authHeader() {
     const s = read();
-    return s?.token ? { Authorization: "Bearer " + s.token } : {};
+    return s?.token ? { Authorization: "Bearer " + s.token, ...appHeader() } : {};
   }
 
   async function login(user, pass) {
     const res = await fetch(authBase().replace(/\/$/, "") + "/api/auth/token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: user, password: wrapPassword(pass) }),
+      body: JSON.stringify({ username: user, password: wrapPassword(pass), app: appId }),
     });
     const data = await res.json();
     if (!res.ok || !data.token) throw new Error(data.error || "Login fallido");
+    if (data.app && data.app !== appId) throw new Error("Token emitido para otra aplicación");
     store.save({
       username: data.username || user,
       token: data.token,
       expiresAt: data.expiresAt ?? null,
+      app: appId,
     });
     window.dispatchEvent(new Event(authEvt));
   }
@@ -69,6 +81,8 @@ export function createAuth(opts = {}) {
     isLoggedIn,
     username,
     authHeader,
+    appHeader,
+    appId: () => appId,
     login,
     logout,
     LOGIN_URL: loginUrl,
@@ -86,4 +100,5 @@ export function createAuth(opts = {}) {
 export function registerAuth(ns, opts) {
   window[ns] = window[ns] || {};
   window[ns].Auth = createAuth(opts);
+  window[ns].APP_ID = String(opts?.appId || opts?.app || "").trim();
 }
