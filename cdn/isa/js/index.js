@@ -14,6 +14,7 @@ import { registerApp } from "./core/register-app.js";
 import { REALTIME, wsUrlFromHttpBase, createRealtime, registerRealtime, REALTIME_EVENT } from "./core/realtime.js";
 import { showToast, registerToast, TOAST_EVENT } from "./ui/toast.js";
 import { createSqlExec, registerSqlExec } from "./ui/sql-exec.js";
+import { registerCodeMirror } from "./ui/code-mirror.js";
 import { CAPABILITY_CATALOG, blockReasonFor, resolveCapId } from "./core/capabilities.js";
 import { sanitizeUserMessage } from "./core/sanitize-user-message.js";
 import {
@@ -75,6 +76,7 @@ window.ISAFront = {
   sanitizeUserMessage,
   createSqlExec,
   registerSqlExec,
+  registerCodeMirror,
   registerFeedback,
   registerFeedbackGlobal,
   createToastApi,
@@ -93,6 +95,7 @@ window.ISAFront = {
 
 if (typeof window !== "undefined" && window.React && window.MaterialUI) {
   registerFeedbackGlobal(window.React, window.MaterialUI);
+  registerCodeMirror(window.React, window.MaterialUI);
 }
 
 window.__isaFrontReady = Promise.resolve(true);
