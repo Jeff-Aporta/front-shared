@@ -29,10 +29,21 @@ Uso en una app:
 
 ```javascript
 const Shell = window.ISAFront.Layout.AppShell;
-<Shell ns="IAT" title="Herramientas de IA" icon="mdi:robot-outline" loginGate>
-  {/* contenido */}
+<Shell
+  ns="ISAJ"
+  icon="mdi:view-dashboard-variant-outline"
+  showTitle={false}
+  navRows={[
+    { value: space, onChange: setSpace, tabs: SPACES, minHeight: 48 },
+    { value: sub, onChange: setSub, tabs: SUBSPACES, minHeight: 44 },
+  ]}
+  toolbarEnd={<LoginButton />}
+>
+  {/* vistas con scroll interno (.isa-scroll-panel) */}
 </Shell>
 ```
+
+Tercer nivel de tabs dentro de una vista: `ISAFront.Layout.ViewFrame` con prop `navRow`.
 
 Añadir un JSX nuevo: crear bajo `cdn/ui/` con extensión `.jsx` y registrar la ruta en `SHARED_UI_FILES`.
 
