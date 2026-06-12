@@ -4,7 +4,7 @@
  */
 
 /** Bump al publicar front-shared (evita caché stale de jsDelivr @main). */
-const FRONT_SHARED_REF = "3d41685";
+const FRONT_SHARED_REF = "e2755d2";
 const CDN = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@" + FRONT_SHARED_REF + "/cdn";
 
 export function sharedCdnBase() {
