@@ -227,22 +227,6 @@ export function createSqlExec(React, MUI) {
     }
 
     function toolbarIcon(icon, tip, onClick, extra = {}) {
-      if (Icon) {
-        return React.createElement(
-          Tooltip,
-          { title: tip },
-          React.createElement(
-            "span",
-            null,
-            React.createElement(Icon, {
-              icon,
-              title: tip,
-              onClick,
-              disabled: extra.disabled,
-            }),
-          ),
-        );
-      }
       return React.createElement(
         Tooltip,
         { title: tip },
@@ -254,7 +238,9 @@ export function createSqlExec(React, MUI) {
             disabled: extra.disabled,
             onClick,
             "aria-label": tip,
-          }, extra.label || "…"),
+          }, Icon
+            ? React.createElement(Icon, { icon, size: 18 })
+            : extra.label || "…"),
         ),
       );
     }
