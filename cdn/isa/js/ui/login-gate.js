@@ -21,6 +21,7 @@ export function createLoginGates(React, MUI, ns, UI, opts = {}) {
     const [ok, setOk] = React.useState(Auth().isLoggedIn());
     const [user, setUser] = React.useState("");
     const [pass, setPass] = React.useState("");
+    const [showPass, setShowPass] = React.useState(false);
     const [err, setErr] = React.useState("");
     useAuthSync(setOk);
     if (ok) return props.children;
@@ -43,12 +44,28 @@ export function createLoginGates(React, MUI, ns, UI, opts = {}) {
       }),
       React.createElement(MUI.TextField, {
         label: "Clave",
-        type: "password",
+        type: showPass ? "text" : "password",
         fullWidth: true,
         size: "small",
         sx: { mb: 2 },
         value: pass,
         onChange: (e) => setPass(e.target.value),
+        InputProps: {
+          endAdornment: React.createElement(
+            MUI.InputAdornment,
+            { position: "end" },
+            React.createElement(
+              MUI.IconButton,
+              {
+                size: "small",
+                edge: "end",
+                "aria-label": showPass ? "Ocultar contraseña" : "Mostrar contraseña",
+                onClick: () => setShowPass((v) => !v),
+              },
+              React.createElement(UI.Icon, { icon: showPass ? "mdi:eye-off" : "mdi:eye", size: 20 }),
+            ),
+          ),
+        },
       }),
       React.createElement(
         MUI.Stack,
