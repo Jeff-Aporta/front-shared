@@ -62,7 +62,12 @@ export function createApiConfig(opts = {}) {
     return isLocal() ? "Local" : "Producción";
   }
 
-  return { isLocal, setLocal, base, apiUrl, label, EVENT: evt, ONLINE: online, LOCAL: local, lsKey };
+  /** Texto auxiliar para errores de conexión (sin nombres de servicio). */
+  function connectionHint() {
+    return isLocal() ? " Comprueba que el entorno local esté activo." : "";
+  }
+
+  return { isLocal, setLocal, base, apiUrl, label, connectionHint, EVENT: evt, ONLINE: online, LOCAL: local, lsKey };
 }
 
 export function registerConfig(ns, opts) {
