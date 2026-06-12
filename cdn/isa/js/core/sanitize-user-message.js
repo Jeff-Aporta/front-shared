@@ -8,5 +8,8 @@ export function sanitizeUserMessage(raw, fallback = "No se pudo completar la ope
   if (TECHNICAL.test(msg)) return fallback;
   if (/^HTTP \d{3}$/.test(msg)) return fallback;
   if (/^Login falló \(\d+\)$/.test(msg)) return "No se pudo iniciar sesión";
+  if (/verificaci[oó]n de permisos fallida|verify-access/i.test(msg)) {
+    return "No se pudo verificar el permiso para esta operación";
+  }
   return msg.length > 200 ? msg.slice(0, 197) + "…" : msg;
 }
