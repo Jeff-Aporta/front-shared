@@ -3,7 +3,9 @@
  * Todo el CDN desde jsDelivr (repo público Jeff-Aporta/front-shared).
  */
 
-const CDN = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@main/cdn";
+/** Bump al publicar front-shared (evita caché stale de jsDelivr @main). */
+const FRONT_SHARED_REF = "1dbb9fa";
+const CDN = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@" + FRONT_SHARED_REF + "/cdn";
 
 export function sharedCdnBase() {
   return CDN;

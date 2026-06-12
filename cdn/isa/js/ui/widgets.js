@@ -48,7 +48,14 @@ export function createWidgets(React, MUI, ns, opts = {}) {
         }),
         label: cfg().label(),
         onClick: () => cfg().setLocal(!local),
-        sx: { cursor: "pointer" },
+        sx: {
+          cursor: "pointer",
+          height: "auto",
+          minHeight: 28,
+          py: 0.375,
+          "& .MuiChip-label": { px: 1.25, py: 0.25 },
+          "& .MuiChip-icon": { ml: 0.75, mr: -0.25 },
+        },
       }),
     );
   }
