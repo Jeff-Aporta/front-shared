@@ -1,5 +1,12 @@
-/** Toasts ligeros sin React — contenedor fijo en la esquina inferior derecha. */
-const TOAST_EVENT = "isa:toast";
+/**
+ * Toasts — delega al bus MUI (feedback/toast-bus.js).
+ * Fallback DOM solo si no hay FeedbackProvider montado aún.
+ */
+import {
+  toastShow,
+  createToastApi,
+  FEEDBACK_TOAST_EVENT,
+} from "./feedback/toast-bus.js";
 
 const COLORS = {
   info: { bg: "#1565c0", fg: "#fff" },
@@ -8,7 +15,7 @@ const COLORS = {
   error: { bg: "#c62828", fg: "#fff" },
 };
 
-function ensureContainer() {
+function ensureDomContainer() {
   let el = document.getElementById("isa-toast-root");
   if (el) return el;
   el = document.createElement("div");
@@ -20,25 +27,18 @@ function ensureContainer() {
   return el;
 }
 
-/**
- * @param {{ message: string, severity?: keyof typeof COLORS, durationMs?: number }} opts
- */
-export function showToast(opts) {
+function showDomFallback(opts) {
   const message = opts && opts.message ? String(opts.message) : "";
   if (!message) return;
   const severity = (opts && opts.severity) || "info";
   const durationMs = (opts && opts.durationMs) || 4500;
   const palette = COLORS[severity] || COLORS.info;
-
-  const root = ensureContainer();
+  const root = ensureDomContainer();
   const item = document.createElement("div");
   item.textContent = message;
   item.style.cssText =
     "pointer-events:auto;padding:10px 14px;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.25);font-size:14px;line-height:1.4;opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;background:" +
-    palette.bg +
-    ";color:" +
-    palette.fg +
-    ";";
+    palette.bg + ";color:" + palette.fg + ";";
   root.appendChild(item);
   requestAnimationFrame(() => {
     item.style.opacity = "1";
@@ -49,13 +49,30 @@ export function showToast(opts) {
     item.style.transform = "translateY(8px)";
     setTimeout(() => item.remove(), 220);
   }, durationMs);
+}
 
-  window.dispatchEvent(new CustomEvent(TOAST_EVENT, { detail: { message, severity, durationMs } }));
+export function showToast(opts) {
+  const id = toastShow({
+    message: opts?.message,
+    severity: opts?.severity,
+    durationMs: opts?.durationMs,
+    title: opts?.title,
+  });
+  if (!id && opts?.message) showDomFallback(opts);
+  return id;
 }
 
 export function registerToast(ns) {
+  const toast = createToastApi();
   window[ns] = window[ns] || {};
-  window[ns].Toast = { show: showToast };
+  window[ns].Toast = {
+    show: (opts) => toast.show({
+      message: opts?.message,
+      severity: opts?.severity,
+      durationMs: opts?.durationMs,
+      title: opts?.title,
+    }),
+  };
 }
 
-export { TOAST_EVENT };
+export { FEEDBACK_TOAST_EVENT as TOAST_EVENT };

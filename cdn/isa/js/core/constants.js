@@ -34,3 +34,4 @@ export const AUTH_DEFAULTS = {
 export const FRONT_SHARED_REF = "d2ae9b7";
 export const CDN_BASE = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@" + FRONT_SHARED_REF + "/cdn/isa";
 export const UI_CDN_BASE = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@" + FRONT_SHARED_REF + "/cdn/ui";
+export const FEEDBACK_CSS_URL = CDN_BASE + "/css/feedback.css";

@@ -57,7 +57,7 @@ export function createAuth(opts = {}) {
   async function login(user, pass) {
     const res = await fetch(authBase().replace(/\/$/, "") + "/api/auth/token", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...appHeader() },
       body: JSON.stringify({ username: user, password: wrapPassword(pass), app: appId }),
     });
     const data = await res.json();

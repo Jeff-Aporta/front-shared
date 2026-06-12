@@ -1,8 +1,9 @@
 import { AUTH_DEFAULTS as D, MAIN_ORCHESTRATOR_LS_KEY } from "./constants.js";
 import { wrapPassword } from "./caesar.js";
 import { createTokenStore, isTokenValid } from "./token-store.js";
+import { blockReasonFor, resolveCapId } from "./capabilities.js";
 
-/** Sesión JWT por aplicación (rol + claim app en token). */
+/** Sesión JWT por aplicación + capacidades de servicio (resueltas en system-login). */
 export function registerSession(ns, opts = {}) {
   const appId = String(opts.appId || opts.app || "").trim();
   if (!appId) throw new Error("registerSession: appId requerido");
@@ -47,6 +48,7 @@ export function registerSession(ns, opts = {}) {
       token: data.token,
       expiresAt: data.expiresAt ?? null,
       app: appId,
+      capabilities: Array.isArray(data.capabilities) ? data.capabilities : [],
     });
     window.dispatchEvent(new Event(authEvt));
   }
@@ -57,6 +59,7 @@ export function registerSession(ns, opts = {}) {
   }
 
   let session = readSession();
+  let refreshPromise = null;
 
   function current() {
     session = readSession();
@@ -72,6 +75,25 @@ export function registerSession(ns, opts = {}) {
     return current()?.username ?? null;
   }
 
+  function capabilities() {
+    const s = current();
+    return Array.isArray(s?.capabilities) ? s.capabilities : [];
+  }
+
+  function can(capOrLegacy) {
+    const capId = resolveCapId(capOrLegacy);
+    if (!isLoggedIn()) return false;
+    return capabilities().includes(capId);
+  }
+
+  function blockReason(capOrLegacy) {
+    const capId = resolveCapId(capOrLegacy);
+    return blockReasonFor(capId, {
+      loggedIn: isLoggedIn(),
+      username: username(),
+    });
+  }
+
   function appHeader() {
     return { "X-App-Id": appId };
   }
@@ -80,10 +102,39 @@ export function registerSession(ns, opts = {}) {
     return isLoggedIn() ? { Authorization: "Bearer " + session.token, ...appHeader() } : {};
   }
 
+  async function refreshProfile() {
+    if (!isLoggedIn()) return null;
+    if (refreshPromise) return refreshPromise;
+    refreshPromise = (async () => {
+      try {
+        const res = await fetch(authUrl("/api/session"), {
+          headers: { Accept: "application/json", ...authHeader() },
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) return null;
+        const s = current();
+        if (!s) return null;
+        const next = {
+          ...s,
+          role: data.user?.role ?? s.role,
+          capabilities: Array.isArray(data.capabilities) ? data.capabilities : [],
+        };
+        session = next;
+        saveSession(next);
+        return next;
+      } catch {
+        return null;
+      } finally {
+        refreshPromise = null;
+      }
+    })();
+    return refreshPromise;
+  }
+
   async function login(user, pass) {
     const res = await fetch(authUrl("/api/auth/token"), {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...appHeader() },
       body: JSON.stringify({
         username: user.trim(),
         password: wrapPassword(pass),
@@ -105,8 +156,12 @@ export function registerSession(ns, opts = {}) {
       token: data.token,
       expiresAt: data.expiresAt || null,
       app: appId,
+      capabilities: Array.isArray(data.capabilities) ? data.capabilities : [],
     };
     saveSession(session);
+    if (!session.capabilities.length) {
+      await refreshProfile();
+    }
     return session;
   }
 
@@ -114,6 +169,22 @@ export function registerSession(ns, opts = {}) {
     session = null;
     clearSession();
   }
+
+  const sessionApi = {
+    current,
+    isLoggedIn,
+    username,
+    authHeader,
+    appHeader,
+    appId: () => appId,
+    login,
+    logout,
+    refreshProfile,
+    capabilities,
+    can,
+    blockReason,
+    EVENT: authEvt,
+  };
 
   const bag = window[ns] || {};
   bag.APP_ID = appId;
@@ -131,18 +202,7 @@ export function registerSession(ns, opts = {}) {
     authHeader,
     appHeader,
   };
-  bag.Session = {
-    current,
-    isLoggedIn,
-    username,
-    authHeader,
-    appHeader,
-    appId: () => appId,
-    login,
-    logout,
-    EVENT: authEvt,
-  };
-  /** Puente para AppShell / widgets que esperan Auth. */
+  bag.Session = sessionApi;
   bag.Auth = {
     isLoggedIn,
     username,
@@ -151,6 +211,10 @@ export function registerSession(ns, opts = {}) {
     appId: () => appId,
     login,
     logout,
+    refreshProfile,
+    capabilities,
+    can,
+    blockReason,
     EVENT: authEvt,
     LOGIN_URL: opts.loginUrl || D.loginUrl,
     AUTH_ONLINE: authOnline,
@@ -158,6 +222,10 @@ export function registerSession(ns, opts = {}) {
   window[ns] = bag;
 
   if (isLoggedIn()) {
+    const s = current();
+    if (!Array.isArray(s?.capabilities) || !s.capabilities.length) {
+      refreshProfile().catch(() => {});
+    }
     window.dispatchEvent(new Event(authEvt));
   }
 }

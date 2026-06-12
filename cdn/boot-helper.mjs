@@ -31,7 +31,17 @@ export function assertStack() {
 }
 
 export async function loadIsaFront() {
+  ensureFeedbackCss();
   await import(CDN + "/isa/js/index.js");
+}
+
+export function ensureFeedbackCss() {
+  if (document.querySelector("link[data-isa-feedback-css]")) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = CDN + "/isa/css/feedback.css";
+  link.setAttribute("data-isa-feedback-css", "1");
+  document.head.appendChild(link);
 }
 
 function babelPresets(url) {

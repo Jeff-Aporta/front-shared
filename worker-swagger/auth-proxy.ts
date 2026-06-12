@@ -20,16 +20,25 @@ export function resolveSystemLoginBase(env: AuthProxyEnv | undefined, requestUrl
   return SYSTEM_LOGIN_URL_PROD;
 }
 
+function passthroughAuthHeaders(c: Context): Record<string, string> {
+  const headers: Record<string, string> = {
+    "Content-Type": c.req.header("Content-Type") || "application/json",
+    Accept: "application/json",
+  };
+  for (const name of ["Origin", "Referer", "X-App-Id"]) {
+    const v = c.req.header(name);
+    if (v) headers[name] = v;
+  }
+  return headers;
+}
+
 async function forwardAuthPost(c: Context, path: string): Promise<Response> {
   const env = c.env as AuthProxyEnv | undefined;
   const base = resolveSystemLoginBase(env, c.req.url);
   const body = await c.req.text();
   const res = await fetch(`${base}${path}`, {
     method: "POST",
-    headers: {
-      "Content-Type": c.req.header("Content-Type") || "application/json",
-      Accept: "application/json",
-    },
+    headers: passthroughAuthHeaders(c),
     body,
   });
   const text = await res.text();

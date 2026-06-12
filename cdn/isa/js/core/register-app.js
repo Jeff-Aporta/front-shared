@@ -6,6 +6,8 @@ import { registerWidgets } from "../ui/widgets.js";
 import { registerLoginGates } from "../ui/login-gate.js";
 import { registerRealtime } from "./realtime.js";
 import { registerToast } from "../ui/toast.js";
+import { registerFeedback } from "../ui/feedback/register.js";
+import { registerSqlExec } from "../ui/sql-exec.js";
 
 /**
  * Registra módulos compartidos en window[ns].
@@ -55,5 +57,13 @@ export function registerApp(opts) {
 
   if (opts.toast !== false) {
     registerToast(ns);
+  }
+
+  if (opts.feedback !== false && typeof window.React !== "undefined" && typeof window.MaterialUI !== "undefined") {
+    registerFeedback(ns, window.React, window.MaterialUI);
+  }
+
+  if (opts.sqlExec !== false && typeof window.React !== "undefined" && typeof window.MaterialUI !== "undefined") {
+    registerSqlExec(ns, window.React, window.MaterialUI);
   }
 }

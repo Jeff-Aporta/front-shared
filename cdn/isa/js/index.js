@@ -13,6 +13,24 @@ import { createLoginGates, registerLoginGates } from "./ui/login-gate.js";
 import { registerApp } from "./core/register-app.js";
 import { REALTIME, wsUrlFromHttpBase, createRealtime, registerRealtime, REALTIME_EVENT } from "./core/realtime.js";
 import { showToast, registerToast, TOAST_EVENT } from "./ui/toast.js";
+import { createSqlExec, registerSqlExec } from "./ui/sql-exec.js";
+import { CAPABILITY_CATALOG, blockReasonFor, resolveCapId } from "./core/capabilities.js";
+import {
+  registerFeedback,
+  registerFeedbackGlobal,
+  createToastApi,
+  createProcessApi,
+} from "./ui/feedback/register.js";
+import {
+  toastSuccess,
+  toastError,
+  toastInfo,
+  toastWarning,
+  toastShow,
+  requestConfirm,
+  FEEDBACK_TOAST_EVENT,
+} from "./ui/feedback/toast-bus.js";
+import { createProcessRunner, FEEDBACK_PROCESS_EVENT } from "./ui/feedback/process-bus.js";
 import { formatLocalDate, formatLocalDateTime } from "./core/format.js";
 
 window.ISAFront = {
@@ -48,7 +66,29 @@ window.ISAFront = {
   TOAST_EVENT,
   formatLocalDate,
   formatLocalDateTime,
+  CAPABILITY_CATALOG,
+  blockReasonFor,
+  resolveCapId,
+  createSqlExec,
+  registerSqlExec,
+  registerFeedback,
+  registerFeedbackGlobal,
+  createToastApi,
+  createProcessApi,
+  createProcessRunner,
+  toastSuccess,
+  toastError,
+  toastInfo,
+  toastWarning,
+  toastShow,
+  requestConfirm,
+  FEEDBACK_TOAST_EVENT,
+  FEEDBACK_PROCESS_EVENT,
   Layout: {},
 };
+
+if (typeof window !== "undefined" && window.React && window.MaterialUI) {
+  registerFeedbackGlobal(window.React, window.MaterialUI);
+}
 
 window.__isaFrontReady = Promise.resolve(true);
