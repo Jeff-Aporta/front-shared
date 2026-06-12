@@ -2,6 +2,7 @@ import { AUTH_DEFAULTS as D, MAIN_ORCHESTRATOR_LS_KEY } from "./constants.js";
 import { wrapPassword } from "./caesar.js";
 import { createTokenStore, isTokenValid } from "./token-store.js";
 import { blockReasonFor, resolveCapId } from "./capabilities.js";
+import { sanitizeUserMessage } from "./sanitize-user-message.js";
 
 /** Sesión JWT por aplicación + capacidades de servicio (resueltas en system-login). */
 export function registerSession(ns, opts = {}) {
@@ -143,7 +144,10 @@ export function registerSession(ns, opts = {}) {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.token) {
-      const err = new Error(data.error || "Login falló (" + res.status + ")");
+      let msg = "No se pudo iniciar sesión";
+      if (res.status === 401 || res.status === 403) msg = "Usuario o contraseña incorrectos";
+      else if (data.error) msg = sanitizeUserMessage(data.error, msg);
+      const err = new Error(msg);
       if (data.retryAfterSeconds) err.retryAfterSeconds = data.retryAfterSeconds;
       throw err;
     }
