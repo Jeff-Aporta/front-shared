@@ -66,6 +66,47 @@
   overflow: auto !important;
 }
 
+.isa-cm-host .CodeMirror-foldgutter {
+  width: 1.45em;
+  min-width: 20px;
+}
+
+.isa-cm-host .CodeMirror-foldgutter .CodeMirror-gutter-elt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.isa-cm-host .CodeMirror-foldgutter-open,
+.isa-cm-host .CodeMirror-foldgutter-folded {
+  cursor: pointer;
+  color: #8be9fd;
+  line-height: 1;
+  background: none !important;
+}
+
+.isa-cm-host .CodeMirror-foldgutter-open:after,
+.isa-cm-host .CodeMirror-foldgutter-folded:after {
+  content: none;
+  display: none;
+}
+
+.isa-cm-host .CodeMirror-foldgutter-open iconify-icon,
+.isa-cm-host .CodeMirror-foldgutter-folded iconify-icon {
+  display: block;
+  color: #8be9fd;
+  opacity: 0.92;
+}
+
+.isa-cm-host .CodeMirror-foldmarker {
+  color: #6272a4;
+  cursor: pointer;
+  background: rgba(98, 114, 164, 0.25);
+  border-radius: 3px;
+  padding: 0 0.35em;
+  font-size: 0.72em;
+}
+
 .isa-cm-fallback {
   width: 100%;
   min-height: 8rem;

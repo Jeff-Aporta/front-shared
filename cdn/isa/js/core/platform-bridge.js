@@ -1,0 +1,102 @@
+/**
+ * Puente tipado app → window[ns] (ISAFront). Una copia por micro-frontend.
+ * @param {string} ns p.ej. "ISA", "ISAJ"
+ * @param {object} [opts]
+ * @param {boolean} [opts.sessionFromAuth] fallback Session → Auth (jagudeloe legacy)
+ */
+export function createPlatformBridge(ns, opts = {}) {
+  function bag() {
+    const b = window[ns];
+    if (!b?.UI) throw new Error(`${ns} no registrado — ejecutar isa-setup antes que platform`);
+    return b;
+  }
+
+  function sessionApi() {
+    const j = bag();
+    if (j.Session) return j.Session;
+    if (!opts.sessionFromAuth) return j.Session;
+    const auth = j.Auth;
+    if (!auth) throw new Error(`${ns} Session/Auth no disponible`);
+    return {
+      current() {
+        if (!auth.isLoggedIn()) return null;
+        return { username: auth.username(), expiresAt: null, role: null, token: null };
+      },
+      isLoggedIn: () => auth.isLoggedIn(),
+      username: () => auth.username(),
+      authHeader: () => auth.authHeader(),
+      appHeader: () => auth.appHeader?.() ?? {},
+      appId: () => auth.appId?.() ?? j.APP_ID ?? null,
+      login: (u, p) => auth.login(u, p),
+      logout: () => auth.logout(),
+      refreshProfile: () => auth.refreshProfile?.(),
+      capabilities: () => auth.capabilities?.() ?? [],
+      can: (cap) => auth.can?.(cap) ?? false,
+      blockReason: (cap) => auth.blockReason?.(cap) ?? "Inicia sesión para usar este servicio",
+      get EVENT() { return auth.EVENT; },
+    };
+  }
+
+  const UI = {
+    get Icon() { return bag().UI.Icon; },
+    get TargetSwitch() { return bag().UI.TargetSwitch; },
+    get ThemeSwitch() { return bag().UI.ThemeSwitch; },
+    get useRealtimeStatus() { return bag().UI.useRealtimeStatus; },
+    get RealtimeStatusDot() { return bag().UI.RealtimeStatusDot; },
+    get Loading() { return bag().UI.Loading; },
+    get ErrorBox() { return bag().UI.ErrorBox; },
+    get LoginGate() { return bag().UI.LoginGate; },
+    get LoginButton() { return bag().UI.LoginButton; },
+    get FeedbackProvider() { return bag().UI.FeedbackProvider; },
+    get ProcessPanel() { return bag().UI.ProcessPanel; },
+  };
+
+  const Session = {
+    current: () => sessionApi().current(),
+    isLoggedIn: () => sessionApi().isLoggedIn(),
+    username: () => sessionApi().username(),
+    authHeader: () => sessionApi().authHeader(),
+    appHeader: () => sessionApi().appHeader(),
+    appId: () => sessionApi().appId(),
+    login: (u, p) => sessionApi().login(u, p),
+    logout: () => sessionApi().logout(),
+    refreshProfile: () => sessionApi().refreshProfile?.(),
+    capabilities: () => sessionApi().capabilities?.() ?? [],
+    can: (cap) => sessionApi().can?.(cap) ?? false,
+    blockReason: (cap) => sessionApi().blockReason?.(cap) ?? "Inicia sesión para usar este servicio",
+    get EVENT() { return sessionApi().EVENT; },
+  };
+
+  const Config = {
+    base: () => bag().Config.base(),
+    apiUrl: (path) => bag().Config.apiUrl(path),
+    isLocal: () => bag().Config.isLocal?.() ?? false,
+    setLocal: (v) => bag().Config.setLocal?.(v),
+    label: () => bag().Config.label?.(),
+    get EVENT() { return bag().Config.EVENT; },
+  };
+
+  const Toast = {
+    show: (o) =>
+      bag().Toast?.show?.(o)
+      ?? bag().Feedback?.toast?.show?.({
+        message: o?.message,
+        severity: o?.severity,
+        durationMs: o?.durationMs,
+        title: o?.title,
+      }),
+  };
+
+  const Feedback = {
+    get toast() { return bag().Feedback?.toast; },
+    get process() { return bag().Feedback?.process; },
+    runProcess: (o) => bag().Feedback?.runProcess?.(o),
+    confirm: (o) => bag().Feedback?.confirm?.(o),
+  };
+
+  const Realtime = {
+    getStatus: () => bag().Realtime?.getConnectionStatus?.() ?? bag().Realtime?.getStatus?.(),
+  };
+
+  return { UI, Session, Config, Toast, Feedback, Realtime };
+}

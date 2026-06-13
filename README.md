@@ -13,7 +13,8 @@ Recursos compartidos para micro-frontends Jeff-Aporta (GH Pages + Babel + MUI 9)
 
 | Ruta | Rol |
 |------|-----|
-| `cdn/stack.mjs`, `boot-helper.mjs`, `boot-resolver.mjs` | Arranque: React ESM único + pipeline loader |
+| `cdn/stack.mjs`, `boot-helper.mjs`, `boot-resolver.mjs`, `boot-loader.mjs`, `boot-module-graph.mjs` | Arranque: React ESM + grafo TS/JSX + eval |
+| `cdn/versions.json`, `boot-esm-imports.mjs` | Pin esm.sh (import map + module-graph) |
 | `cdn/isa/js/core/app-meta.js` | Metadatos HTML por front (title, OG, favicon vía Iconify API) |
 | `cdn/isa/` | Runtime JS: `ISAFront.registerApp`, tema, auth, widgets, login |
 | `cdn/ui/` | **JSX compartidos** (layouts/componentes) vía jsDelivr + Babel |
@@ -47,14 +48,14 @@ Tercer nivel de tabs dentro de una vista: `ISAFront.Layout.ViewFrame` con prop `
 
 Añadir un JSX nuevo: crear bajo `cdn/ui/` con extensión `.jsx` y registrar la ruta en `SHARED_UI_FILES`.
 
-## Metadatos por front (`JeffAppMeta`)
+## Metadatos por front (`AppMeta`)
 
 Cada `index.html` de micro-frontend puede declarar identidad propia (title, description, Open Graph, favicon):
 
 ```html
 <script src="https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@main/cdn/isa/js/core/app-meta.js"></script>
 <script>
-JeffAppMeta.apply({
+AppMeta.apply({
   title: "Mi App — Jeff-Aporta",
   description: "…",
   icon: "mdi:robot-outline",

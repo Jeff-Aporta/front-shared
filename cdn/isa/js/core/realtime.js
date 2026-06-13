@@ -1,10 +1,50 @@
 /** Evento global: `window.addEventListener("isa:realtime", (e) => e.detail)` */
 export const REALTIME_EVENT = "isa:realtime";
 
+/** Cambios de estado del socket: `{ ns, status }` en detail. */
+export const REALTIME_STATUS_EVENT = "isa:realtime:status";
+
 /** Tipos de mensaje realtime del orquestador (Jeff-Aporta). */
 export const REALTIME = {
   CHECKS_UPDATED: "checks.updated",
 };
+
+export function realtimeStatusTip(state, lastErr) {
+  switch (state) {
+    case "connected":
+      return "Notificaciones en tiempo real activas";
+    case "connecting":
+      return "Conectando notificaciones…";
+    case "reconnecting":
+      return "Reconectando notificaciones…";
+    case "error":
+      return lastErr ? String(lastErr) : "Error de conexión realtime";
+    default:
+      return "Notificaciones desconectadas";
+  }
+}
+
+export function realtimeDotTone(state) {
+  switch (state) {
+    case "connected":
+      return "ok";
+    case "connecting":
+    case "reconnecting":
+      return "pending";
+    case "error":
+      return "error";
+    default:
+      return "disconnected";
+  }
+}
+
+function emitStatus(ns, status) {
+  try {
+    window.dispatchEvent(new CustomEvent(REALTIME_STATUS_EVENT, { detail: { ns, status } }));
+  } catch {
+    /* ignore */
+  }
+}
 
 /** http(s)://host → wss://host/api/ws */
 export function wsUrlFromHttpBase(httpBase) {
@@ -20,13 +60,14 @@ export function wsUrlFromHttpBase(httpBase) {
 
 /**
  * Cliente WebSocket con reconexión exponencial.
- * @param {{ getUrl: () => string, onMessage?: (data: unknown) => void, onStatus?: (status: string) => void, enabled?: () => boolean }} opts
+ * @param {{ getUrl: () => string, onMessage?: (data: unknown) => void, onStatus?: (status: string) => void, enabled?: () => boolean, ns?: string }} opts
  */
 export function createRealtime(opts = {}) {
   const getUrl = opts.getUrl || (() => "");
   const onMessage = opts.onMessage;
   const onStatus = opts.onStatus;
   const enabled = opts.enabled || (() => true);
+  const ns = opts.ns || "";
 
   /** @type {WebSocket | null} */
   let socket = null;
@@ -34,9 +75,12 @@ export function createRealtime(opts = {}) {
   let attempt = 0;
   /** @type {ReturnType<typeof setTimeout> | null} */
   let timer = null;
+  let connectionStatus = "disconnected";
 
   function setStatus(status) {
+    connectionStatus = status;
     if (onStatus) onStatus(status);
+    emitStatus(ns, status);
   }
 
   function scheduleReconnect() {
@@ -124,7 +168,18 @@ export function createRealtime(opts = {}) {
     }
   }
 
-  return { start, disconnect, ping, getStatus: () => (socket && socket.readyState === WebSocket.OPEN ? "connected" : "disconnected") };
+  function getStatus() {
+    if (socket && socket.readyState === WebSocket.OPEN) return "connected";
+    return connectionStatus;
+  }
+
+  return {
+    start,
+    disconnect,
+    ping,
+    getStatus,
+    getConnectionStatus: getStatus,
+  };
 }
 
 export function registerRealtime(ns, opts = {}) {
@@ -134,12 +189,15 @@ export function registerRealtime(ns, opts = {}) {
   });
   const enabled = opts.enabled || (() => true);
   const rt = createRealtime({
+    ns,
     getUrl: () => wsUrlFromHttpBase(getBase()),
     enabled,
     onMessage: opts.onMessage,
     onStatus: opts.onStatus,
   });
+
   window[ns].Realtime = rt;
+
   if (opts.autoStart !== false) rt.start();
   return rt;
 }

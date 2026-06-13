@@ -10,6 +10,7 @@ import { createAuth, registerAuth } from "./core/auth.js";
 import { makeDodgerTheme, createThemeApi, registerTheme } from "./ui/theme.js";
 import { createWidgets, registerWidgets } from "./ui/widgets.js";
 import { createLoginGates, registerLoginGates } from "./ui/login-gate.js";
+import { createLoginButton, registerLoginButton } from "./ui/login-button.js";
 import { registerApp } from "./core/register-app.js";
 import { REALTIME, wsUrlFromHttpBase, createRealtime, registerRealtime, REALTIME_EVENT } from "./core/realtime.js";
 import { showToast, registerToast, TOAST_EVENT } from "./ui/toast.js";
@@ -17,6 +18,29 @@ import { createSqlExec, registerSqlExec } from "./ui/sql-exec.js";
 import { registerCodeMirror } from "./ui/code-mirror.js";
 import { CAPABILITY_CATALOG, blockReasonFor, resolveCapId } from "./core/capabilities.js";
 import { sanitizeUserMessage } from "./core/sanitize-user-message.js";
+import {
+  DEFAULT_FETCH_TIMEOUT_MS,
+  isDevHost,
+  localDevHint,
+  sanitizeApiError,
+  normalizeApiPath,
+  apiUrl,
+  wrapFetchError,
+  fetchRaw,
+  parseJsonResponse,
+  basesFor,
+  createCapFetch,
+  createApiFetch,
+  encodeSqlQueryParam,
+  rowVal,
+  humanPermissionError,
+  handleApiError,
+} from "./core/api-http.js";
+import { createServiceSession } from "./core/service-session.js";
+import { getReact, getReactDOM, getMaterialUI } from "./core/runtime.js";
+import { createUrlState, b64urlEncode, b64urlDecode } from "./core/url-state.js";
+import { createPlatformBridge } from "./core/platform-bridge.js";
+import { migrateLegacyGatewayKeys, GATEWAY_LEGACY_LS_KEYS } from "./core/gateway-legacy.js";
 import {
   registerFeedback,
   registerFeedbackGlobal,
@@ -31,10 +55,19 @@ import {
   toastShow,
   requestConfirm,
   FEEDBACK_TOAST_EVENT,
+  toastFromPayload,
 } from "./ui/feedback/toast-bus.js";
 import { createProcessRunner, FEEDBACK_PROCESS_EVENT } from "./ui/feedback/process-bus.js";
 import { formatLocalDate, formatLocalDateTime } from "./core/format.js";
 import { estimatePromptTokens } from "./core/prompt-tokens.js";
+import {
+  LOGIN_SUBTITLE_DEFAULT,
+  loginPageSx,
+  loginCardSx,
+  loginHeaderBandSx,
+  loginIconBoxSx,
+  LoginHeaderBand,
+} from "./ui/login-surface.js";
 
 window.ISAFront = {
   CDN_BASE,
@@ -74,6 +107,33 @@ window.ISAFront = {
   blockReasonFor,
   resolveCapId,
   sanitizeUserMessage,
+  sanitizeApiError,
+  normalizeApiPath,
+  DEFAULT_FETCH_TIMEOUT_MS,
+  isDevHost,
+  localDevHint,
+  apiUrl,
+  wrapFetchError,
+  fetchRaw,
+  parseJsonResponse,
+  basesFor,
+  createCapFetch,
+  createApiFetch,
+  encodeSqlQueryParam,
+  rowVal,
+  humanPermissionError,
+  handleApiError,
+  createServiceSession,
+  getReact,
+  getReactDOM,
+  getMaterialUI,
+  createUrlState,
+  b64urlEncode,
+  b64urlDecode,
+  createPlatformBridge,
+  migrateLegacyGatewayKeys,
+  GATEWAY_LEGACY_LS_KEYS,
+  Runtime: { getReact, getReactDOM, getMaterialUI },
   createSqlExec,
   registerSqlExec,
   registerCodeMirror,

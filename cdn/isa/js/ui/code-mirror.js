@@ -1,5 +1,6 @@
 /** CodeMirror 5 — panel reutilizable con botón copiar (ISAFront). */
 import { CDN_BASE } from "../core/constants.js";
+import { attachFoldGutterIcons } from "./code-mirror-fold-gutter.js";
 
 export function ensureCodeMirrorCss() {
   if (typeof document === "undefined") return;
@@ -15,6 +16,39 @@ function resolveMode(opts = {}) {
   if (opts.json) return { name: "javascript", json: true };
   if (opts.mode === "sql") return "text/x-sql";
   return opts.mode || "javascript";
+}
+
+function jsonFoldAvailable() {
+  const CM = window.CodeMirror;
+  return !!(CM?.fold?.brace && typeof CM.prototype?.foldCode === "function");
+}
+
+function registerJsonFoldHelper() {
+  const CM = window.CodeMirror;
+  if (!CM?.registerHelper || !CM?.fold?.brace) return;
+  const foldFn = CM.fold.auto || CM.fold.brace;
+  try {
+    CM.registerHelper("fold", "javascript", foldFn);
+  } catch {
+    /* ya registrado */
+  }
+}
+
+function applyJsonFoldOptions(opts, extraKeys = {}) {
+  if (!jsonFoldAvailable()) return opts;
+  const CM = window.CodeMirror;
+  registerJsonFoldHelper();
+  opts.gutters = ["CodeMirror-linenumbers", "CodeMirror-foldgutter"];
+  opts.foldGutter = { rangeFinder: CM.fold.brace };
+  opts.extraKeys = {
+    ...extraKeys,
+    "Ctrl-Q": (cm) => cm.foldCode(cm.getCursor()),
+    "Ctrl-Shift-Q": (cm) => {
+      if (typeof cm.unfoldAll === "function") cm.unfoldAll();
+      else window.CodeMirror?.commands?.unfoldAll?.(cm);
+    },
+  };
+  return opts;
 }
 
 function toastCopied() {
@@ -66,7 +100,11 @@ export function mountCodeMirror(host, opts = {}) {
   if (!CM || !host) return null;
 
   const readOnly = !!opts.readOnly;
-  const cm = CM(host, {
+  const extraKeys = readOnly
+    ? {}
+    : { Tab: (editor) => editor.replaceSelection("  ", "end") };
+
+  const cmOpts = {
     value: opts.value ?? "",
     mode: resolveMode(opts),
     theme: opts.theme ?? "dracula",
@@ -77,10 +115,14 @@ export function mountCodeMirror(host, opts = {}) {
     indentUnit: 2,
     indentWithTabs: false,
     viewportMargin: opts.viewportMargin ?? (readOnly ? Infinity : 10),
-    extraKeys: readOnly
-      ? {}
-      : { Tab: (editor) => editor.replaceSelection("  ", "end") },
-  });
+    extraKeys,
+  };
+
+  if (opts.json) applyJsonFoldOptions(cmOpts, cmOpts.extraKeys);
+
+  const cm = CM(host, cmOpts);
+
+  if (opts.json && jsonFoldAvailable()) attachFoldGutterIcons(cm);
 
   if (typeof opts.onChange === "function") {
     cm.on("change", () => opts.onChange(cm.getValue(), cm));
@@ -96,7 +138,7 @@ export function destroyCodeMirror(cm) {
 }
 
 export function createCodeMirrorPanel(React, MUI) {
-  const { useRef, useEffect } = React;
+  const { useRef, useEffect, useState } = React;
 
   function CodeMirrorPanel({
     value = "",
@@ -109,14 +151,18 @@ export function createCodeMirrorPanel(React, MUI) {
     fill = false,
     className = "",
     copyTitle = "Copiar",
+    fullPageTitle = "Editor",
+    enableFullPage = false,
     placeholder = "",
     lineWrapping = false,
     lineNumbers = true,
+    toolbarExtra = null,
   }) {
     const hostRef = useRef(null);
     const cmRef = useRef(null);
     const onChangeRef = useRef(onChange);
     const syncingRef = useRef(false);
+    const [fullOpen, setFullOpen] = useState(false);
 
     useEffect(() => {
       onChangeRef.current = onChange;
@@ -181,61 +227,32 @@ export function createCodeMirrorPanel(React, MUI) {
     const panelClass = [
       "isa-cm-panel",
       fill ? "isa-cm-panel--fill" : "",
+      (enableFullPage || toolbarExtra) ? "isa-cm-panel--toolbar" : "",
       className,
     ].filter(Boolean).join(" ");
 
     const hostStyle = { minHeight };
     if (maxHeight) hostStyle.maxHeight = maxHeight;
 
-    if (typeof window.CodeMirror === "undefined") {
+    function renderToolbar(getValue) {
       return React.createElement(
         "div",
-        { className: panelClass },
-        React.createElement(
-          "div",
-          { className: "isa-cm-panel__toolbar" },
+        { className: "isa-cm-panel__toolbar", "aria-label": "Acciones del editor" },
+        toolbarExtra,
+        enableFullPage && React.createElement(
+          MUI.Tooltip,
+          { title: "Ver a pantalla completa" },
           React.createElement(
-            MUI.Tooltip,
-            { title: copyTitle },
-            React.createElement(
-              MUI.IconButton,
-              {
-                size: "small",
-                className: "isa-cm-panel__copy",
-                "aria-label": copyTitle,
-                onClick: () => copyText(value),
-              },
-              React.createElement("iconify-icon", {
-                icon: "mdi:content-copy",
-                width: "1.1em",
-                height: "1.1em",
-              }),
-            ),
+            MUI.IconButton,
+            {
+              size: "small",
+              className: "isa-cm-panel__fab",
+              "aria-label": "Pantalla completa",
+              onClick: () => setFullOpen(true),
+            },
+            React.createElement("iconify-icon", { icon: "mdi:fullscreen", width: "14", height: "14" }),
           ),
         ),
-        readOnly
-          ? React.createElement("pre", {
-            className: "isa-cm-fallback",
-            style: hostStyle,
-          }, value || placeholder)
-          : React.createElement("textarea", {
-            className: "isa-cm-fallback",
-            style: hostStyle,
-            value,
-            placeholder,
-            readOnly,
-            spellCheck: false,
-            onChange: (e) => onChange?.(e.target.value),
-          }),
-      );
-    }
-
-    return React.createElement(
-      "div",
-      { className: panelClass },
-      React.createElement(
-        "div",
-        { className: "isa-cm-panel__toolbar" },
         React.createElement(
           MUI.Tooltip,
           { title: copyTitle },
@@ -243,19 +260,103 @@ export function createCodeMirrorPanel(React, MUI) {
             MUI.IconButton,
             {
               size: "small",
-              className: "isa-cm-panel__copy",
+              className: "isa-cm-panel__fab isa-cm-panel__copy",
               "aria-label": copyTitle,
-              onClick: () => copyText(cmRef.current?.getValue?.() ?? value),
+              onClick: () => copyText(getValue()),
             },
-            React.createElement("iconify-icon", {
-              icon: "mdi:content-copy",
-              width: "1.1em",
-              height: "1.1em",
-            }),
+            React.createElement("iconify-icon", { icon: "mdi:content-copy", width: "14", height: "14" }),
           ),
         ),
+      );
+    }
+
+    function renderFullPageDialog() {
+      if (!enableFullPage) return null;
+      return React.createElement(
+        MUI.Dialog,
+        { open: fullOpen, onClose: () => setFullOpen(false), fullScreen: true, scroll: "paper" },
+        React.createElement(
+          MUI.DialogTitle,
+          { sx: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1, py: 1, px: 2 } },
+          React.createElement(MUI.Box, { component: "span", sx: { fontWeight: 600, fontSize: "1rem" } }, fullPageTitle),
+          React.createElement(
+            MUI.Box,
+            { sx: { display: "flex", gap: 0.5 } },
+            React.createElement(
+              MUI.Tooltip,
+              { title: copyTitle },
+              React.createElement(
+                MUI.IconButton,
+                { size: "small", "aria-label": copyTitle, onClick: () => copyText(cmRef.current?.getValue?.() ?? value) },
+                React.createElement("iconify-icon", { icon: "mdi:content-copy", width: "14", height: "14" }),
+              ),
+            ),
+            React.createElement(
+              MUI.Tooltip,
+              { title: "Cerrar" },
+              React.createElement(
+                MUI.IconButton,
+                { size: "small", "aria-label": "Cerrar", onClick: () => setFullOpen(false) },
+                React.createElement("iconify-icon", { icon: "mdi:close", width: "14", height: "14" }),
+              ),
+            ),
+          ),
+        ),
+        React.createElement(
+          MUI.DialogContent,
+          { dividers: true, sx: { p: 1, display: "flex", flexDirection: "column", minHeight: 0, flex: 1 } },
+          React.createElement(CodeMirrorPanel, {
+            value,
+            onChange,
+            json,
+            mode,
+            readOnly,
+            fill: true,
+            lineWrapping,
+            lineNumbers,
+            copyTitle,
+            placeholder,
+            toolbarExtra,
+            className: "isa-cm-panel--dialog",
+          }),
+        ),
+      );
+    }
+
+    if (typeof window.CodeMirror === "undefined") {
+      return React.createElement(
+        React.Fragment,
+        null,
+        React.createElement(
+          "div",
+          { className: panelClass },
+          renderToolbar(() => value),
+          readOnly
+            ? React.createElement("pre", { className: "isa-cm-fallback", style: hostStyle }, value || placeholder)
+            : React.createElement("textarea", {
+              className: "isa-cm-fallback",
+              style: hostStyle,
+              value,
+              placeholder,
+              readOnly,
+              spellCheck: false,
+              onChange: (e) => onChange?.(e.target.value),
+            }),
+        ),
+        renderFullPageDialog(),
+      );
+    }
+
+    return React.createElement(
+      React.Fragment,
+      null,
+      React.createElement(
+        "div",
+        { className: panelClass, style: fill ? { minHeight: 0, height: "100%", flex: "1 1 auto" } : { minHeight } },
+        renderToolbar(() => cmRef.current?.getValue?.() ?? value),
+        React.createElement("div", { className: "isa-cm-host", ref: hostRef, style: hostStyle }),
       ),
-      React.createElement("div", { className: "isa-cm-host", ref: hostRef, style: hostStyle }),
+      renderFullPageDialog(),
     );
   }
 

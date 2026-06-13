@@ -20,7 +20,7 @@ Patrón **Paty ISA** para el loader; **MUI 9 exige React ESM único** (no mezcla
 1. `<base href>` dinámico.
 2. Import map (react, react-dom, @mui/material, @emotion/*).
 3. Babel + iconify (si aplica).
-4. Body: fetch `js/boot/loader.ts` → Babel → `eval`.
+4. Body: `<script type="module" src="js/boot/loader.mjs"></script>`.
 
 ## `loader.ts`
 

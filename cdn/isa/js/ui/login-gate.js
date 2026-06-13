@@ -1,9 +1,16 @@
-/** LoginGate — formulario inline o pantalla de redirección al panel de acceso. */
+/** LoginGate — pantalla inline o redirección al panel de acceso (estilo tk JSX). */
+import {
+  LOGIN_SUBTITLE_DEFAULT,
+  loginPageSx,
+  loginCardSx,
+  LoginHeaderBand,
+} from "./login-surface.js";
+
 export function createLoginGates(React, MUI, ns, UI, opts = {}) {
   const Auth = () => window[ns].Auth;
-  const subtitle =
-    opts.subtitle ||
-    "Use su usuario y contraseña de la organización.";
+  const subtitle = opts.subtitle || LOGIN_SUBTITLE_DEFAULT;
+  const accent = opts.accent || "#1e90ff";
+  const icon = opts.icon || "mdi:shield-key-outline";
 
   function useAuthSync(setOk) {
     React.useEffect(() => {
@@ -17,39 +24,32 @@ export function createLoginGates(React, MUI, ns, UI, opts = {}) {
     }, [setOk]);
   }
 
-  function LoginGateInline(props) {
-    const [ok, setOk] = React.useState(Auth().isLoggedIn());
-    const [user, setUser] = React.useState("");
-    const [pass, setPass] = React.useState("");
-    const [showPass, setShowPass] = React.useState(false);
-    const [err, setErr] = React.useState("");
-    useAuthSync(setOk);
-    if (ok) return props.children;
-
+  function LoginFields({ user, setUser, pass, setPass, showPass, setShowPass, err, onLogin, extraActions }) {
     return React.createElement(
-      MUI.Paper,
-      { sx: { p: 4, maxWidth: 420, mx: "auto", mt: 4 } },
-      React.createElement(MUI.Typography, { variant: "h6", gutterBottom: true }, "Iniciar sesión"),
-      React.createElement(MUI.Typography, { variant: "body2", color: "text.secondary", sx: { mb: 2 } }, subtitle),
-      err
-        ? React.createElement(MUI.Alert, { severity: "error", sx: { mb: 2 } }, err)
-        : null,
+      MUI.Box,
+      { sx: { p: { xs: 2, sm: 2.5, md: 3 } } },
+      React.createElement(MUI.Typography, { variant: "body2", color: "text.secondary", sx: { mb: 2, lineHeight: 1.6 } }, subtitle),
+      err ? React.createElement(MUI.Alert, { severity: "error", sx: { mb: 2 } }, err) : null,
       React.createElement(MUI.TextField, {
         label: "Usuario",
         fullWidth: true,
         size: "small",
+        required: true,
         sx: { mb: 2 },
         value: user,
         onChange: (e) => setUser(e.target.value),
+        onKeyDown: (e) => { if (e.key === "Enter") onLogin(); },
       }),
       React.createElement(MUI.TextField, {
-        label: "Clave",
+        label: "Contraseña",
         type: showPass ? "text" : "password",
         fullWidth: true,
         size: "small",
+        required: true,
         sx: { mb: 2 },
         value: pass,
         onChange: (e) => setPass(e.target.value),
+        onKeyDown: (e) => { if (e.key === "Enter") onLogin(); },
         InputProps: {
           endAdornment: React.createElement(
             MUI.InputAdornment,
@@ -69,28 +69,61 @@ export function createLoginGates(React, MUI, ns, UI, opts = {}) {
       }),
       React.createElement(
         MUI.Stack,
-        { direction: "row", spacing: 1 },
+        { direction: "row", spacing: 1, flexWrap: "wrap", useFlexGap: true },
         React.createElement(
           MUI.Button,
           {
             variant: "contained",
-            onClick: async () => {
-              setErr("");
-              try {
-                await Auth().login(user, pass);
-                setOk(true);
-              } catch (e) {
-                setErr(e.message);
-              }
-            },
+            onClick: onLogin,
           },
           "Entrar",
         ),
-        React.createElement(
-          MUI.Button,
-          { href: Auth().LOGIN_URL, target: "_blank", rel: "noreferrer" },
-          "Abrir panel de acceso",
-        ),
+        extraActions,
+      ),
+    );
+  }
+
+  function LoginGateInline(props) {
+    const [ok, setOk] = React.useState(Auth().isLoggedIn());
+    const [user, setUser] = React.useState("");
+    const [pass, setPass] = React.useState("");
+    const [showPass, setShowPass] = React.useState(false);
+    const [err, setErr] = React.useState("");
+    useAuthSync(setOk);
+    if (ok) return props.children;
+
+    async function onLogin() {
+      setErr("");
+      try {
+        await Auth().login(user, pass);
+        setOk(true);
+      } catch (e) {
+        setErr(e.message);
+      }
+    }
+
+    return React.createElement(
+      MUI.Box,
+      { sx: loginPageSx() },
+      React.createElement(
+        MUI.Paper,
+        { elevation: 0, className: "isa-login-card isa-glass-card", sx: loginCardSx() },
+        LoginHeaderBand(React, MUI, UI, { icon, title: "Iniciar sesión", accent }),
+        React.createElement(LoginFields, {
+          user,
+          setUser,
+          pass,
+          setPass,
+          showPass,
+          setShowPass,
+          err,
+          onLogin,
+          extraActions: React.createElement(
+            MUI.Button,
+            { href: Auth().LOGIN_URL, target: "_blank", rel: "noreferrer" },
+            "Abrir panel de acceso",
+          ),
+        }),
       ),
     );
   }
@@ -101,23 +134,34 @@ export function createLoginGates(React, MUI, ns, UI, opts = {}) {
     if (ok) return props.children;
 
     const message = opts.redirectMessage || subtitle;
-    const icon = opts.redirectIcon || "mdi:shield-lock-outline";
+    const redirectIcon = opts.redirectIcon || icon;
 
     return React.createElement(
-      MUI.Paper,
-      { sx: { p: 4, maxWidth: 480, mx: "auto", mt: 6, textAlign: "center" } },
-      React.createElement(UI.Icon, { icon, size: 48 }),
-      React.createElement(MUI.Typography, { variant: "h6", sx: { mt: 2 } }, "Inicia sesión"),
-      React.createElement(MUI.Typography, { variant: "body2", color: "text.secondary", sx: { my: 2 } }, message),
+      MUI.Box,
+      { sx: loginPageSx() },
       React.createElement(
-        MUI.Button,
-        { variant: "contained", href: Auth().LOGIN_URL, target: "_blank", rel: "noreferrer" },
-        "Abrir panel de acceso",
-      ),
-      React.createElement(
-        MUI.Button,
-        { sx: { ml: 1 }, onClick: () => setOk(Auth().isLoggedIn()) },
-        "Ya inicié sesión",
+        MUI.Paper,
+        { elevation: 0, className: "isa-login-card isa-glass-card", sx: loginCardSx({ textAlign: "center" }) },
+        LoginHeaderBand(React, MUI, UI, { icon: redirectIcon, title: "Inicia sesión", accent }),
+        React.createElement(
+          MUI.Box,
+          { sx: { p: { xs: 2, sm: 2.5, md: 3 } } },
+          React.createElement(MUI.Typography, { variant: "body2", color: "text.secondary", sx: { mb: 2.5, lineHeight: 1.6 } }, message),
+          React.createElement(
+            MUI.Stack,
+            { direction: "row", spacing: 1, justifyContent: "center", flexWrap: "wrap", useFlexGap: true },
+            React.createElement(
+              MUI.Button,
+              { variant: "contained", href: Auth().LOGIN_URL, target: "_blank", rel: "noreferrer" },
+              "Abrir panel de acceso",
+            ),
+            React.createElement(
+              MUI.Button,
+              { variant: "outlined", onClick: () => setOk(Auth().isLoggedIn()) },
+              "Ya inicié sesión",
+            ),
+          ),
+        ),
       ),
     );
   }

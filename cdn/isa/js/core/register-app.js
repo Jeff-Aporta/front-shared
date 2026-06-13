@@ -5,9 +5,11 @@ import { registerTheme } from "../ui/theme.js";
 import { registerWidgets } from "../ui/widgets.js";
 import { registerLoginGates } from "../ui/login-gate.js";
 import { registerRealtime } from "./realtime.js";
+import { createRealtimeStatusUI, createNoopRealtimeStatusUI } from "../ui/realtime-status.js";
 import { registerToast } from "../ui/toast.js";
 import { registerFeedback } from "../ui/feedback/register.js";
 import { registerSqlExec } from "../ui/sql-exec.js";
+import { registerLoginButton } from "../ui/login-button.js";
 
 /**
  * Registra módulos compartidos en window[ns].
@@ -53,6 +55,11 @@ export function registerApp(opts) {
 
   if (opts.realtime) {
     registerRealtime(ns, typeof opts.realtime === "object" ? opts.realtime : {});
+    if (typeof window.React !== "undefined" && typeof window.MaterialUI !== "undefined") {
+      const ui = createRealtimeStatusUI(window.React, window.MaterialUI, ns);
+      window[ns].UI = window[ns].UI || {};
+      Object.assign(window[ns].UI, ui);
+    }
   }
 
   if (opts.toast !== false) {
@@ -65,5 +72,9 @@ export function registerApp(opts) {
 
   if (opts.sqlExec !== false && typeof window.React !== "undefined" && typeof window.MaterialUI !== "undefined") {
     registerSqlExec(ns, window.React, window.MaterialUI);
+  }
+
+  if (opts.loginButton !== false && typeof window.React !== "undefined" && typeof window.MaterialUI !== "undefined") {
+    registerLoginButton(ns, typeof opts.loginButton === "object" ? opts.loginButton : {});
   }
 }

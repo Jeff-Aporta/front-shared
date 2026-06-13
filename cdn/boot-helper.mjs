@@ -1,18 +1,32 @@
 /**
- * Arranque compartido — usado desde loader.ts (Paty ISA) vía import() dinámico.
- * Todo el CDN desde jsDelivr (repo público Jeff-Aporta/front-shared).
+ * Arranque compartido — usado desde loader.ts / loader.mjs vía boot-resolver.
  */
+import { babelPresets, initModuleGraph, importAppEntry, importAppModules } from "./boot-module-graph.mjs";
+import { FRONT_SHARED_REF } from "./front-shared-ref.mjs";
 
 /** Bump al publicar front-shared (evita caché stale de jsDelivr @main). */
-const FRONT_SHARED_REF = "9e576a1";
-const CDN = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@" + FRONT_SHARED_REF + "/cdn";
+export { FRONT_SHARED_REF };
+const isDevHost = typeof globalThis.location !== "undefined"
+  && /localhost|127\.0\.0\.1|\[::1\]/.test(globalThis.location.hostname);
+
+function resolveCdnBase() {
+  if (!isDevHost) {
+    return "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@" + FRONT_SHARED_REF + "/cdn/";
+  }
+  return new URL("./", import.meta.url).href;
+}
+
+const CDN = resolveCdnBase();
+initModuleGraph(CDN);
+
+export { babelPresets, importAppEntry, importAppModules };
 
 export function sharedCdnBase() {
   return CDN;
 }
 
 export async function importShared(subpath) {
-  return import(CDN + "/" + subpath);
+  return import(CDN + subpath);
 }
 
 export function showBootError(msg) {
@@ -32,23 +46,16 @@ export function assertStack() {
 
 export async function loadIsaFront() {
   ensureFeedbackCss();
-  await import(CDN + "/isa/js/index.js");
+  await import(CDN + "isa/js/index.js");
 }
 
 export function ensureFeedbackCss() {
   if (document.querySelector("link[data-isa-feedback-css]")) return;
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = CDN + "/isa/css/feedback.css";
+  link.href = CDN + "isa/css/feedback.css";
   link.setAttribute("data-isa-feedback-css", "1");
   document.head.appendChild(link);
-}
-
-function babelPresets(url) {
-  const reactClassic = ["react", { runtime: "classic" }];
-  if (url.endsWith(".jsx")) return [reactClassic];
-  if (url.endsWith(".tsx")) return ["typescript", reactClassic];
-  return ["typescript"];
 }
 
 export async function transpileUrl(url, Babel) {
@@ -56,8 +63,7 @@ export async function transpileUrl(url, Babel) {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error("No se pudo cargar " + url + " (" + res.status + ")");
   const src = await res.text();
-  const presets = babelPresets(url);
-  const code = Babel.transform(src, { presets, filename: url }).code;
+  const code = Babel.transform(src, { presets: babelPresets(url), filename: url }).code;
   // eslint-disable-next-line no-eval
   eval(code);
 }
@@ -66,9 +72,9 @@ export async function transpileUrl(url, Babel) {
 export const SHARED_UI_FILES = ["layouts/AppShell.jsx"];
 
 export async function loadSharedUi(Babel) {
-  const base = CDN + "/ui";
+  const base = CDN + "ui/";
   for (const file of SHARED_UI_FILES) {
-    await transpileUrl(base + "/" + file, Babel);
+    await transpileUrl(base + file, Babel);
   }
 }
 
@@ -78,8 +84,7 @@ export async function transpileFiles(files, Babel) {
     const res = await fetch(file, { cache: "no-store" });
     if (!res.ok) throw new Error("No se pudo cargar " + file + " (" + res.status + ")");
     const src = await res.text();
-    const presets = babelPresets(file);
-    const code = Babel.transform(src, { presets, filename: file }).code;
+    const code = Babel.transform(src, { presets: babelPresets(file), filename: file }).code;
     // eslint-disable-next-line no-eval
     eval(code);
   }
