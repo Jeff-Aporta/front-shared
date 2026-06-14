@@ -59,9 +59,8 @@ export function createWidgets(React, MUI, ns, opts = {}) {
     }, [loggedIn]);
 
     const isLocal = loggedIn && local;
-    const label = cfg().label();
     const tip = loggedIn
-      ? (isLocal ? "Entorno de desarrollo (local)" : "Entorno de producción")
+      ? (isLocal ? "Local — clic para producción" : "Producción — clic para local")
       : "Producción (inicia sesión para cambiar el entorno)";
 
     return React.createElement(
@@ -75,19 +74,22 @@ export function createWidgets(React, MUI, ns, opts = {}) {
           color: isLocal ? "warning" : "primary",
           variant: "outlined",
           disabled: !loggedIn,
+          "aria-label": tip,
           icon: React.createElement(Icon, {
             icon: isLocal ? "mdi:laptop" : "mdi:cloud-outline",
             size: 16,
           }),
-          label: loggedIn ? label : "Producción",
+          label: "",
           onClick: loggedIn ? () => cfg().setLocal(!local) : undefined,
           sx: {
             cursor: loggedIn ? "pointer" : "default",
             height: "auto",
             minHeight: 28,
+            minWidth: 28,
             py: 0.375,
-            "& .MuiChip-label": { px: 1.25, py: 0.25 },
-            "& .MuiChip-icon": { ml: 0.75, mr: -0.25 },
+            px: 0.75,
+            "& .MuiChip-label": { display: "none", width: 0, p: 0, m: 0 },
+            "& .MuiChip-icon": { ml: 0, mr: 0 },
           },
         }),
       ),
