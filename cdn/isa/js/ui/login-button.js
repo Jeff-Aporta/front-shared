@@ -1,5 +1,10 @@
 import { sanitizeUserMessage } from "../core/sanitize-user-message.js";
 import { formatLocalDateTime } from "../core/format.js";
+import {
+  LOGIN_SUBTITLE_DEFAULT,
+  loginCardSx,
+  LoginHeaderBand,
+} from "./login-surface.js";
 
 /**
  * Botón de sesión + modal login (MUI). Usa window[ns].AppSession si existe, si no Session.
