@@ -165,9 +165,20 @@
           },
           props.toolbarExtra || null,
           showAuthChip && Auth
-            ? React.createElement(MUI.Chip, { size: "small", label: Auth.username(), variant: "outlined" })
+            ? (window.ISAFront.UI?.UserSessionMenu
+              ? React.createElement(window.ISAFront.UI.UserSessionMenu, {
+                  ns: props.ns,
+                  username: Auth.username(),
+                  role: Auth.role?.() || "",
+                  onLogout: function () { Auth.logout(); },
+                  showTarget: showTarget,
+                  runUnitTestUrl: props.runUnitTestUrl,
+                  getAuthHeaders: props.getAuthHeaders,
+                  unitTestTitle: props.unitTestTitle,
+                })
+              : React.createElement(MUI.Chip, { size: "small", label: Auth.username(), variant: "outlined" }))
             : null,
-          showTarget ? React.createElement(UI.TargetSwitch, null) : null,
+          showTarget && !showAuthChip ? React.createElement(UI.TargetSwitch, null) : null,
           props.toolbarActions || null,
           showLogout && Auth
             ? React.createElement(MUI.Button, { size: "small", onClick: function () { Auth.logout(); } }, "Salir")
