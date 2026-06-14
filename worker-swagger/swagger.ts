@@ -1,6 +1,6 @@
 /**
  * Fuente canónica — copiar a {backend}/src/lib/swagger.ts
- * Swagger UI + OpenAPI JSON en /ui y /doc, con panel de JWT de prueba (system-login).
+ * Swagger UI + OpenAPI JSON en /swagger y /swagger.json, con panel de JWT de prueba (system-login).
  */
 import { swaggerUI } from "@hono/swagger-ui";
 import type { Context, Env, Hono } from "hono";
@@ -27,6 +27,8 @@ export const GH_PAGES_FRONTS: Record<string, FrontLink> = {
   },
   iatools: { label: "iatools-front", url: "https://jeff-aporta.github.io/iatools-front/" },
   jagudeloe: { label: "jagudeloe-front", url: "https://jeff-aporta.github.io/jagudeloe-front/" },
+  "cf-ai": { label: "cf-ai-front", url: "https://jeff-aporta.github.io/cf-ai-front/" },
+  "iss-patyia": { label: "isa-patyia", url: "https://jeff-aporta.github.io/isa-patyia/" },
 };
 
 export type OpenApiSpec = {
@@ -62,7 +64,7 @@ export type MountSwaggerOpts = {
   frontLabel?: string;
   /** Varios enlaces al pie (p. ej. Swagger agregado del orquestador). */
   frontLinks?: FrontLink[];
-  /** Si se define, /doc devuelve el spec agregado en runtime. */
+  /** Si se define, /swagger.json devuelve el spec agregado en runtime. */
   resolveSpec?: (c: Context) => Promise<OpenApiSpec> | OpenApiSpec;
 };
 
@@ -77,13 +79,50 @@ function resolveFrontLinks(opts: MountSwaggerOpts): FrontLink[] {
   return [];
 }
 
+/** Panel GH Pages asociado a este Swagger (uno por API). */
+export function resolveDescriptionFrontLink(opts: MountSwaggerOpts): FrontLink | null {
+  if (opts.serviceId && GH_PAGES_FRONTS[opts.serviceId]) {
+    return GH_PAGES_FRONTS[opts.serviceId];
+  }
+  if (opts.frontUrl) {
+    return { label: opts.frontLabel ?? "GitHub Pages", url: opts.frontUrl };
+  }
+  if (opts.frontLinks?.length) {
+    const hub = opts.frontLinks.find((l) => l.url.includes("main-orchestrator-front"));
+    if (hub) return hub;
+    return opts.frontLinks[0];
+  }
+  return null;
+}
+
+/** Añade enlace Markdown al panel GH Pages en info.description (idempotente). */
+export function openApiDescriptionWithFront(description: string, link: FrontLink | null): string {
+  if (!link?.url) return description;
+  if (description.includes(link.url)) return description;
+  const panelLine = `**Panel:** [${link.label}](${link.url})`;
+  const base = description.trim();
+  return base ? `${base}\n\n${panelLine}` : panelLine;
+}
+
+export function enrichOpenApiSpecWithFront(spec: OpenApiSpec, opts: MountSwaggerOpts): OpenApiSpec {
+  const link = resolveDescriptionFrontLink(opts);
+  if (!link) return spec;
+  return {
+    ...spec,
+    info: {
+      ...spec.info,
+      description: openApiDescriptionWithFront(spec.info.description ?? "", link),
+    },
+  };
+}
+
 export function mountSwagger<E extends Env = Env>(
   app: Hono<E>,
   spec: OpenApiSpec,
   opts: MountSwaggerOpts = {},
 ) {
-  const docPath = opts.docPath ?? "/doc";
-  const uiPath = opts.uiPath ?? "/ui";
+  const docPath = opts.docPath ?? "/swagger.json";
+  const uiPath = opts.uiPath ?? "/swagger";
   const apiPrefix = opts.apiPrefix ?? "/api";
   const specUrl = apiPrefix ? `${apiPrefix}${docPath}` : docPath;
   const authLoginUrl = opts.authLoginUrl ?? "";
@@ -102,9 +141,9 @@ export function mountSwagger<E extends Env = Env>(
         }
       }
       const resolved = await opts.resolveSpec(c);
-      return c.json(resolved);
+      return c.json(enrichOpenApiSpecWithFront(resolved, opts));
     }
-    return c.json(spec);
+    return c.json(enrichOpenApiSpecWithFront(spec, opts));
   });
   app.get(
     uiPath,
