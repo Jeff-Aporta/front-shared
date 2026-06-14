@@ -54,13 +54,23 @@ export function buildRootUnitTestSummary(
   };
 }
 
-export function contextMarkdown(protocol: UnitTestProtocol, summary: UnitTestRootSummary): string {
+export function contextMarkdown(
+  protocol: UnitTestProtocol,
+  summary: UnitTestRootSummary,
+  opts?: { jwt?: boolean },
+): string {
   const testable = protocol.paths.filter((p) => !p.omit);
   const omitted = protocol.paths.filter((p) => p.omit);
   const lines = [
     `## Test unitario — ${protocol.serviceName}`,
     "",
     `**Servicio:** \`${protocol.service}\` · **Secuencias:** ${protocol.sequences.length}`,
+    "",
+    opts?.jwt
+      ? "✅ **JWT de sesión detectado** — los pasos que lo requieren se ejecutan."
+      : "⚠️ **Sin JWT** — inicia sesión en Swagger para probar publish (403 vía orquestador).",
+    "",
+    "ℹ️ Fallos `ENOTFOUND` / `Failed to connect to mssql` indican **red/VPN hacia MSSQL**, no autenticación.",
     "",
     "### Paths a probar",
     ...testable.map((p) => `- \`${p.method} ${p.path}\` — ${p.nombre}`),

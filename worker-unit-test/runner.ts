@@ -37,13 +37,20 @@ function stepMarkdown(
   return `${icon} **${step.nombre}** — \`${pathLabel}\`\n\n${detail}`;
 }
 
+function isInfraUnavailable(status: number, bodyText: string): boolean {
+  if (status !== 500 && status !== 503) return false;
+  return /ENOTFOUND|ECONNREFUSED|ETIMEDOUT|EHOSTUNREACH|getaddrinfo|Failed to connect to|login timeout|socket hang up/i.test(
+    bodyText,
+  );
+}
+
 export async function* runUnitTestStream(opts: RunUnitTestOpts): AsyncGenerator<UnitTestStreamEvent> {
   const { protocol, openApiPaths, origin, apiPrefix = "/api", jwt } = opts;
   const fetchFn = opts.fetchFn ?? fetch;
   const base = origin.replace(/\/$/, "");
   const summary = buildRootUnitTestSummary(protocol, openApiPaths, apiPrefix);
 
-  yield { type: "context", md: contextMarkdown(protocol, summary) };
+  yield { type: "context", md: contextMarkdown(protocol, summary, { jwt: !!jwt }) };
 
   const pathById = new Map(protocol.paths.map((p) => [p.id, p]));
   const vars: Record<string, string> = {
@@ -131,17 +138,34 @@ export async function* runUnitTestStream(opts: RunUnitTestOpts): AsyncGenerator<
     }
 
     const expect = step.expectStatus || [200, 201, 204];
+    let bodyText = "";
+    try {
+      bodyText = await res.text();
+    } catch {
+      /* ignore */
+    }
+
+    if (isInfraUnavailable(res.status, bodyText)) {
+      skipped++;
+      yield {
+        type: "step",
+        stepId: step.id,
+        ok: true,
+        md: `⏭️ **${step.nombre}** — \`${method} ${entry.path}\`\n\nMSSQL/red no disponible (VPN o servidor). No es fallo de JWT.\n\n\`\`\`json\n${bodyText.slice(0, 380)}\n\`\`\``,
+      };
+      continue;
+    }
+
     const ok = expect.includes(res.status);
     if (ok) passed++;
     else failed++;
 
     let detail = `HTTP **${res.status}** (esperado: ${expect.join("|")})`;
     try {
-      const text = await res.text();
-      if (text && text.length < 400) detail += `\n\n\`\`\`json\n${text}\n\`\`\``;
-      else if (text) detail += `\n\n_${text.length} bytes de respuesta_`;
-      if (step.extract && text) {
-        const json = JSON.parse(text) as Record<string, unknown>;
+      if (bodyText && bodyText.length < 400) detail += `\n\n\`\`\`json\n${bodyText}\n\`\`\``;
+      else if (bodyText) detail += `\n\n_${bodyText.length} bytes de respuesta_`;
+      if (step.extract && bodyText) {
+        const json = JSON.parse(bodyText) as Record<string, unknown>;
         for (const [varName, jsonKey] of Object.entries(step.extract)) {
           const val = json[jsonKey];
           if (val != null) vars[varName] = String(val);
@@ -165,7 +189,11 @@ export async function* runUnitTestStream(opts: RunUnitTestOpts): AsyncGenerator<
     md: [
       "## Resumen",
       "",
-      allOk ? "✅ **Todos los pasos OK**" : "❌ **Hay fallos**",
+      allOk
+        ? skipped > 0
+          ? "✅ **Sin fallos funcionales** (algunos pasos omitidos por infraestructura)."
+          : "✅ **Todos los pasos OK**"
+        : "❌ **Hay fallos**",
       "",
       `- Pasaron: **${passed}**`,
       `- Fallaron: **${failed}**`,

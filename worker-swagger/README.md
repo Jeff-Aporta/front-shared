@@ -45,7 +45,7 @@ Al final de cada Swagger UI aparece un pie con el panel GH Pages del servicio (s
 
 ## Integración
 
-1. Copiar `swagger.ts`, `openapi-params.ts` y `auth-proxy.ts` → `{backend}/src/lib/`
+1. Copiar `swagger.ts`, `swagger-toast.ts`, `openapi-params.ts` y `auth-proxy.ts` → `{backend}/src/lib/`
 2. Crear `{backend}/src/openapi/spec.ts` con paths del servicio + `...authOpenApiPaths()`. Usar helpers de `openapi-params.ts` (`pathEnum`, `tkSpaceParam`, etc.) para selects y valores de prueba.
 3. En `index.ts`:
 
@@ -67,4 +67,4 @@ Swagger UI se carga en **v5.31+** con clase `dark-mode` en `<html>` (tema oscuro
 
 Editar `src/openapi/spec.ts` cuando agregues rutas. Para parámetros restringidos preferir `pathEnum` / `queryEnum` (renderizan `<select>` en Swagger UI) y `default` + `example` para Try it out.
 
-Tras cambiar `swagger.ts`, `openapi-params.ts` o `auth-proxy.ts` canónicos, volver a copiar a todos los backends y **desplegar** los Workers.
+Tras cambiar `swagger.ts`, `swagger-toast.ts`, `openapi-params.ts` o `auth-proxy.ts` canónicos, volver a copiar a todos los backends y **desplegar** los Workers.

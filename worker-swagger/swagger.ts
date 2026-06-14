@@ -4,6 +4,7 @@
  */
 import { swaggerUI } from "@hono/swagger-ui";
 import type { Context, Env, Hono } from "hono";
+import { SWAGGER_TOAST_CSS, SWAGGER_TOAST_HTML, SWAGGER_TOAST_SCRIPT } from "./swagger-toast.js";
 
 /** Swagger UI 5.31+ — estilos dark-mode nativos (`html.dark-mode`). */
 const SWAGGER_UI_VERSION = "5.31.0";
@@ -358,14 +359,16 @@ function buildSwaggerUiFragment(
   .swagger-modal-actions button:active:not(:disabled) { filter: brightness(0.95); }
   .swagger-modal-dialog button:disabled,
   .swagger-modal-actions button:disabled { opacity: 0.6; cursor: wait; }
-  .swagger-modal-hint { font-size: 11px; opacity: 0.75; margin: 0 0 12px; line-height: 1.45; }
-  .swagger-modal-remember {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 12px; margin: 0 0 12px; color: #b0bec5; cursor: pointer; user-select: none;
+  .swagger-modal-dialog label.swagger-modal-remember {
+    flex-direction: row; align-items: center; gap: 8px;
+    font-size: 12px; font-weight: 400; margin: 0 0 12px; color: #b0bec5;
+    cursor: pointer; user-select: none;
   }
-  .swagger-modal-remember input[type="checkbox"] {
-    width: 15px; height: 15px; margin: 0; padding: 0; accent-color: #1976d2; cursor: pointer;
+  .swagger-modal-dialog label.swagger-modal-remember input[type="checkbox"] {
+    width: 15px; height: 15px; margin: 0; padding: 0; flex-shrink: 0;
+    accent-color: #1976d2; cursor: pointer;
   }
+  ${SWAGGER_TOAST_CSS}
   #swagger-front-footer {
     font-family: system-ui, sans-serif;
     margin: 32px auto 48px;
@@ -391,10 +394,9 @@ function buildSwaggerUiFragment(
   <div class="swagger-modal-backdrop" data-close="login"></div>
   <div class="swagger-modal-dialog" role="dialog" aria-labelledby="swagger-login-title">
     <h3 id="swagger-login-title">Iniciar sesión</h3>
-    <p class="swagger-modal-hint">Obtiene JWT de prueba (1 h) vía POST /api/auth/test-token${authBase ? " → " + authBase : " (proxy system-login)"}.</p>
     <label>Usuario<input id="swagger-auth-user" type="text" autocomplete="username" placeholder="usuario"/></label>
     <label>Contraseña<input id="swagger-auth-pass" type="password" autocomplete="current-password" placeholder="••••"/></label>
-    <label class="swagger-modal-remember"><input id="swagger-auth-remember" type="checkbox" checked /> Recordar usuario y contraseña</label>
+    <label class="swagger-modal-remember"><input id="swagger-auth-remember" type="checkbox" checked /><span>Recordar usuario y contraseña</span></label>
     <div class="swagger-modal-actions">
       <button type="button" class="secondary" data-close="login">Cancelar</button>
       <button type="button" id="swagger-auth-btn">Obtener JWT y autorizar</button>
@@ -405,7 +407,6 @@ function buildSwaggerUiFragment(
   <div class="swagger-modal-backdrop" data-close="jwt"></div>
   <div class="swagger-modal-dialog" role="dialog" aria-labelledby="swagger-jwt-title">
     <h3 id="swagger-jwt-title">Pegar JWT</h3>
-    <p class="swagger-modal-hint">Pega el token Bearer (con o sin prefijo «Bearer »). También puedes usar el botón Authorize nativo de Swagger UI.</p>
     <label>Token<textarea id="swagger-jwt-paste" placeholder="eyJhbG…"></textarea></label>
     <div class="swagger-modal-actions">
       <button type="button" class="secondary" data-close="jwt">Cancelar</button>
@@ -413,6 +414,7 @@ function buildSwaggerUiFragment(
     </div>
   </div>
 </div>
+${SWAGGER_TOAST_HTML}
 <div id="swagger-ui"></div>
 ${frontFooterHtml}
 ${cssLinks}
@@ -423,8 +425,6 @@ ${jsScripts}
   var AUTH_BASE = "${authBase}";
   if (!AUTH_BASE) {
     AUTH_BASE = location.origin;
-  } else if ((location.hostname === "localhost" || location.hostname === "127.0.0.1") && AUTH_BASE.indexOf("system-login.jeffaporta") >= 0) {
-    AUTH_BASE = "http://localhost:8781";
   }
   var PREFIX = "abc123";
   var SUFFIX = "xyz987";
@@ -490,12 +490,7 @@ ${jsScripts}
     } catch (e) { /* ignore */ }
   }
 
-  function setStatus(msg, kind) {
-    var el = document.getElementById("swagger-auth-status");
-    if (!el) return;
-    el.textContent = msg || "";
-    el.className = kind || "";
-  }
+  ${SWAGGER_TOAST_SCRIPT}
 
   function formatLocalDateTime(iso) {
     if (!iso) return "";
@@ -553,11 +548,16 @@ ${jsScripts}
   }
 
   async function fetchTestJwt(username, password) {
-    var res = await fetch(AUTH_BASE + "/api/auth/test-token", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
-      body: JSON.stringify({ username: username, password: wrapPassword(password) }),
-    });
+    var res;
+    try {
+      res = await fetch(AUTH_BASE + "/api/auth/test-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ username: username, password: wrapPassword(password) }),
+      });
+    } catch (e) {
+      throw new Error("No se pudo conectar con el servicio de autenticación.");
+    }
     var data = {};
     try { data = await res.json(); } catch (e) { /* ignore */ }
     if (!res.ok || !data.ok || !data.token) {
@@ -654,6 +654,7 @@ ${jsScripts}
           "Sesión restaurada" + (saved.username ? " (" + saved.username + ")" : "") +
             (saved.expiresAt ? " · expira " + formatLocalDateTime(saved.expiresAt) : ""),
           "ok",
+          { noToast: true },
         );
       }
     } catch (e) { /* ignore */ }

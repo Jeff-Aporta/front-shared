@@ -1,0 +1,7 @@
+registry=https://registry.npmjs.org/
+@jeff-aporta:registry=https://registry.npmjs.org/
+//registry.npmjs.org/:_authToken=<NPM_TOKEN_WRITE de cuenta con acceso a @jeff-aporta>
+
+# Publicar (desde esta carpeta):
+#   npm run build
+#   npm publish --access public
