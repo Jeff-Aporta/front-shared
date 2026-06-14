@@ -1,6 +1,6 @@
 {
   "name": "@jeff-aporta/front-shared",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "CDN, worker-swagger y worker-unit-test compartidos (Jeff-Aporta).",
   "type": "module",
   "sideEffects": false,
@@ -15,6 +15,14 @@
     "./worker-swagger/swagger-toast": {
       "types": "./dist/worker-swagger/swagger-toast.d.ts",
       "default": "./dist/worker-swagger/swagger-toast.js"
+    },
+    "./worker-swagger/swagger-ui-shared": {
+      "types": "./dist/worker-swagger/swagger-ui-shared.d.ts",
+      "default": "./dist/worker-swagger/swagger-ui-shared.js"
+    },
+    "./worker-swagger/swagger-ui-html": {
+      "types": "./dist/worker-swagger/swagger-ui-html.d.ts",
+      "default": "./dist/worker-swagger/swagger-ui-html.js"
     },
     "./worker-swagger/swagger": {
       "types": "./dist/worker-swagger/swagger.d.ts",
