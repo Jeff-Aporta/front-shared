@@ -27,14 +27,13 @@ export function realtimeStatusTip(state, lastErr) {
 export function realtimeDotTone(state) {
   switch (state) {
     case "connected":
-      return "ok";
+      return "green";
     case "connecting":
     case "reconnecting":
-      return "pending";
     case "error":
-      return "error";
+      return "orange";
     default:
-      return "disconnected";
+      return "gray";
   }
 }
 
