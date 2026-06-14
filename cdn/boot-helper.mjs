@@ -69,7 +69,11 @@ export async function transpileUrl(url, Babel) {
 }
 
 /** JSX compartidos — transpilados en runtime (mismo Babel que la app). */
-export const SHARED_UI_FILES = ["layouts/AppShell.jsx"];
+export const SHARED_UI_FILES = [
+  "widgets/UserSessionMenu.jsx",
+  "widgets/UnitTestStreamModal.jsx",
+  "layouts/AppShell.jsx",
+];
 
 export async function loadSharedUi(Babel) {
   const base = CDN + "ui/";
