@@ -145,6 +145,8 @@ export function createCapFetch(opts = {}) {
       let msg;
       if (/not found|verify-access|autorizaci|verificaci/i.test(serverErr)) {
         msg = "No se pudo autorizar la escritura. Vuelve a iniciar sesión o comprueba permisos MSSQL.";
+      } else if (serverErr) {
+        msg = sanitizeApiError(serverErr, "Recurso no encontrado.");
       } else {
         msg = "Recurso no encontrado." + devHint();
       }
