@@ -10,7 +10,7 @@ export type AuthGuardEnv = {
   SYSTEM_LOGIN_URL?: string;
 };
 
-const SKIP_PREFIXES = ["/api/auth/", "/api/doc", "/api/ui"];
+const SKIP_PREFIXES = ["/api/auth/", "/api/swagger"];
 
 const PROTECTED_GET = new Set(["/api/creds"]);
 
