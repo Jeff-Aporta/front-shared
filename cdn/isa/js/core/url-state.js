@@ -127,6 +127,15 @@ export function createUrlState(opts = {}) {
     return () => { listeners = listeners.filter((f) => f !== fn); };
   }
 
+  function reset() {
+    state = typeof opts.initial === "function" ? opts.initial() : {};
+    notify();
+    if (writeTimer) clearTimeout(writeTimer);
+    writeTimer = null;
+    updateUrl();
+    return getSnapshot();
+  }
+
   const api = {
     PARAM,
     MAX_VALUE: maxValue,
@@ -134,6 +143,7 @@ export function createUrlState(opts = {}) {
     getSnapshot,
     merge,
     mergePartial: merge,
+    reset,
     subscribe,
   };
 
