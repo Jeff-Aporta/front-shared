@@ -57,9 +57,53 @@
   font-size: 0.8rem;
 }
 
-.isa-cm-panel:not(.isa-cm-panel--fill) .isa-cm-host .CodeMirror {
+.isa-cm-panel:not(.isa-cm-panel--fill):not(.isa-cm-panel--bounded) .isa-cm-host .CodeMirror {
   height: auto !important;
   min-height: inherit;
+}
+
+/* Altura acotada — scroll interno en .CodeMirror-scroll */
+.isa-cm-panel--bounded {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.isa-cm-panel--bounded .isa-cm-editor-surface--bounded {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.isa-cm-panel--bounded .isa-cm-host {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.isa-cm-panel--bounded .isa-cm-host .CodeMirror {
+  height: 100% !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+}
+
+.isa-cm-panel--bounded .isa-cm-host .CodeMirror-scroll {
+  overflow: auto !important;
+  overflow-y: auto !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  margin-bottom: 0 !important;
+  margin-right: 0 !important;
+  padding-bottom: 0 !important;
+  padding-right: 0 !important;
+}
+
+.isa-cm-panel--bounded .isa-cm-fallback {
+  overflow: auto !important;
+  max-height: inherit;
 }
 
 .isa-cm-host .CodeMirror-scroll {

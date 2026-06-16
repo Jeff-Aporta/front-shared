@@ -131,6 +131,64 @@ export function mountCodeMirror(host, opts = {}) {
   return cm;
 }
 
+function parseCssLength(value, fallback = 160) {
+  if (value == null || value === "") return fallback;
+  const s = String(value).trim();
+  if (s.endsWith("rem")) return parseFloat(s) * 16;
+  if (s.endsWith("px")) return parseFloat(s);
+  if (s.endsWith("dvh") || s.endsWith("vh")) return (parseFloat(s) / 100) * window.innerHeight;
+  const n = parseFloat(s);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function syncCmFillSize(cm, host) {
+  if (!cm || !host) return;
+  const h = host.clientHeight;
+  if (h > 0) {
+    cm.setSize(null, h);
+    cm.refresh();
+  }
+}
+
+function syncCmBoundedSize(cm, maxHeight, host, minHeight) {
+  if (!cm || !maxHeight) return;
+  const minH = parseCssLength(minHeight ?? "5rem", 80);
+  const maxH = parseCssLength(maxHeight, 160);
+  const h = Math.max(maxH, minH);
+  const wrap = cm.getOption?.("lineWrapping") === true;
+
+  const chain = [
+    host?.closest?.(".isa-cm-panel--bounded"),
+    host?.closest?.(".isa-cm-editor-surface--bounded"),
+    host,
+  ].filter(Boolean);
+
+  for (const el of chain) {
+    el.style.height = `${h}px`;
+    el.style.maxHeight = String(maxHeight);
+    if (minHeight) el.style.minHeight = String(minHeight);
+    el.style.overflow = "hidden";
+  }
+
+  const wrapper = cm.getWrapperElement?.();
+  if (wrapper) {
+    wrapper.style.height = `${h}px`;
+    wrapper.style.maxHeight = `${h}px`;
+    wrapper.style.overflow = "hidden";
+  }
+
+  const scroller = cm.getScrollerElement?.();
+  if (scroller) {
+    scroller.style.height = `${h}px`;
+    scroller.style.maxHeight = `${h}px`;
+    scroller.style.overflowY = "auto";
+    scroller.style.overflowX = wrap ? "hidden" : "auto";
+  }
+
+  cm.setSize(null, h);
+  cm.refresh();
+}
+
 export function destroyCodeMirror(cm) {
   if (!cm) return;
   const wrapper = cm.getWrapperElement?.();
@@ -181,6 +239,7 @@ export function createCodeMirrorPanel(React, MUI) {
         readOnly,
         lineWrapping,
         lineNumbers,
+        viewportMargin: readOnly && !(maxHeight && !fill) ? Infinity : 10,
         onChange: readOnly
           ? undefined
           : (next) => {
@@ -190,12 +249,18 @@ export function createCodeMirrorPanel(React, MUI) {
       });
       cmRef.current = cm;
 
-      const onResize = () => cm?.refresh?.();
+      const onResize = () => {
+        if (fill) syncCmFillSize(cm, host);
+        else if (maxHeight) syncCmBoundedSize(cm, maxHeight, host, minHeight);
+        else cm?.refresh?.();
+      };
       window.addEventListener("resize", onResize);
       const t = setTimeout(onResize, 0);
+      const t2 = setTimeout(onResize, 120);
 
       return () => {
         clearTimeout(t);
+        clearTimeout(t2);
         window.removeEventListener("resize", onResize);
         destroyCodeMirror(cm);
         cmRef.current = null;
@@ -215,24 +280,43 @@ export function createCodeMirrorPanel(React, MUI) {
       cm.scrollTo(scroll.left, scroll.top);
       if (next && !readOnly) cm.setCursor(cursor);
       syncingRef.current = false;
-    }, [value, readOnly]);
+      if (maxHeight && !fill) syncCmBoundedSize(cm, maxHeight, hostRef.current, minHeight);
+    }, [value, readOnly, maxHeight, fill, minHeight]);
 
     useEffect(() => {
       const cm = cmRef.current;
-      if (!cm) return;
-      const t = setTimeout(() => cm.refresh(), 0);
-      return () => clearTimeout(t);
+      const host = hostRef.current;
+      if (!cm || !host) return;
+      const sync = () => {
+        if (fill) syncCmFillSize(cm, host);
+        else if (maxHeight) syncCmBoundedSize(cm, maxHeight, host, minHeight);
+        else cm.refresh();
+      };
+      sync();
+      const t = setTimeout(sync, 0);
+      const t2 = setTimeout(sync, 150);
+      return () => {
+        clearTimeout(t);
+        clearTimeout(t2);
+      };
     }, [minHeight, maxHeight, fill]);
 
     const panelClass = [
       "isa-cm-panel",
       fill ? "isa-cm-panel--fill" : "",
+      maxHeight ? "isa-cm-panel--bounded" : "",
       (enableFullPage || toolbarExtra) ? "isa-cm-panel--toolbar" : "",
       className,
     ].filter(Boolean).join(" ");
 
     const hostStyle = { minHeight };
-    if (maxHeight) hostStyle.maxHeight = maxHeight;
+    if (maxHeight) {
+      hostStyle.maxHeight = maxHeight;
+      hostStyle.overflow = "hidden";
+    }
+    const panelStyle = fill
+      ? { minHeight: 0, height: "100%", flex: "1 1 auto" }
+      : { minHeight, ...(maxHeight ? { maxHeight } : {}) };
 
     function renderToolbar(getValue) {
       return React.createElement(
@@ -332,10 +416,13 @@ export function createCodeMirrorPanel(React, MUI) {
           { className: panelClass },
           renderToolbar(() => value),
           readOnly
-            ? React.createElement("pre", { className: "isa-cm-fallback", style: hostStyle }, value || placeholder)
+            ? React.createElement("pre", {
+              className: "isa-cm-fallback",
+              style: { ...hostStyle, overflow: "auto", margin: 0 },
+            }, value || placeholder)
             : React.createElement("textarea", {
               className: "isa-cm-fallback",
-              style: hostStyle,
+              style: { ...hostStyle, overflow: "auto" },
               value,
               placeholder,
               readOnly,
@@ -352,7 +439,7 @@ export function createCodeMirrorPanel(React, MUI) {
       null,
       React.createElement(
         "div",
-        { className: panelClass, style: fill ? { minHeight: 0, height: "100%", flex: "1 1 auto" } : { minHeight } },
+        { className: panelClass, style: panelStyle },
         renderToolbar(() => cmRef.current?.getValue?.() ?? value),
         React.createElement("div", { className: "isa-cm-host", ref: hostRef, style: hostStyle }),
       ),
