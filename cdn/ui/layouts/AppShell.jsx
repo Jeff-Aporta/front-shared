@@ -134,15 +134,44 @@
             alignItems: "center",
           },
         },
-        props.icon
+        props.icon || (props.showTitle !== false && props.title)
           ? React.createElement(
               MUI.Box,
-              { sx: { display: "inline-flex", alignItems: "center", flexShrink: 0 } },
-              React.createElement(UI.Icon, { icon: props.icon, size: props.iconSize || 24 }),
+              {
+                className: typeof props.onBrandClick === "function" ? "isa-app-brand isa-app-brand--clickable" : "isa-app-brand",
+                onClick: typeof props.onBrandClick === "function" ? props.onBrandClick : undefined,
+                onKeyDown:
+                  typeof props.onBrandClick === "function"
+                    ? function (e) {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          props.onBrandClick();
+                        }
+                      }
+                    : undefined,
+                role: typeof props.onBrandClick === "function" ? "button" : undefined,
+                tabIndex: typeof props.onBrandClick === "function" ? 0 : undefined,
+                title: typeof props.onBrandClick === "function" ? "Inicio" : undefined,
+                sx: {
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 0.75,
+                  flexShrink: 0,
+                  mr: 1,
+                  borderRadius: 1,
+                  px: props.onBrandClick ? 0.5 : 0,
+                  py: props.onBrandClick ? 0.25 : 0,
+                  cursor: props.onBrandClick ? "pointer" : "default",
+                  "&:hover": props.onBrandClick ? { bgcolor: "action.hover" } : {},
+                },
+              },
+              props.icon
+                ? React.createElement(UI.Icon, { icon: props.icon, size: props.iconSize || 24 })
+                : null,
+              props.showTitle !== false && props.title
+                ? React.createElement(MUI.Typography, { variant: "h6", sx: { flexShrink: 0 } }, props.title)
+                : null,
             )
-          : null,
-        props.showTitle !== false && props.title
-          ? React.createElement(MUI.Typography, { variant: "h6", sx: { mr: 1, flexShrink: 0 } }, props.title)
           : null,
         toolbarNav
           ? React.createElement(
