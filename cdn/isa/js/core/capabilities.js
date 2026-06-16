@@ -22,6 +22,18 @@ export const CAPABILITY_CATALOG = [
     denyForbidden: "No tienes permiso para publicar instrucciones PatyIA",
   },
   {
+    id: "patyia.chat.interact",
+    label: "Enviar mensajes en chat PatyIA staging",
+    denyLoggedOut: "Inicia sesi?n para chatear con PatyIA",
+    denyForbidden: "No tienes permiso para enviar mensajes en PatyIA",
+  },
+  {
+    id: "patyia.chat.audit",
+    label: "Auditar conversaciones PatyIA staging",
+    denyLoggedOut: "Inicia sesi?n para auditar conversaciones",
+    denyForbidden: "No tienes permiso para auditar conversaciones ajenas",
+  },
+  {
     id: "patyia.conversacion.log",
     label: "Consultar log de conversaci?n PatyIA",
     denyLoggedOut: "Inicia sesi?n para consultar logs de conversaci?n",
