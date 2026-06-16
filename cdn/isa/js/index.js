@@ -37,6 +37,7 @@ import {
   handleApiError,
 } from "./core/api-http.js";
 import { createServiceSession } from "./core/service-session.js";
+import { buildCapEndpointMap, canAny } from "./core/cap-endpoints.js";
 import { getReact, getReactDOM, getMaterialUI } from "./core/runtime.js";
 import { createUrlState, b64urlEncode, b64urlDecode } from "./core/url-state.js";
 import { createPlatformBridge } from "./core/platform-bridge.js";
@@ -124,6 +125,8 @@ window.ISAFront = {
   humanPermissionError,
   handleApiError,
   createServiceSession,
+  buildCapEndpointMap,
+  canAny,
   getReact,
   getReactDOM,
   getMaterialUI,

@@ -50,6 +50,7 @@ export function registerSession(ns, opts = {}) {
       expiresAt: data.expiresAt ?? null,
       app: appId,
       capabilities: Array.isArray(data.capabilities) ? data.capabilities : [],
+      capabilityCatalog: Array.isArray(data.capabilityCatalog) ? data.capabilityCatalog : [],
     });
     window.dispatchEvent(new Event(authEvt));
   }
@@ -79,6 +80,11 @@ export function registerSession(ns, opts = {}) {
   function capabilities() {
     const s = current();
     return Array.isArray(s?.capabilities) ? s.capabilities : [];
+  }
+
+  function capabilityCatalog() {
+    const s = current();
+    return Array.isArray(s?.capabilityCatalog) ? s.capabilityCatalog : [];
   }
 
   function can(capOrLegacy) {
@@ -119,6 +125,9 @@ export function registerSession(ns, opts = {}) {
           ...s,
           role: data.user?.role ?? s.role,
           capabilities: Array.isArray(data.capabilities) ? data.capabilities : [],
+          capabilityCatalog: Array.isArray(data.capabilityCatalog)
+            ? data.capabilityCatalog
+            : (s.capabilityCatalog || []),
         };
         session = next;
         saveSession(next);
@@ -161,6 +170,7 @@ export function registerSession(ns, opts = {}) {
       expiresAt: data.expiresAt || null,
       app: appId,
       capabilities: Array.isArray(data.capabilities) ? data.capabilities : [],
+      capabilityCatalog: Array.isArray(data.capabilityCatalog) ? data.capabilityCatalog : [],
     };
     saveSession(session);
     if (!session.capabilities.length) {
@@ -185,6 +195,7 @@ export function registerSession(ns, opts = {}) {
     logout,
     refreshProfile,
     capabilities,
+    capabilityCatalog,
     can,
     blockReason,
     EVENT: authEvt,
@@ -217,6 +228,7 @@ export function registerSession(ns, opts = {}) {
     logout,
     refreshProfile,
     capabilities,
+    capabilityCatalog,
     can,
     blockReason,
     EVENT: authEvt,

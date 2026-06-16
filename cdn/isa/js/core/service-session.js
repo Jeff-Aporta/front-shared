@@ -1,11 +1,21 @@
 import { sanitizeUserMessage } from "./sanitize-user-message.js";
+import { buildCapEndpointMap } from "./cap-endpoints.js";
 
 /**
  * Tokens de servicio por capacidad vía POST /api/auth/service-token.
- * @param {object} opts Session, Config, capEndpoints, ns, notifyAuth
+ * Endpoints: catálogo de system-login + overrides por app (capEndpoints).
+ * @param {object} opts Session, Config, capEndpoints, capApiPrefix, ns, notifyAuth
  */
 export function createServiceSession(opts = {}) {
-  const { Session, Config, capEndpoints = {}, ns = "", notifyAuth = null, registerAppSession = false } = opts;
+  const {
+    Session,
+    Config,
+    capEndpoints = {},
+    capApiPrefix = "/api",
+    ns = "",
+    notifyAuth = null,
+    registerAppSession = false,
+  } = opts;
   const serviceTokens = new Map();
 
   function clearServiceTokens() {
@@ -16,11 +26,21 @@ export function createServiceSession(opts = {}) {
     return sanitizeUserMessage(raw, fallback);
   }
 
+  function resolveCapEndpoint(capId) {
+    const cap = String(capId || "").trim();
+    if (!cap) return null;
+    if (capEndpoints[cap]) return capEndpoints[cap];
+    const catalog = typeof Session.capabilityCatalog === "function" ? Session.capabilityCatalog() : [];
+    const fromCatalog = buildCapEndpointMap(catalog, capApiPrefix);
+    return fromCatalog[cap] || null;
+  }
+
   async function serviceAuthHeaders(capId) {
     const cap = String(capId || "").trim();
-    const ep = capEndpoints[cap];
+    const ep = resolveCapEndpoint(cap);
     if (!ep) throw new Error("Capacidad desconocida: " + cap);
-    const cached = serviceTokens.get(cap);
+    const cacheKey = `${cap}:${ep.method}:${ep.path}`;
+    const cached = serviceTokens.get(cacheKey);
     if (cached && cached.expMs > Date.now() + 60_000) {
       return { Authorization: "Bearer " + cached.token };
     }
@@ -41,7 +61,7 @@ export function createServiceSession(opts = {}) {
     }
     const token = String(data.token);
     const expMs = data.expiresAt ? new Date(String(data.expiresAt)).getTime() : Date.now() + 3_600_000;
-    serviceTokens.set(cap, { token, expMs });
+    serviceTokens.set(cacheKey, { token, expMs });
     return { Authorization: "Bearer " + token };
   }
 
@@ -67,12 +87,14 @@ export function createServiceSession(opts = {}) {
     isLoggedIn: () => Session.isLoggedIn(),
     username: () => Session.username(),
     capabilities: () => Session.capabilities(),
+    capabilityCatalog: () => Session.capabilityCatalog(),
     can: (cap) => Session.can(cap),
     blockReason: (cap) => Session.blockReason(cap),
     login,
     logout: clearSession,
     refreshProfile: () => Session.refreshProfile(),
     serviceAuthHeaders,
+    resolveCapEndpoint,
     invalidateServiceTokens,
     clearSession,
   };
@@ -85,6 +107,7 @@ export function createServiceSession(opts = {}) {
   return {
     AppSession,
     serviceAuthHeaders,
+    resolveCapEndpoint,
     clearServiceTokens,
     invalidateServiceTokens,
     clearSession,
