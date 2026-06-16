@@ -8,7 +8,26 @@ import type { MiddlewareHandler } from "hono";
 export type AuthGuardEnv = {
   LAB_JWT_SECRET?: string;
   SYSTEM_LOGIN_URL?: string;
+  SYSTEM_LOGIN_SVC?: Fetcher;
 };
+
+function systemLoginBase(env: AuthGuardEnv): string {
+  let base = (env.SYSTEM_LOGIN_URL || "https://system-login.jeffaporta.workers.dev").replace(/\/$/, "");
+  if (base.endsWith("/api")) base = base.slice(0, -4);
+  return base;
+}
+
+async function fetchSystemLogin(env: AuthGuardEnv, apiPath: string, init: RequestInit): Promise<Response> {
+  const path = apiPath.startsWith("/") ? apiPath : `/${apiPath}`;
+  const outbound = new Request(`${systemLoginBase(env)}${path}`, init);
+  const binding = env.SYSTEM_LOGIN_SVC;
+  if (binding) {
+    const bound = await binding.fetch(outbound);
+    if (bound.ok) return bound;
+    if (bound.status !== 404 && bound.status !== 502 && bound.status !== 503) return bound;
+  }
+  return fetch(outbound);
+}
 
 const SKIP_PREFIXES = ["/api/auth/", "/api/swagger"];
 
@@ -91,10 +110,9 @@ export async function verifyAccess(
     return Response.json({ ok: false, error: "Authorization Bearer requerido" }, { status: 401 });
   }
 
-  const base = (env.SYSTEM_LOGIN_URL || "https://system-login.jeffaporta.workers.dev").replace(/\/$/, "");
   const app = appId?.trim() || undefined;
   try {
-    const res = await fetch(`${base}/api/auth/verify-access`, {
+    const res = await fetchSystemLogin(env, "/api/auth/verify-access", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
