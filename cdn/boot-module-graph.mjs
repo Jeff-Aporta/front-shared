@@ -42,7 +42,7 @@ export function babelPresets(file) {
 
 export function parseImports(source) {
   const specs = new Set();
-  const re = /\bfrom\s+['"]([^'"]+)['"]|\bimport\s+['"]([^'"]+)['"]/g;
+  const re = /\bfrom\s*['"]([^'"]+)['"]|\bimport\s*['"]([^'"]+)['"]/g;
   let m;
   while ((m = re.exec(source))) specs.add(m[1] || m[2]);
   return [...specs];
@@ -51,10 +51,11 @@ export function parseImports(source) {
 export function rewriteImports(source, urlMap) {
   let out = source;
   for (const [spec, url] of urlMap) {
-    out = out.split("from '" + spec + "'").join("from '" + url + "'");
-    out = out.split('from "' + spec + '"').join('from "' + url + '"');
-    out = out.split("import '" + spec + "'").join("import '" + url + "'");
-    out = out.split('import "' + spec + '"').join('import "' + url + '"');
+    const esc = spec.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    out = out.replace(
+      new RegExp(`(\\bfrom\\s*|\\bimport\\s*)(['"])${esc}\\2`, "g"),
+      `$1$2${url}$2`,
+    );
   }
   return out;
 }

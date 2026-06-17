@@ -171,6 +171,11 @@ window.ISAFront = {
   requestConfirm,
   FEEDBACK_TOAST_EVENT,
   FEEDBACK_PROCESS_EVENT,
+  LOGIN_SUBTITLE_DEFAULT,
+  loginPageSx,
+  loginCardSx,
+  loginHeaderBandSx,
+  LoginHeaderBand,
   Layout: {},
 };
 
