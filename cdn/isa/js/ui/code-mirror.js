@@ -1,15 +1,10 @@
 /** CodeMirror 5 — panel reutilizable con botón copiar (ISAFront). */
-import { CDN_BASE } from "../core/constants.js";
+import { ensureCodeMirrorLoaded, ensureCodeMirrorStyles } from "../core/lazy-assets.js";
 import { attachFoldGutterIcons } from "./code-mirror-fold-gutter.js";
 
 export function ensureCodeMirrorCss() {
   if (typeof document === "undefined") return;
-  if (document.querySelector("link[data-isa-cm-css]")) return;
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = CDN_BASE + "/css/code-mirror.css";
-  link.setAttribute("data-isa-cm-css", "1");
-  document.head.appendChild(link);
+  ensureCodeMirrorStyles().catch(() => { /* ignore */ });
 }
 
 function resolveMode(opts = {}) {
@@ -198,6 +193,11 @@ export function destroyCodeMirror(cm) {
 export function createCodeMirrorPanel(React, MUI) {
   const { useRef, useEffect, useState } = React;
 
+  function cmNeedsSql(json, mode) {
+    if (json) return false;
+    return mode === "sql" || mode === "text/x-sql";
+  }
+
   function CodeMirrorPanel({
     value = "",
     onChange,
@@ -221,14 +221,24 @@ export function createCodeMirrorPanel(React, MUI) {
     const onChangeRef = useRef(onChange);
     const syncingRef = useRef(false);
     const [fullOpen, setFullOpen] = useState(false);
+    const [cmReady, setCmReady] = useState(() => typeof window.CodeMirror !== "undefined");
 
     useEffect(() => {
       onChangeRef.current = onChange;
     }, [onChange]);
 
     useEffect(() => {
+      if (cmReady) return undefined;
+      let cancelled = false;
+      ensureCodeMirrorLoaded({ sql: cmNeedsSql(json, mode) })
+        .then(() => { if (!cancelled) setCmReady(true); })
+        .catch((err) => console.warn("CodeMirror lazy load:", err));
+      return () => { cancelled = true; };
+    }, [cmReady, json, mode]);
+
+    useEffect(() => {
       const host = hostRef.current;
-      if (!host) return undefined;
+      if (!host || !cmReady) return undefined;
 
       if (typeof window.CodeMirror === "undefined") return undefined;
 
@@ -265,7 +275,7 @@ export function createCodeMirrorPanel(React, MUI) {
         destroyCodeMirror(cm);
         cmRef.current = null;
       };
-    }, [json, mode, readOnly, lineWrapping, lineNumbers]);
+    }, [cmReady, json, mode, readOnly, lineWrapping, lineNumbers, fill, maxHeight, minHeight]);
 
     useEffect(() => {
       const cm = cmRef.current;
@@ -407,31 +417,33 @@ export function createCodeMirrorPanel(React, MUI) {
       );
     }
 
-    if (typeof window.CodeMirror === "undefined") {
-      return React.createElement(
-        React.Fragment,
-        null,
-        React.createElement(
-          "div",
-          { className: panelClass },
-          renderToolbar(() => value),
-          readOnly
-            ? React.createElement("pre", {
-              className: "isa-cm-fallback",
-              style: { ...hostStyle, overflow: "auto", margin: 0 },
-            }, value || placeholder)
-            : React.createElement("textarea", {
-              className: "isa-cm-fallback",
-              style: { ...hostStyle, overflow: "auto" },
-              value,
-              placeholder,
-              readOnly,
-              spellCheck: false,
-              onChange: (e) => onChange?.(e.target.value),
-            }),
-        ),
-        renderFullPageDialog(),
-      );
+    if (!cmReady || typeof window.CodeMirror === "undefined") {
+      if (cmReady) {
+        return React.createElement(
+          React.Fragment,
+          null,
+          React.createElement(
+            "div",
+            { className: panelClass, style: panelStyle },
+            renderToolbar(() => value),
+            readOnly
+              ? React.createElement("pre", {
+                className: "isa-cm-fallback",
+                style: { ...hostStyle, overflow: "auto", margin: 0, flex: 1, minHeight: 0 },
+              }, value || placeholder)
+              : React.createElement("textarea", {
+                className: "isa-cm-fallback json-cm-fallback",
+                style: { ...hostStyle, overflow: "auto", flex: 1, minHeight: 0, width: "100%" },
+                value,
+                placeholder,
+                spellCheck: false,
+                onChange: (e) => onChange?.(e.target.value),
+              }),
+          ),
+          renderFullPageDialog(),
+        );
+      }
+      return React.createElement("div", { className: panelClass, style: panelStyle, "aria-hidden": true });
     }
 
     return React.createElement(

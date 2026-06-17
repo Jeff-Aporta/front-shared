@@ -62,6 +62,15 @@ import { createProcessRunner, FEEDBACK_PROCESS_EVENT } from "./ui/feedback/proce
 import { formatLocalDate, formatLocalDateTime } from "./core/format.js";
 import { estimatePromptTokens } from "./core/prompt-tokens.js";
 import {
+  ensureLazyStylesheet,
+  loadLazyScript,
+  loadLazyScriptsSequential,
+  ensureCodeMirrorLoaded,
+  ensureCodeMirrorStyles,
+  ensureMarked,
+} from "./core/lazy-assets.js";
+import { mdToHtml } from "./core/markdown.js";
+import {
   LOGIN_SUBTITLE_DEFAULT,
   loginPageSx,
   loginCardSx,
@@ -104,6 +113,13 @@ window.ISAFront = {
   formatLocalDate,
   formatLocalDateTime,
   estimatePromptTokens,
+  ensureLazyStylesheet,
+  loadLazyScript,
+  loadLazyScriptsSequential,
+  ensureCodeMirrorLoaded,
+  ensureCodeMirrorStyles,
+  ensureMarked,
+  mdToHtml,
   CAPABILITY_CATALOG,
   blockReasonFor,
   resolveCapId,

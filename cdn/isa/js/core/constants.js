@@ -35,3 +35,10 @@ export const FRONT_SHARED_REF = "7921b9c";
 export const CDN_BASE = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@" + FRONT_SHARED_REF + "/cdn/isa";
 export const UI_CDN_BASE = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@" + FRONT_SHARED_REF + "/cdn/ui";
 export const FEEDBACK_CSS_URL = CDN_BASE + "/css/feedback.css";
+
+/** CodeMirror 5 — CDN compartido (lazy-assets). */
+export const CODEMIRROR_VERSION = "5.65.18";
+export const CODEMIRROR_CDN = "https://cdnjs.cloudflare.com/ajax/libs/codemirror/" + CODEMIRROR_VERSION;
+
+/** marked — carga lazy (lazy-assets / markdown). */
+export const MARKED_CDN_URL = "https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js";

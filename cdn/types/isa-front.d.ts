@@ -133,6 +133,13 @@ interface IsaFrontApi {
   formatLocalDate?(value: unknown): string;
   formatLocalDateTime?(value: unknown): string;
   estimatePromptTokens?(text: unknown): number;
+  ensureLazyStylesheet?(href: string): Promise<void>;
+  loadLazyScript?(src: string): Promise<void>;
+  loadLazyScriptsSequential?(urls: string[]): Promise<void>;
+  ensureCodeMirrorLoaded?(opts?: { sql?: boolean }): Promise<void>;
+  ensureCodeMirrorStyles?: () => Promise<void[]>;
+  ensureMarked?: () => Promise<void>;
+  mdToHtml?(src: string): string;
   showToast(opts: { message: string; severity?: string; durationMs?: number }): void;
   Layout: {
     AppShell: FC<AppShellProps>;
