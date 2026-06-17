@@ -50,6 +50,7 @@ interface IsaSession {
 interface IsaUi {
   Icon: FC<{ icon: string; size?: number }>;
   TargetSwitch: FC<Record<string, never>>;
+  TargetSwitchMenu: FC<Record<string, never>>;
   ThemeSwitch: FC<{ mode: string; onToggle: () => void }>;
   LoginGate: FC<{ children?: ReactNode }>;
   LoginGateRedirect?: FC<{ children?: ReactNode }>;
