@@ -50,6 +50,7 @@
               size: "small",
               variant: "filled",
               className: "header-session-chip",
+              clickable: true,
               label: username,
               onClick: function (e) { setAnchor(e.currentTarget); },
               sx: Object.assign({ cursor: "pointer" }, chipSx),
