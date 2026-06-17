@@ -1,5 +1,5 @@
 /**
- * Chip de usuario con menú: entorno (TargetSwitch), test unitario, cerrar sesión.
+ * Chip de usuario con menú: entorno (TargetSwitchMenu), test unitario, cerrar sesión.
  */
 (function () {
   "use strict";
@@ -11,7 +11,7 @@
     const bag = window[ns] || {};
     const UI = bag.UI || window.ISAFront.UI || {};
     const Icon = UI.Icon;
-    const TargetSwitch = UI.TargetSwitch;
+    const TargetSwitchMenu = UI.TargetSwitchMenu;
     const UnitTestModal = UI.UnitTestStreamModal;
     const [anchor, setAnchor] = React.useState(null);
     const [testOpen, setTestOpen] = React.useState(false);
@@ -80,7 +80,7 @@
             : null,
         ),
         React.createElement(MUI.Divider, null),
-        envSwitchAllowed() && TargetSwitch
+        envSwitchAllowed() && TargetSwitchMenu
           ? React.createElement(
               MUI.MenuItem,
               {
@@ -88,12 +88,7 @@
                 sx: { cursor: "default", "&:hover": { bgcolor: "transparent" } },
                 onClick: function (e) { e.stopPropagation(); },
               },
-              React.createElement(
-                MUI.Stack,
-                { direction: "row", spacing: 1, alignItems: "center", width: "100%", justifyContent: "space-between" },
-                React.createElement(MUI.Typography, { variant: "body2" }, "Entorno"),
-                React.createElement(TargetSwitch, null),
-              ),
+              React.createElement(TargetSwitchMenu, null),
             )
           : null,
         props.runUnitTestUrl && UnitTestModal
