@@ -91,3 +91,28 @@ body {
 * { scrollbar-width: thin; scrollbar-color: rgba(30, 144, 255, 0.5) transparent; }
 *::-webkit-scrollbar { width: 10px; height: 10px; }
 *::-webkit-scrollbar-thumb { background: rgba(30, 144, 255, 0.45); border-radius: 6px; }
+
+/* Chip de sesión en AppBar — fondo suave sin icono */
+.header-session-chip.MuiChip-root {
+  background: rgba(20, 184, 166, 0.18);
+  border: 1px solid rgba(20, 184, 166, 0.32);
+  color: #5eead4;
+  font-weight: 600;
+  box-shadow: none;
+}
+.header-session-chip.MuiChip-root .MuiChip-label {
+  color: inherit;
+}
+.header-session-chip.MuiChip-clickable:hover,
+.header-session-chip.MuiChip-clickable:focus-visible {
+  background: rgba(20, 184, 166, 0.28);
+}
+html[data-mui-color-scheme="light"] .header-session-chip.MuiChip-root {
+  background: rgba(20, 184, 166, 0.12);
+  border-color: rgba(20, 184, 166, 0.26);
+  color: #0f766e;
+}
+html[data-mui-color-scheme="light"] .header-session-chip.MuiChip-clickable:hover,
+html[data-mui-color-scheme="light"] .header-session-chip.MuiChip-clickable:focus-visible {
+  background: rgba(20, 184, 166, 0.2);
+}
