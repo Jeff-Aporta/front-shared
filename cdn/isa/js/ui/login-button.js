@@ -173,14 +173,13 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
             { title: "Menú de sesión", arrow: true },
             React.createElement(Chip, {
               size: "small",
-              color: "success",
-              variant: "outlined",
+              variant: "filled",
+              className: "header-session-chip",
               clickable: true,
               onClick: openSessionMenu,
               "aria-haspopup": "true",
               "aria-expanded": menuOpen ? "true" : "false",
               "aria-controls": menuOpen ? `${ns}-session-menu` : undefined,
-              icon: Icon ? React.createElement(Icon, { icon: "mdi:account-check", size: 16 }) : null,
               label: Icon
                 ? React.createElement(
                   Stack,
@@ -192,7 +191,6 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
               sx: {
                 pl: 0.75,
                 "& .MuiChip-label": { pl: 0.75 },
-                "& .MuiChip-icon": { ml: 0.75, mr: -0.25 },
               },
             }),
           ),
