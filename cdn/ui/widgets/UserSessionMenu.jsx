@@ -48,9 +48,8 @@
             { title: (role ? username + " · rol " + role : username) + " — menú", arrow: true },
             React.createElement(MUI.Chip, {
               size: "small",
-              color: "success",
-              variant: "outlined",
-              icon: Icon ? React.createElement(Icon, { icon: "mdi:account-check", size: 16 }) : null,
+              variant: "filled",
+              className: "header-session-chip",
               label: username,
               onClick: function (e) { setAnchor(e.currentTarget); },
               sx: Object.assign({ cursor: "pointer" }, chipSx),
