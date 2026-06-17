@@ -139,6 +139,29 @@
     );
   }
 
+  /** Media query sin ThemeProvider (AppShell es la raíz del theme). */
+  var BREAKPOINT_MAX = { xs: 599.95, sm: 899.95, md: 1199.95, lg: 1535.95, xl: 1e6 };
+
+  function useMatchDown(breakpoint) {
+    var max = BREAKPOINT_MAX[breakpoint] != null ? BREAKPOINT_MAX[breakpoint] : BREAKPOINT_MAX.md;
+    var query = "(max-width: " + max + "px)";
+    var get = function () { return typeof window !== "undefined" && window.matchMedia(query).matches; };
+    var _a = React.useState(get), compact = _a[0], setCompact = _a[1];
+    React.useEffect(function () {
+      if (typeof window === "undefined") return undefined;
+      var mql = window.matchMedia(query);
+      function onChange() { setCompact(mql.matches); }
+      onChange();
+      if (mql.addEventListener) mql.addEventListener("change", onChange);
+      else mql.addListener(onChange);
+      return function () {
+        if (mql.removeEventListener) mql.removeEventListener("change", onChange);
+        else mql.removeListener(onChange);
+      };
+    }, [query]);
+    return compact;
+  }
+
   function AppShell(props) {
     const bag = window[props.ns];
     if (!bag?.Theme || !bag?.UI) {
@@ -164,6 +187,118 @@
     const brand = resolveBrand(props);
     const brandClick = resolveBrandClick(props);
     const showTitle = props.showTitle !== false;
+    const mobileNavEnabled = props.mobileNav !== false && navRows.length > 0;
+    const mobileBreakpoint = props.mobileBreakpoint || "md";
+    const compactNav = mobileNavEnabled && useMatchDown(mobileBreakpoint);
+    const [drawerOpen, setDrawerOpen] = React.useState(false);
+
+    const menuButton = compactNav
+      ? React.createElement(
+          MUI.IconButton,
+          {
+            edge: "start",
+            color: "inherit",
+            "aria-label": "Abrir menú de navegación",
+            onClick: function () { setDrawerOpen(true); },
+            sx: { mr: 0.25, flexShrink: 0 },
+          },
+          React.createElement(UI.Icon, { icon: "mdi:menu", size: 22 }),
+        )
+      : null;
+
+    const mobileNavDrawer = compactNav
+      ? React.createElement(
+          MUI.Drawer,
+          {
+            anchor: "left",
+            open: drawerOpen,
+            onClose: function () { setDrawerOpen(false); },
+            ModalProps: { keepMounted: true },
+            PaperProps: {
+              className: "isa-mobile-nav-drawer",
+              sx: {
+                width: "min(300px, calc(100vw - 12px))",
+                maxWidth: "100%",
+                height: "100%",
+                maxHeight: "100%",
+                boxSizing: "border-box",
+                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
+              },
+            },
+          },
+          React.createElement(
+            MUI.Box,
+            {
+              sx: {
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                px: 2,
+                py: 1.5,
+                borderBottom: 1,
+                borderColor: "divider",
+                flexShrink: 0,
+              },
+            },
+            brand.icon
+              ? React.createElement(UI.Icon, { icon: brand.icon, size: 22 })
+              : null,
+            React.createElement(
+              MUI.Typography,
+              { variant: "subtitle1", sx: { flex: 1, fontWeight: 700 } },
+              brand.title || "Menú",
+            ),
+            React.createElement(
+              MUI.IconButton,
+              {
+                size: "small",
+                "aria-label": "Cerrar menú",
+                onClick: function () { setDrawerOpen(false); },
+              },
+              React.createElement(UI.Icon, { icon: "mdi:close", size: 20 }),
+            ),
+          ),
+          React.createElement(
+            MUI.Box,
+            { sx: { flex: 1, minHeight: 0, overflow: "auto" } },
+            navRows.map(function (row, rowIdx) {
+              return React.createElement(
+              MUI.List,
+              {
+                key: row.id || "drawer-nav-" + rowIdx,
+                dense: true,
+                sx: { py: 0.5 },
+              },
+              (row.tabs || []).map(function (t) {
+                return React.createElement(
+                  MUI.ListItemButton,
+                  {
+                    key: t.id,
+                    selected: row.value === t.id,
+                    onClick: function () {
+                      if (row.onChange) row.onChange(t.id);
+                      setDrawerOpen(false);
+                    },
+                    sx: { py: 1, px: 2 },
+                  },
+                  React.createElement(
+                    MUI.ListItemIcon,
+                    { sx: { minWidth: 36 } },
+                    React.createElement(UI.Icon, { icon: t.icon, size: 20 }),
+                  ),
+                  React.createElement(MUI.ListItemText, {
+                    primary: t.label || t.title || t.id,
+                    primaryTypographyProps: { fontWeight: row.value === t.id ? 700 : 500 },
+                  }),
+                );
+              }),
+              );
+            }),
+          ),
+        )
+      : null;
 
     const bar = React.createElement(
       MUI.AppBar,
@@ -185,6 +320,7 @@
             alignItems: "center",
           },
         },
+        menuButton,
         brand.icon || brand.title
           ? React.createElement(
               MUI.Box,
@@ -220,11 +356,15 @@
                 ? React.createElement(UI.Icon, { icon: brand.icon, size: props.iconSize || 24 })
                 : null,
               showTitle && brand.title
-                ? React.createElement(MUI.Typography, { variant: "h6", component: "span", sx: { flexShrink: 0 } }, brand.title)
+                ? React.createElement(MUI.Typography, {
+                    variant: "h6",
+                    component: "span",
+                    sx: { flexShrink: 0, display: compactNav ? { xs: "none", sm: "inline" } : "inline" },
+                  }, brand.title)
                 : null,
             )
           : null,
-        toolbarNav
+        toolbarNav && !compactNav
           ? React.createElement(
               MUI.Box,
               { sx: { flex: 1, minWidth: 0, display: "flex", alignItems: "center" } },
@@ -234,12 +374,14 @@
                 sx: Object.assign({ flex: 1, minHeight: TOOLBAR_TAB_H }, toolbarNav.sx || {}),
               })),
             )
-          : React.createElement(MUI.Box, { sx: { flex: 1 } }),
+          : compactNav
+            ? React.createElement(MUI.Box, { sx: { flex: 1, minWidth: 0 } })
+            : React.createElement(MUI.Box, { sx: { flex: 1 } }),
         React.createElement(
           MUI.Stack,
           {
             direction: "row",
-            spacing: 1,
+            spacing: { xs: 0.5, sm: 1 },
             alignItems: "center",
             sx: { flexShrink: 0 },
           },
@@ -267,11 +409,13 @@
           props.toolbarEnd || null,
         ),
       ),
-      subNavRows.map(function (row, i) {
-        return React.createElement(NavTabRow, Object.assign({ key: row.id || "nav-" + i, ns: props.ns }, row, {
-          sx: Object.assign({ px: 1, borderTop: 1, borderColor: "divider" }, row.sx || {}),
-        }));
-      }),
+      !compactNav
+        ? subNavRows.map(function (row, i) {
+            return React.createElement(NavTabRow, Object.assign({ key: row.id || "nav-" + i, ns: props.ns }, row, {
+              sx: Object.assign({ px: 1, borderTop: 1, borderColor: "divider" }, row.sx || {}),
+            }));
+          })
+        : null,
     );
 
     const bodyOverflow = props.bodyScroll === true ? "auto" : "hidden";
@@ -296,6 +440,7 @@
       MUI.ThemeProvider,
       { theme: tm.theme },
       React.createElement(MUI.CssBaseline, null),
+      mobileNavDrawer,
       wrapped,
     );
   }

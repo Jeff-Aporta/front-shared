@@ -116,3 +116,37 @@ html[data-mui-color-scheme="light"] .header-session-chip.MuiChip-clickable:hover
 html[data-mui-color-scheme="light"] .header-session-chip.MuiChip-clickable:focus-visible {
   background: rgba(20, 184, 166, 0.2);
 }
+
+.isa-mobile-nav-drawer .MuiListItemButton-root.Mui-selected {
+  background: rgba(30, 144, 255, 0.14);
+}
+
+.paty-mobile-sidebar-drawer,
+.isa-mobile-nav-drawer {
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.paty-mobile-sidebar-drawer .conv-log-sidebar,
+.paty-mobile-sidebar-drawer .paty-chat-sidebar {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.paty-mobile-sidebar-drawer .conv-log-action-grp,
+.paty-mobile-sidebar-drawer .conv-log-sidebar-block {
+  max-width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 899px) {
+  .isa-layout-root .MuiAppBar-root .MuiToolbar-root {
+    min-height: 44px;
+    gap: 0.25rem;
+  }
+  .isa-app-brand .MuiTypography-root {
+    font-size: 0.95rem;
+  }
+}
