@@ -51,6 +51,12 @@ export const CAPABILITY_CATALOG = [
     denyLoggedOut: "Inicia sesi?n para recibir notificaciones en tiempo real",
     denyForbidden: "Sin permiso para notificaciones en tiempo real",
   },
+  {
+    id: "infra.target.switch",
+    label: "Cambiar entorno de despliegue (Local / Producci?n)",
+    denyLoggedOut: "Inicia sesi?n para cambiar el entorno",
+    denyForbidden: "Tu rol no permite cambiar el entorno de despliegue",
+  },
 ];
 
 const BY_ID = new Map(CAPABILITY_CATALOG.map((c) => [c.id, c]));

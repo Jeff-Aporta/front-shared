@@ -22,6 +22,13 @@
 
     function closeMenu() { setAnchor(null); }
 
+    function envSwitchAllowed() {
+      if (props.showTarget === false) return false;
+      if (props.showTarget === true) return true;
+      const Session = bag.Session;
+      return !!(Session && Session.can && Session.can("infra.target.switch"));
+    }
+
     return React.createElement(
       React.Fragment,
       null,
@@ -73,7 +80,7 @@
             : null,
         ),
         React.createElement(MUI.Divider, null),
-        props.showTarget !== false && TargetSwitch
+        envSwitchAllowed() && TargetSwitch
           ? React.createElement(
               MUI.MenuItem,
               {
