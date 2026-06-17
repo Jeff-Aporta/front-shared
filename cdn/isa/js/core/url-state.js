@@ -8,7 +8,12 @@
  *   slimForUrl(state) → recorte antes de escribir URL
  *   onInit(state, api) → tras leer URL (p.ej. sync gateway)
  *   gatewayEvents[] + onGatewayChange(api) → reaccionar a cambio Local/Prod
+ *   brandHomeReset(api) → reset personalizado al pulsar marca en AppShell
  */
+import { registerBrandHomeHandler } from "./brand-home.js";
+
+export { goBrandHome, BRAND_HOME_EVENT, registerBrandHomeHandler } from "./brand-home.js";
+
 export function b64urlEncode(str) {
   return btoa(unescape(encodeURIComponent(str)))
     .replace(/\+/g, "-")
@@ -169,5 +174,14 @@ export function createUrlState(opts = {}) {
   }
 
   api.boot = init();
+
+  registerBrandHomeHandler({
+    param: PARAM,
+    reset:
+      typeof opts.brandHomeReset === "function"
+        ? () => opts.brandHomeReset(api)
+        : () => api.reset(),
+  });
+
   return api;
 }

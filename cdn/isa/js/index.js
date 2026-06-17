@@ -39,7 +39,7 @@ import {
 import { createServiceSession } from "./core/service-session.js";
 import { buildCapEndpointMap, canAny } from "./core/cap-endpoints.js";
 import { getReact, getReactDOM, getMaterialUI } from "./core/runtime.js";
-import { createUrlState, b64urlEncode, b64urlDecode } from "./core/url-state.js";
+import { createUrlState, b64urlEncode, b64urlDecode, goBrandHome, BRAND_HOME_EVENT } from "./core/url-state.js";
 import { createPlatformBridge } from "./core/platform-bridge.js";
 import { migrateLegacyGatewayKeys, GATEWAY_LEGACY_LS_KEYS } from "./core/gateway-legacy.js";
 import {
@@ -133,6 +133,8 @@ window.ISAFront = {
   createUrlState,
   b64urlEncode,
   b64urlDecode,
+  goBrandHome,
+  BRAND_HOME_EVENT,
   createPlatformBridge,
   migrateLegacyGatewayKeys,
   GATEWAY_LEGACY_LS_KEYS,

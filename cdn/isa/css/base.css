@@ -51,6 +51,22 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+/* Marca AppShell — icono + nombre desde AppMeta (index.html) */
+.isa-app-brand {
+  user-select: none;
+  line-height: 1.2;
+}
+.isa-app-brand--clickable:focus-visible {
+  outline: 2px solid var(--neon-blue, #1e90ff);
+  outline-offset: 2px;
+}
+.isa-app-brand .MuiTypography-root {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
 .isa-view-frame {
   height: 100%;
   min-height: 0;

@@ -92,6 +92,9 @@ interface AppShellProps {
   icon?: string;
   iconSize?: number;
   showTitle?: boolean;
+  /** false desactiva clic en marca → inicio */
+  onBrandClick?: (() => void) | false;
+  brandClick?: false;
   navRows?: NavRowProps[];
   toolbarExtra?: ReactNode;
   toolbarActions?: ReactNode;
@@ -135,6 +138,7 @@ interface IsaFrontApi {
     NavTabRow: FC<NavRowProps>;
     NavTabLabel: FC<{ ns?: string; UI?: IsaUi; icon: string; label: string }>;
     ViewFrame: FC<ViewFrameProps>;
+    goBrandHome: () => void;
   };
   Caesar?: { wrapPassword(plain: string): string };
 }

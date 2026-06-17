@@ -10,6 +10,48 @@
   const TAB_LABEL_STYLE = { display: "inline-flex", alignItems: "center", gap: "10px" };
   const TOOLBAR_MIN_H = 48;
   const TOOLBAR_TAB_H = 36;
+  const BRAND_HOME_EVENT = "isa:brand-home";
+
+  function readMetaTag(name) {
+    var el = document.querySelector('meta[name="' + name + '"]');
+    return el ? String(el.getAttribute("content") || "").trim() : "";
+  }
+
+  function ensureAppMeta() {
+    if (typeof globalThis.AppMeta !== "undefined") {
+      if (globalThis.AppMeta.cfg) return globalThis.AppMeta.cfg;
+      if (typeof globalThis.AppMeta.initFromDocument === "function") {
+        return globalThis.AppMeta.initFromDocument();
+      }
+    }
+    return {
+      shortName: readMetaTag("application-name") || document.title || "App",
+      title: document.title || "App",
+      icon: readMetaTag("app-icon") || "mdi:application-outline",
+    };
+  }
+
+  function resolveBrand(props) {
+    const meta = ensureAppMeta();
+    return {
+      title: props.title != null ? props.title : (meta.shortName || meta.title || "App"),
+      icon: props.icon != null ? props.icon : (meta.icon || "mdi:application-outline"),
+    };
+  }
+
+  function defaultBrandClick() {
+    if (window.ISAFront && typeof window.ISAFront.goBrandHome === "function") {
+      window.ISAFront.goBrandHome();
+      return;
+    }
+    window.dispatchEvent(new CustomEvent(BRAND_HOME_EVENT, { bubbles: true }));
+  }
+
+  function resolveBrandClick(props) {
+    if (props.onBrandClick === false || props.brandClick === false) return null;
+    if (typeof props.onBrandClick === "function") return props.onBrandClick;
+    return defaultBrandClick;
+  }
 
   function navTabRowSx(minH) {
     return {
@@ -105,7 +147,13 @@
     const UI = bag.UI;
     const tm = bag.Theme.useThemeMode();
     const Auth = bag.Auth;
-    const showTarget = props.showTarget !== false;
+    const Session = bag.Session;
+    function targetSwitchAllowed() {
+      if (props.showTarget === false) return false;
+      if (props.showTarget === true) return true;
+      return !!(Session && Session.can && Session.can("infra.target.switch"));
+    }
+    const showTarget = targetSwitchAllowed();
     const showTheme = props.showTheme !== false;
     const showAuthChip = props.showAuthChip === true && Auth?.isLoggedIn?.();
     const showLogout = props.showLogout === true && Auth?.isLoggedIn?.();
@@ -113,6 +161,9 @@
     const toolbarNav = navRows[0] || null;
     const subNavRows = navRows.slice(1);
     const FP = UI.FeedbackProvider;
+    const brand = resolveBrand(props);
+    const brandClick = resolveBrandClick(props);
+    const showTitle = props.showTitle !== false;
 
     const bar = React.createElement(
       MUI.AppBar,
@@ -134,24 +185,24 @@
             alignItems: "center",
           },
         },
-        props.icon || (props.showTitle !== false && props.title)
+        brand.icon || brand.title
           ? React.createElement(
               MUI.Box,
               {
-                className: typeof props.onBrandClick === "function" ? "isa-app-brand isa-app-brand--clickable" : "isa-app-brand",
-                onClick: typeof props.onBrandClick === "function" ? props.onBrandClick : undefined,
+                className: brandClick ? "isa-app-brand isa-app-brand--clickable" : "isa-app-brand",
+                onClick: brandClick || undefined,
                 onKeyDown:
-                  typeof props.onBrandClick === "function"
+                  brandClick
                     ? function (e) {
                         if (e.key === "Enter" || e.key === " ") {
                           e.preventDefault();
-                          props.onBrandClick();
+                          brandClick();
                         }
                       }
                     : undefined,
-                role: typeof props.onBrandClick === "function" ? "button" : undefined,
-                tabIndex: typeof props.onBrandClick === "function" ? 0 : undefined,
-                title: typeof props.onBrandClick === "function" ? "Inicio" : undefined,
+                role: brandClick ? "button" : undefined,
+                tabIndex: brandClick ? 0 : undefined,
+                title: brandClick ? "Inicio" : undefined,
                 sx: {
                   display: "inline-flex",
                   alignItems: "center",
@@ -159,17 +210,17 @@
                   flexShrink: 0,
                   mr: 1,
                   borderRadius: 1,
-                  px: props.onBrandClick ? 0.5 : 0,
-                  py: props.onBrandClick ? 0.25 : 0,
-                  cursor: props.onBrandClick ? "pointer" : "default",
-                  "&:hover": props.onBrandClick ? { bgcolor: "action.hover" } : {},
+                  px: brandClick ? 0.5 : 0,
+                  py: brandClick ? 0.25 : 0,
+                  cursor: brandClick ? "pointer" : "default",
+                  "&:hover": brandClick ? { bgcolor: "action.hover" } : {},
                 },
               },
-              props.icon
-                ? React.createElement(UI.Icon, { icon: props.icon, size: props.iconSize || 24 })
+              brand.icon
+                ? React.createElement(UI.Icon, { icon: brand.icon, size: props.iconSize || 24 })
                 : null,
-              props.showTitle !== false && props.title
-                ? React.createElement(MUI.Typography, { variant: "h6", sx: { flexShrink: 0 } }, props.title)
+              showTitle && brand.title
+                ? React.createElement(MUI.Typography, { variant: "h6", component: "span", sx: { flexShrink: 0 } }, brand.title)
                 : null,
             )
           : null,
@@ -254,5 +305,6 @@
   window.ISAFront.Layout.NavTabLabel = NavTabLabel;
   window.ISAFront.Layout.NavTabRow = NavTabRow;
   window.ISAFront.Layout.ViewFrame = ViewFrame;
+  window.ISAFront.Layout.goBrandHome = defaultBrandClick;
   window.ISAFront.Layout.AppShell = AppShell;
 })();
