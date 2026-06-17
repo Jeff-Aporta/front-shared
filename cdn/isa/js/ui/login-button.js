@@ -15,6 +15,7 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
   const {
     Box, Stack, Tooltip, Chip, IconButton, Button,
     Dialog, DialogContent, DialogActions, Typography, Alert, TextField, InputAdornment,
+    Menu, MenuItem, ListItemIcon, ListItemText, Divider,
   } = MUI;
 
   const wrapClass = opts.wrapClass || "header-session-wrap";
@@ -76,6 +77,8 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
     const [err, setErr] = useState("");
     const [busy, setBusy] = useState(false);
     const [, tick] = useState(0);
+    const [menuEl, setMenuEl] = useState(null);
+    const menuOpen = Boolean(menuEl);
 
     const ui = uiBag();
     const rtHookFn = ui.useRealtimeStatus;
@@ -130,21 +133,36 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
       toast("info", "Sesión cerrada");
     }
 
+    function openSessionMenu(e) {
+      setMenuEl(e.currentTarget);
+    }
+
+    function closeSessionMenu() {
+      setMenuEl(null);
+    }
+
+    function logoutFromMenu() {
+      closeSessionMenu();
+      logout();
+    }
+
     const session = sessionView(auth);
     const loggedIn = session || (auth.isLoggedIn?.() ? { username: auth.username?.() } : null);
 
     if (loggedIn?.username) {
-      const roleTip = session?.role ? ` · rol ${session.role}` : "";
-      let tip = `${loggedIn.username}${roleTip}`;
-      if (showExpiryInTooltip && session?.expiresAt) {
-        tip = `Expira: ${formatLocalDateTime(session.expiresAt)}`;
-      }
+      const expiryLine = showExpiryInTooltip && session?.expiresAt
+        ? `Expira: ${formatLocalDateTime(session.expiresAt)}`
+        : null;
+      const menuSecondary = [
+        session?.role ? `Rol: ${session.role}` : null,
+        expiryLine,
+      ].filter(Boolean).join(" · ") || undefined;
       return React.createElement(
         Box,
         {
           component: "span",
           className: wrapClass,
-          sx: { display: "inline-flex", alignItems: "center", flexShrink: 0 },
+          sx: { display: "inline-flex", alignItems: "center", flexShrink: 0, pl: 0.5 },
         },
         React.createElement(
           Stack,
@@ -152,27 +170,61 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
           realtimeEl,
           React.createElement(
             Tooltip,
-            { title: tip, arrow: true },
+            { title: "Menú de sesión", arrow: true },
             React.createElement(Chip, {
               size: "small",
               color: "success",
               variant: "outlined",
+              clickable: true,
+              onClick: openSessionMenu,
+              "aria-haspopup": "true",
+              "aria-expanded": menuOpen ? "true" : "false",
+              "aria-controls": menuOpen ? `${ns}-session-menu` : undefined,
               icon: Icon ? React.createElement(Icon, { icon: "mdi:account-check", size: 16 }) : null,
-              label: loggedIn.username,
+              label: Icon
+                ? React.createElement(
+                  Stack,
+                  { direction: "row", spacing: 0.25, alignItems: "center" },
+                  loggedIn.username,
+                  React.createElement(Icon, { icon: "mdi:chevron-down", size: 14 }),
+                )
+                : loggedIn.username,
+              sx: {
+                pl: 0.75,
+                "& .MuiChip-label": { pl: 0.75 },
+                "& .MuiChip-icon": { ml: 0.75, mr: -0.25 },
+              },
             }),
           ),
           React.createElement(
-            Tooltip,
-            { title: "Cerrar sesión", arrow: true },
+            Menu,
+            {
+              id: `${ns}-session-menu`,
+              anchorEl: menuEl,
+              open: menuOpen,
+              onClose: closeSessionMenu,
+              anchorOrigin: { vertical: "bottom", horizontal: "right" },
+              transformOrigin: { vertical: "top", horizontal: "right" },
+              slotProps: { paper: { sx: { minWidth: 200 } } },
+            },
             React.createElement(
-              IconButton,
-              {
-                size: "small",
-                color: "inherit",
-                onClick: logout,
-                "aria-label": "Cerrar sesión",
-              },
-              Icon ? React.createElement(Icon, { icon: "mdi:logout" }) : "×",
+              MenuItem,
+              { disabled: true, dense: true, sx: { opacity: 1 } },
+              React.createElement(ListItemText, {
+                primary: loggedIn.username,
+                secondary: menuSecondary,
+                primaryTypographyProps: { fontWeight: 600, variant: "body2" },
+                secondaryTypographyProps: { variant: "caption" },
+              }),
+            ),
+            React.createElement(Divider, { sx: { my: 0.5 } }),
+            React.createElement(
+              MenuItem,
+              { onClick: logoutFromMenu, dense: true },
+              Icon
+                ? React.createElement(ListItemIcon, { sx: { minWidth: 32 } }, React.createElement(Icon, { icon: "mdi:logout", size: 18 }))
+                : null,
+              React.createElement(ListItemText, null, "Cerrar sesión"),
             ),
           ),
         ),

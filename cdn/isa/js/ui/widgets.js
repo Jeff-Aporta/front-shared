@@ -68,7 +68,7 @@ export function createWidgets(React, MUI, ns, opts = {}) {
       { title: tip },
       React.createElement(
         MUI.Box,
-        { sx: { display: "inline-flex", alignItems: "center" } },
+        { sx: { display: "inline-flex", alignItems: "center", pl: 0.5 } },
         React.createElement(MUI.Chip, {
           size: "small",
           color: isLocal ? "warning" : "primary",
@@ -81,15 +81,17 @@ export function createWidgets(React, MUI, ns, opts = {}) {
           }),
           label: "",
           onClick: loggedIn ? () => cfg().setLocal(!local) : undefined,
+          "aria-label": tip,
           sx: {
             cursor: loggedIn ? "pointer" : "default",
-            height: "auto",
+            height: 28,
+            width: 28,
             minHeight: 28,
             minWidth: 28,
             py: 0.375,
             px: 0.75,
             "& .MuiChip-label": { display: "none", width: 0, p: 0, m: 0 },
-            "& .MuiChip-icon": { ml: 0, mr: 0 },
+            "& .MuiChip-icon": { ml: 0, mr: 0, color: "inherit" },
           },
         }),
       ),
