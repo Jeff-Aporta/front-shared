@@ -413,8 +413,8 @@
             ? (window.ISAFront.UI?.UserSessionMenu
               ? React.createElement(window.ISAFront.UI.UserSessionMenu, {
                   ns: props.ns,
-                  username: Auth.username(),
-                  role: Auth.role?.() || "",
+                  username: Session?.username?.() || Auth.username(),
+                  role: Auth.role?.() || Session?.current?.()?.role || "",
                   onLogout: function () { Auth.logout(); },
                   showTarget: showTarget,
                   runUnitTestUrl: props.runUnitTestUrl,

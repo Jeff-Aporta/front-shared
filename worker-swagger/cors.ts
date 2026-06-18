@@ -9,7 +9,7 @@ const GITHUB_PAGES = /^https:\/\/[\w.-]+\.github\.io$/;
 const LOCAL_DEV = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 const DEFAULT_ALLOW_HEADERS =
-  "Content-Type, Authorization, Accept, X-Requested-With, Cache-Control, Pragma";
+  "Content-Type, Authorization, Accept, X-Requested-With, X-App-Id, X-View-As-User, Cache-Control, Pragma";
 
 export function isAllowedOrigin(origin: string | undefined): boolean {
   if (!origin) return true;

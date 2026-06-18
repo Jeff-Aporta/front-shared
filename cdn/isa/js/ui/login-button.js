@@ -150,6 +150,22 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
     const loggedIn = session || (auth.isLoggedIn?.() ? { username: auth.username?.() } : null);
 
     if (loggedIn?.username) {
+      const UserSessionMenu = window.ISAFront?.UI?.UserSessionMenu;
+      const Session = sessionApi();
+      if (UserSessionMenu) {
+        return React.createElement(UserSessionMenu, {
+          ns,
+          username: Session?.username?.() || loggedIn.username,
+          role: session?.role || Session?.current?.()?.role || "",
+          signalDot: realtimeEl,
+          showTarget: opts.showTarget,
+          onLogout: logout,
+          runUnitTestUrl: opts.runUnitTestUrl,
+          getAuthHeaders: opts.getAuthHeaders,
+          unitTestTitle: opts.unitTestTitle,
+        });
+      }
+
       const expiryLine = showExpiryInTooltip && session?.expiresAt
         ? `Expira: ${formatLocalDateTime(session.expiresAt)}`
         : null;

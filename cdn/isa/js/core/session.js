@@ -4,6 +4,12 @@ import { createTokenStore, isTokenValid } from "./token-store.js";
 import { blockReasonFor, resolveCapId } from "./capabilities.js";
 import { sanitizeUserMessage } from "./sanitize-user-message.js";
 
+const ADMIN_PERSISTENT_CAPS = new Set([
+  "session.view_as",
+  "patyia.jwt.admin",
+  "infra.target.switch",
+]);
+
 /** Sesión JWT por aplicación + capacidades de servicio (resueltas en system-login). */
 export function registerSession(ns, opts = {}) {
   const appId = String(opts.appId || opts.app || "").trim();
@@ -43,13 +49,17 @@ export function registerSession(ns, opts = {}) {
   }
 
   function saveSession(data) {
+    const caps = Array.isArray(data.capabilities) ? data.capabilities : [];
+    const adminCaps = Array.isArray(data.adminCapabilities) ? data.adminCapabilities : caps;
     store.save({
       username: data.username,
+      viewAsUsername: data.viewAsUsername ?? null,
       role: data.role ?? null,
       token: data.token,
       expiresAt: data.expiresAt ?? null,
       app: appId,
-      capabilities: Array.isArray(data.capabilities) ? data.capabilities : [],
+      capabilities: caps,
+      adminCapabilities: adminCaps,
       capabilityCatalog: Array.isArray(data.capabilityCatalog) ? data.capabilityCatalog : [],
     });
     window.dispatchEvent(new Event(authEvt));
@@ -74,7 +84,27 @@ export function registerSession(ns, opts = {}) {
   }
 
   function username() {
+    const s = current();
+    if (!s) return null;
+    return s.viewAsUsername || s.username || null;
+  }
+
+  function realUsername() {
     return current()?.username ?? null;
+  }
+
+  function viewAsUsername() {
+    return current()?.viewAsUsername ?? null;
+  }
+
+  function isViewingAs() {
+    return Boolean(viewAsUsername());
+  }
+
+  function adminCapabilities() {
+    const s = current();
+    const caps = s?.adminCapabilities;
+    return Array.isArray(caps) && caps.length ? caps : capabilities();
   }
 
   function capabilities() {
@@ -90,7 +120,8 @@ export function registerSession(ns, opts = {}) {
   function can(capOrLegacy) {
     const capId = resolveCapId(capOrLegacy);
     if (!isLoggedIn()) return false;
-    return capabilities().includes(capId);
+    const pool = ADMIN_PERSISTENT_CAPS.has(capId) ? adminCapabilities() : capabilities();
+    return pool.includes(capId);
   }
 
   function blockReason(capOrLegacy) {
@@ -106,7 +137,10 @@ export function registerSession(ns, opts = {}) {
   }
 
   function authHeader() {
-    return isLoggedIn() ? { Authorization: "Bearer " + session.token, ...appHeader() } : {};
+    const hdr = isLoggedIn() ? { Authorization: "Bearer " + session.token, ...appHeader() } : {};
+    const va = viewAsUsername();
+    if (va) hdr["X-View-As-User"] = va;
+    return hdr;
   }
 
   async function refreshProfile() {
@@ -121,13 +155,16 @@ export function registerSession(ns, opts = {}) {
         if (!res.ok || !data.ok) return null;
         const s = current();
         if (!s) return null;
+        const caps = Array.isArray(data.capabilities) ? data.capabilities : [];
+        const impersonating = Boolean(data.impersonation?.active);
         const next = {
           ...s,
+          viewAsUsername: impersonating ? data.impersonation.viewAsUsername : null,
           role: data.user?.role ?? s.role,
-          capabilities: Array.isArray(data.capabilities) ? data.capabilities : [],
-          capabilityCatalog: Array.isArray(data.capabilityCatalog)
-            ? data.capabilityCatalog
-            : (s.capabilityCatalog || []),
+          capabilities: caps,
+          adminCapabilities: impersonating
+            ? (s.adminCapabilities?.length ? s.adminCapabilities : s.capabilities)
+            : caps,
         };
         session = next;
         saveSession(next);
@@ -139,6 +176,66 @@ export function registerSession(ns, opts = {}) {
       }
     })();
     return refreshPromise;
+  }
+
+  async function fetchViewAsCatalog() {
+    const s = current();
+    if (!s) throw new Error("Sin sesión");
+    const res = await fetch(authUrl("/api/auth/view-as/catalog"), {
+      headers: {
+        Accept: "application/json",
+        Authorization: "Bearer " + s.token,
+        ...appHeader(),
+      },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || "No se pudo cargar el catálogo de usuarios");
+    }
+    return Array.isArray(data.users) ? data.users : [];
+  }
+
+  async function setViewAs(targetUsername) {
+    const target = String(targetUsername || "").trim().toUpperCase();
+    if (!target) return clearViewAs();
+    const s = current();
+    if (!s) throw new Error("Sin sesión");
+    if (!adminCapabilities().includes("session.view_as")) {
+      throw new Error("Sin permiso para ver como otro usuario");
+    }
+    const res = await fetch(authUrl("/api/session"), {
+      headers: {
+        Accept: "application/json",
+        Authorization: "Bearer " + s.token,
+        ...appHeader(),
+        "X-View-As-User": target,
+      },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || "No se pudo activar «ver como»");
+    }
+    const caps = Array.isArray(data.capabilities) ? data.capabilities : [];
+    const adminCaps = s.adminCapabilities?.length ? s.adminCapabilities : s.capabilities;
+    const next = {
+      ...s,
+      viewAsUsername: target,
+      role: data.user?.role ?? s.role,
+      capabilities: caps,
+      adminCapabilities: adminCaps,
+    };
+    session = next;
+    saveSession(next);
+    return next;
+  }
+
+  async function clearViewAs() {
+    const s = current();
+    if (!s?.viewAsUsername) return s;
+    const next = { ...s, viewAsUsername: null };
+    session = next;
+    saveSession(next);
+    return refreshProfile();
   }
 
   async function login(user, pass) {
@@ -165,11 +262,13 @@ export function registerSession(ns, opts = {}) {
     }
     session = {
       username: data.username || user,
+      viewAsUsername: null,
       role: data.role || null,
       token: data.token,
       expiresAt: data.expiresAt || null,
       app: appId,
       capabilities: Array.isArray(data.capabilities) ? data.capabilities : [],
+      adminCapabilities: Array.isArray(data.capabilities) ? data.capabilities : [],
       capabilityCatalog: Array.isArray(data.capabilityCatalog) ? data.capabilityCatalog : [],
     };
     saveSession(session);
@@ -188,13 +287,20 @@ export function registerSession(ns, opts = {}) {
     current,
     isLoggedIn,
     username,
+    realUsername,
+    viewAsUsername,
+    isViewingAs,
     authHeader,
     appHeader,
     appId: () => appId,
     login,
     logout,
     refreshProfile,
+    fetchViewAsCatalog,
+    setViewAs,
+    clearViewAs,
     capabilities,
+    adminCapabilities,
     capabilityCatalog,
     can,
     blockReason,

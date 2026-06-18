@@ -9,18 +9,85 @@
   function UserSessionMenu(props) {
     const ns = props.ns || "ISA";
     const bag = window[ns] || {};
+    const Session = bag.Session;
     const UI = bag.UI || window.ISAFront.UI || {};
     const Icon = UI.Icon;
     const TargetSwitchMenu = UI.TargetSwitchMenu;
     const UnitTestModal = UI.UnitTestStreamModal;
+    const ViewAsDialog = UI.ViewAsDialog;
     const [anchor, setAnchor] = React.useState(null);
     const [testOpen, setTestOpen] = React.useState(false);
+    const [viewAsOpen, setViewAsOpen] = React.useState(false);
+    const [, authRev] = React.useState(0);
     const open = Boolean(anchor);
-    const username = props.username || "";
-    const role = props.role || "";
+
+    React.useEffect(function () {
+      if (!Session?.EVENT) return undefined;
+      function onAuth() { authRev(function (n) { return n + 1; }); }
+      window.addEventListener(Session.EVENT, onAuth);
+      return function () { window.removeEventListener(Session.EVENT, onAuth); };
+    }, [Session]);
+
+    void authRev;
+
+    const username = props.username || Session?.username?.() || "";
+    const realUsername = props.realUsername || Session?.realUsername?.() || username;
+    const viewAsUsername = props.viewAsUsername !== undefined
+      ? (props.viewAsUsername || "")
+      : (Session?.viewAsUsername?.() || "");
+    const canViewAs = props.canViewAs !== undefined
+      ? props.canViewAs
+      : !!(Session?.can && Session.can("session.view_as"));
+    const displayLabel = viewAsUsername
+      ? realUsername + " → " + viewAsUsername
+      : username;
+    const role = props.role || Session?.current?.()?.role || "";
     const chipSx = props.chipSx || {};
 
     function closeMenu() { setAnchor(null); }
+
+    function toast(kind, message) {
+      const fb = bag.Feedback?.toast;
+      if (fb?.[kind]) {
+        fb[kind](message);
+        return;
+      }
+      const fn = window.ISAFront?.["toast" + kind.charAt(0).toUpperCase() + kind.slice(1)];
+      if (typeof fn === "function") fn(message);
+    }
+
+    function handleViewAsSelected(uname) {
+      if (props.onViewAsSelected) {
+        props.onViewAsSelected(uname);
+        return;
+      }
+      window.dispatchEvent(new Event(Session.EVENT));
+      toast("success", "Simulando · " + (uname || Session?.username?.() || ""));
+    }
+
+    function handleViewAsCleared() {
+      if (props.onViewAsCleared) {
+        props.onViewAsCleared();
+        return;
+      }
+      window.dispatchEvent(new Event(Session.EVENT));
+      toast("info", "Simulación de usuario finalizada");
+    }
+
+    async function handleViewAsClear() {
+      closeMenu();
+      if (props.onViewAsClear) {
+        props.onViewAsClear();
+        return;
+      }
+      if (!Session?.clearViewAs) return;
+      try {
+        await Session.clearViewAs();
+        handleViewAsCleared();
+      } catch (e) {
+        toast("error", e instanceof Error ? e.message : String(e));
+      }
+    }
 
     function envSwitchAllowed() {
       if (props.showTarget === false) return false;
@@ -45,16 +112,19 @@
           props.signalDot || null,
           React.createElement(
             MUI.Tooltip,
-            { title: (role ? username + " · rol " + role : username) + " — menú", arrow: true },
+            { title: (role ? displayLabel + " · rol " + role : displayLabel) + " — menú", arrow: true },
             React.createElement(MUI.Chip, {
               size: "small",
               variant: "filled",
               className: "header-session-chip",
               clickable: true,
-              label: username,
+              label: displayLabel,
               onClick: function (e) { setAnchor(e.currentTarget); },
-              sx: Object.assign({ cursor: "pointer" }, chipSx),
-              "aria-label": username + (role ? " · rol " + role : ""),
+              sx: Object.assign({ cursor: "pointer" }, chipSx, viewAsUsername ? {
+                bgcolor: "rgba(245, 158, 11, 0.18)",
+                border: "1px solid rgba(245, 158, 11, 0.45)",
+              } : {}),
+              "aria-label": displayLabel + (role ? " · rol " + role : ""),
               "aria-haspopup": "true",
               "aria-expanded": open ? "true" : "false",
             }),
@@ -74,12 +144,59 @@
         React.createElement(
           MUI.Box,
           { sx: { px: 2, py: 1.25 } },
-          React.createElement(MUI.Typography, { variant: "subtitle2" }, username),
+          React.createElement(MUI.Typography, { variant: "subtitle2" }, displayLabel),
           role
             ? React.createElement(MUI.Typography, { variant: "caption", color: "text.secondary" }, "Rol: " + role)
             : null,
+          viewAsUsername
+            ? React.createElement(
+              MUI.Chip,
+              {
+                size: "small",
+                color: "warning",
+                label: "Simulando · " + viewAsUsername,
+                sx: { mt: 0.75, height: 22, fontSize: "0.68rem" },
+              },
+            )
+            : null,
         ),
         React.createElement(MUI.Divider, null),
+        canViewAs
+          ? React.createElement(
+            MUI.MenuItem,
+            {
+              onClick: function () {
+                closeMenu();
+                setViewAsOpen(true);
+              },
+            },
+            Icon
+              ? React.createElement(
+                MUI.ListItemIcon,
+                { sx: { minWidth: 32 } },
+                React.createElement(Icon, { icon: "mdi:account-switch-outline", size: 18 }),
+              )
+              : null,
+            React.createElement(MUI.ListItemText, { primary: "Ver como…" }),
+          )
+          : null,
+        viewAsUsername && (props.onViewAsClear || Session?.clearViewAs)
+          ? React.createElement(
+            MUI.MenuItem,
+            {
+              onClick: handleViewAsClear,
+            },
+            Icon
+              ? React.createElement(
+                MUI.ListItemIcon,
+                { sx: { minWidth: 32 } },
+                React.createElement(Icon, { icon: "mdi:account-revert-outline", size: 18 }),
+              )
+              : null,
+            React.createElement(MUI.ListItemText, { primary: "Dejar de simular" }),
+          )
+          : null,
+        (canViewAs || viewAsUsername) ? React.createElement(MUI.Divider, null) : null,
         envSwitchAllowed() && TargetSwitchMenu
           ? React.createElement(
               MUI.MenuItem,
@@ -137,6 +254,16 @@
             getAuthHeaders: props.getAuthHeaders,
             title: props.unitTestTitle || "Test unitario",
           })
+        : null,
+      ViewAsDialog && canViewAs
+        ? React.createElement(ViewAsDialog, {
+          ns: ns,
+          open: viewAsOpen,
+          onClose: function () { setViewAsOpen(false); },
+          currentViewAs: viewAsUsername || null,
+          onSelected: handleViewAsSelected,
+          onCleared: handleViewAsCleared,
+        })
         : null,
     );
   }

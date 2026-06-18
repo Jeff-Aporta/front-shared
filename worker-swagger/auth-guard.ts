@@ -98,6 +98,7 @@ export async function verifyAccess(
   method: string,
   apiPath: string,
   appId?: string | null,
+  viewAsUser?: string | null,
 ): Promise<{ username: string; allowed: boolean } | Response> {
   const m = method.toUpperCase();
   const path = normalizePath(apiPath);
@@ -119,6 +120,7 @@ export async function verifyAccess(
         Accept: "application/json",
         ...(header ? { Authorization: header } : {}),
         ...(app ? { "X-App-Id": app } : {}),
+        ...(viewAsUser?.trim() ? { "X-View-As-User": viewAsUser.trim() } : {}),
       },
       body: JSON.stringify({ method: m, path, ...(app ? { app } : {}) }),
     });
@@ -165,6 +167,7 @@ export function apiAuthGuard<E extends AuthGuardEnv>(): MiddlewareHandler<{ Bind
       method,
       path,
       c.req.header("X-App-Id"),
+      c.req.header("X-View-As-User"),
     );
     if (result instanceof Response) return result;
     c.set("authUser", result.username);
