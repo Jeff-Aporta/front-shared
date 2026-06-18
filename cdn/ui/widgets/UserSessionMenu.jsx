@@ -35,6 +35,7 @@
     const viewAsUsername = props.viewAsUsername !== undefined
       ? (props.viewAsUsername || "")
       : (Session?.viewAsUsername?.() || "");
+    const role = props.role || Session?.current?.()?.role || "";
     const canViewAs = props.canViewAs !== undefined
       ? props.canViewAs
       : !!(Session?.can && Session.can("session.view_as"))
@@ -42,7 +43,6 @@
     const displayLabel = viewAsUsername
       ? realUsername + " → " + viewAsUsername
       : username;
-    const role = props.role || Session?.current?.()?.role || "";
     const chipSx = props.chipSx || {};
 
     function closeMenu() { setAnchor(null); }
