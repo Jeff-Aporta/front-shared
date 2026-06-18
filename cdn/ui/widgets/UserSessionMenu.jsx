@@ -37,7 +37,8 @@
       : (Session?.viewAsUsername?.() || "");
     const canViewAs = props.canViewAs !== undefined
       ? props.canViewAs
-      : !!(Session?.can && Session.can("session.view_as"));
+      : !!(Session?.can && Session.can("session.view_as"))
+        || String(role || "").trim().toLowerCase() === "admin";
     const displayLabel = viewAsUsername
       ? realUsername + " → " + viewAsUsername
       : username;

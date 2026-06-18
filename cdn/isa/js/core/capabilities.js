@@ -57,6 +57,18 @@ export const CAPABILITY_CATALOG = [
     denyLoggedOut: "Inicia sesi?n para cambiar el entorno",
     denyForbidden: "Tu rol no permite cambiar el entorno de despliegue",
   },
+  {
+    id: "session.view_as",
+    label: "Ver la aplicaci?n como otro usuario (auditor?a / QA)",
+    denyLoggedOut: "Inicia sesi?n para usar ?ver como?",
+    denyForbidden: "Solo administradores pueden simular otros usuarios",
+  },
+  {
+    id: "patyia.jwt.admin",
+    label: "Administrar JWT portal PatyIA de otros usuarios",
+    denyLoggedOut: "Inicia sesi?n para administrar JWT de portal",
+    denyForbidden: "Solo administradores pueden usar JWT de otros usuarios",
+  },
 ];
 
 const BY_ID = new Map(CAPABILITY_CATALOG.map((c) => [c.id, c]));

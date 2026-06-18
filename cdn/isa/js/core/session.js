@@ -117,11 +117,18 @@ export function registerSession(ns, opts = {}) {
     return Array.isArray(s?.capabilityCatalog) ? s.capabilityCatalog : [];
   }
 
+  function isAdminRole() {
+    const role = String(current()?.role || "").trim().toLowerCase();
+    return role === "admin";
+  }
+
   function can(capOrLegacy) {
     const capId = resolveCapId(capOrLegacy);
     if (!isLoggedIn()) return false;
     const pool = ADMIN_PERSISTENT_CAPS.has(capId) ? adminCapabilities() : capabilities();
-    return pool.includes(capId);
+    if (pool.includes(capId)) return true;
+    if (ADMIN_PERSISTENT_CAPS.has(capId) && isAdminRole()) return true;
+    return false;
   }
 
   function blockReason(capOrLegacy) {
@@ -200,7 +207,7 @@ export function registerSession(ns, opts = {}) {
     if (!target) return clearViewAs();
     const s = current();
     if (!s) throw new Error("Sin sesión");
-    if (!adminCapabilities().includes("session.view_as")) {
+    if (!can("session.view_as")) {
       throw new Error("Sin permiso para ver como otro usuario");
     }
     const res = await fetch(authUrl("/api/session"), {
@@ -345,7 +352,11 @@ export function registerSession(ns, opts = {}) {
 
   if (isLoggedIn()) {
     const s = current();
-    if (!Array.isArray(s?.capabilities) || !s.capabilities.length) {
+    const adminCaps = adminCapabilities();
+    const needsRefresh = !Array.isArray(s?.capabilities) || !s.capabilities.length
+      || (isAdminRole() && ADMIN_PERSISTENT_CAPS.has("session.view_as")
+        && !adminCaps.includes("session.view_as"));
+    if (needsRefresh) {
       refreshProfile().catch(() => {});
     }
     window.dispatchEvent(new Event(authEvt));
