@@ -40,6 +40,12 @@ export const CAPABILITY_CATALOG = [
     denyForbidden: "No tienes permiso para consultar logs PatyIA",
   },
   {
+    id: "patyia.scrum",
+    label: "Tablero Scrum (isa-patyia, en desarrollo)",
+    denyLoggedOut: "Inicia sesión para acceder a Scrum",
+    denyForbidden: "En desarrollo",
+  },
+  {
     id: "langlab.guardar",
     label: "Guardar instrucciones de prompts",
     denyLoggedOut: "Inicia sesi?n para guardar instrucciones",
@@ -59,9 +65,9 @@ export const CAPABILITY_CATALOG = [
   },
   {
     id: "session.view_as",
-    label: "Ver la aplicaci?n como otro usuario (auditor?a / QA)",
-    denyLoggedOut: "Inicia sesi?n para usar ?ver como?",
-    denyForbidden: "Solo administradores pueden simular otros usuarios",
+    label: "Suplantación de usuario (auditoría / QA, solo admin)",
+    denyLoggedOut: "Inicia sesión para usar suplantación",
+    denyForbidden: "Solo administradores pueden suplantar a otros usuarios",
   },
   {
     id: "patyia.jwt.admin",

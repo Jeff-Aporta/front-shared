@@ -139,6 +139,13 @@ export function registerSession(ns, opts = {}) {
     });
   }
 
+  function parseSuplantacionFromSession(data) {
+    const supl = data?.suplantacion || data?.impersonation;
+    if (!supl?.active) return { active: false, suplantadoUsername: null };
+    const suplantadoUsername = supl.suplantadoUsername ?? supl.viewAsUsername ?? null;
+    return { active: true, suplantadoUsername };
+  }
+
   function appHeader() {
     return { "X-App-Id": appId };
   }
@@ -163,13 +170,13 @@ export function registerSession(ns, opts = {}) {
         const s = current();
         if (!s) return null;
         const caps = Array.isArray(data.capabilities) ? data.capabilities : [];
-        const impersonating = Boolean(data.impersonation?.active);
+        const { active: suplantando, suplantadoUsername } = parseSuplantacionFromSession(data);
         const next = {
           ...s,
-          viewAsUsername: impersonating ? data.impersonation.viewAsUsername : null,
+          viewAsUsername: suplantando ? suplantadoUsername : null,
           role: data.user?.role ?? s.role,
           capabilities: caps,
-          adminCapabilities: impersonating
+          adminCapabilities: suplantando
             ? (s.adminCapabilities?.length ? s.adminCapabilities : s.capabilities)
             : caps,
         };
@@ -188,7 +195,7 @@ export function registerSession(ns, opts = {}) {
   async function fetchViewAsCatalog() {
     const s = current();
     if (!s) throw new Error("Sin sesión");
-    const res = await fetch(authUrl("/api/auth/view-as/catalog"), {
+    const res = await fetch(authUrl("/api/auth/suplantacion/catalog"), {
       headers: {
         Accept: "application/json",
         Authorization: "Bearer " + s.token,
@@ -197,10 +204,35 @@ export function registerSession(ns, opts = {}) {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.ok) {
-      throw new Error(data.error || "No se pudo cargar el catálogo de usuarios");
+      throw new Error(data.error || "No se pudo cargar el catálogo de suplantación");
     }
     return Array.isArray(data.users) ? data.users : [];
   }
+
+  const fetchSuplantacionCatalog = fetchViewAsCatalog;
+
+  async function searchSuplantacionUsers(query, limit) {
+    const s = current();
+    if (!s) throw new Error("Sin sesión");
+    const q = String(query ?? "").trim();
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (limit != null) params.set("limit", String(limit));
+    const res = await fetch(authUrl("/api/auth/suplantacion/search?" + params.toString()), {
+      headers: {
+        Accept: "application/json",
+        Authorization: "Bearer " + s.token,
+        ...appHeader(),
+      },
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || "No se pudo buscar usuarios");
+    }
+    return Array.isArray(data.users) ? data.users : [];
+  }
+
+  const searchViewAsUsers = searchSuplantacionUsers;
 
   async function setViewAs(targetUsername) {
     const target = String(targetUsername || "").trim().toUpperCase();
@@ -208,7 +240,7 @@ export function registerSession(ns, opts = {}) {
     const s = current();
     if (!s) throw new Error("Sin sesión");
     if (!can("session.view_as")) {
-      throw new Error("Sin permiso para ver como otro usuario");
+      throw new Error("Sin permiso de suplantación (solo administradores)");
     }
     const res = await fetch(authUrl("/api/session"), {
       headers: {
@@ -220,7 +252,7 @@ export function registerSession(ns, opts = {}) {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.ok) {
-      throw new Error(data.error || "No se pudo activar «ver como»");
+      throw new Error(data.error || "No se pudo activar la suplantación");
     }
     const caps = Array.isArray(data.capabilities) ? data.capabilities : [];
     const adminCaps = s.adminCapabilities?.length ? s.adminCapabilities : s.capabilities;
@@ -290,13 +322,20 @@ export function registerSession(ns, opts = {}) {
     clearSession();
   }
 
+  const setSuplantacion = setViewAs;
+  const clearSuplantacion = clearViewAs;
+  const isSuplantando = isViewingAs;
+  const suplantadoUsername = viewAsUsername;
+
   const sessionApi = {
     current,
     isLoggedIn,
     username,
     realUsername,
     viewAsUsername,
+    suplantadoUsername,
     isViewingAs,
+    isSuplantando,
     authHeader,
     appHeader,
     appId: () => appId,
@@ -304,8 +343,13 @@ export function registerSession(ns, opts = {}) {
     logout,
     refreshProfile,
     fetchViewAsCatalog,
+    fetchSuplantacionCatalog,
+    searchViewAsUsers,
+    searchSuplantacionUsers,
     setViewAs,
+    setSuplantacion,
     clearViewAs,
+    clearSuplantacion,
     capabilities,
     adminCapabilities,
     capabilityCatalog,

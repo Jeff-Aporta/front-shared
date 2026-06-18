@@ -14,7 +14,7 @@
     const Icon = UI.Icon;
     const TargetSwitchMenu = UI.TargetSwitchMenu;
     const UnitTestModal = UI.UnitTestStreamModal;
-    const ViewAsDialog = UI.ViewAsDialog;
+    const ViewAsDialog = UI.ViewAsDialog || window.ISAFront?.UI?.ViewAsDialog;
     const [anchor, setAnchor] = React.useState(null);
     const [testOpen, setTestOpen] = React.useState(false);
     const [viewAsOpen, setViewAsOpen] = React.useState(false);
@@ -47,6 +47,11 @@
 
     function closeMenu() { setAnchor(null); }
 
+    function openViewAsDialog() {
+      closeMenu();
+      window.setTimeout(function () { setViewAsOpen(true); }, 0);
+    }
+
     function toast(kind, message) {
       const fb = bag.Feedback?.toast;
       if (fb?.[kind]) {
@@ -63,7 +68,7 @@
         return;
       }
       window.dispatchEvent(new Event(Session.EVENT));
-      toast("success", "Simulando · " + (uname || Session?.username?.() || ""));
+      toast("success", "Suplantando · " + (uname || Session?.username?.() || ""));
     }
 
     function handleViewAsCleared() {
@@ -72,7 +77,7 @@
         return;
       }
       window.dispatchEvent(new Event(Session.EVENT));
-      toast("info", "Simulación de usuario finalizada");
+      toast("info", "Suplantación finalizada");
     }
 
     async function handleViewAsClear() {
@@ -155,7 +160,7 @@
               {
                 size: "small",
                 color: "warning",
-                label: "Simulando · " + viewAsUsername,
+                label: "Suplantando · " + viewAsUsername,
                 sx: { mt: 0.75, height: 22, fontSize: "0.68rem" },
               },
             )
@@ -166,10 +171,7 @@
           ? React.createElement(
             MUI.MenuItem,
             {
-              onClick: function () {
-                closeMenu();
-                setViewAsOpen(true);
-              },
+              onClick: openViewAsDialog,
             },
             Icon
               ? React.createElement(
@@ -178,7 +180,7 @@
                 React.createElement(Icon, { icon: "mdi:account-switch-outline", size: 18 }),
               )
               : null,
-            React.createElement(MUI.ListItemText, { primary: "Ver como…" }),
+            React.createElement(MUI.ListItemText, { primary: "Suplantación…" }),
           )
           : null,
         viewAsUsername && (props.onViewAsClear || Session?.clearViewAs)
@@ -194,7 +196,7 @@
                 React.createElement(Icon, { icon: "mdi:account-revert-outline", size: 18 }),
               )
               : null,
-            React.createElement(MUI.ListItemText, { primary: "Dejar de simular" }),
+            React.createElement(MUI.ListItemText, { primary: "Dejar de suplantar" }),
           )
           : null,
         (canViewAs || viewAsUsername) ? React.createElement(MUI.Divider, null) : null,
@@ -256,7 +258,7 @@
             title: props.unitTestTitle || "Test unitario",
           })
         : null,
-      ViewAsDialog && canViewAs
+      ViewAsDialog && (canViewAs || viewAsUsername || viewAsOpen)
         ? React.createElement(ViewAsDialog, {
           ns: ns,
           open: viewAsOpen,

@@ -1,5 +1,6 @@
 /**
- * Layout estándar Jeff-Aporta: AppBar + filas de tabs + TargetSwitch (chip) + body sin scroll global.
+ * Layout estándar Jeff-Aporta: AppBar + filas de tabs + body sin scroll global.
+ * El switch Local/Producción en barra solo si no hay UserSessionMenu en toolbarEnd/Extra.
  * Requiere ISAFront.registerApp previo (ns con Theme, UI, Auth/Session opcional).
  */
 (function () {
@@ -90,12 +91,48 @@
 
   function NavTabLabel(props) {
     const UI = props.UI || bagUi(props.ns);
+    const icon = props.locked ? "mdi:lock-outline" : props.icon;
     return React.createElement(
       "span",
       { style: TAB_LABEL_STYLE },
-      React.createElement(UI.Icon, { icon: props.icon, size: 18 }),
+      React.createElement(UI.Icon, { icon: icon, size: 18 }),
       React.createElement("span", null, props.label),
     );
+  }
+
+  function renderNavTab(UI, props, t) {
+    const tabEl = React.createElement(MUI.Tab, {
+      key: t.id,
+      value: t.id,
+      disabled: Boolean(t.disabled),
+      label: React.createElement(NavTabLabel, {
+        UI: UI,
+        icon: t.icon,
+        label: t.label || t.title || t.id,
+        locked: Boolean(t.disabled),
+      }),
+      onClick: function (e) {
+        if (t.disabled) {
+          if (e.preventDefault) e.preventDefault();
+          if (e.stopPropagation) e.stopPropagation();
+          return;
+        }
+        openTabInNewWindow(props.tabHref, t.id, e);
+      },
+      onAuxClick: function (e) {
+        if (t.disabled) return;
+        if (e.button === 1) openTabInNewWindow(props.tabHref, t.id, e);
+      },
+    });
+    const title = t.disabledTitle || (t.disabled ? "No disponible" : "");
+    if (t.disabled && title) {
+      return React.createElement(
+        MUI.Tooltip,
+        { key: t.id, title: title, arrow: true },
+        React.createElement("span", { style: { display: "inline-flex" } }, tabEl),
+      );
+    }
+    return tabEl;
   }
 
   /** Fila de tabs con icono + etiqueta (estilo jagudeloe). */
@@ -115,21 +152,7 @@
         sx: Object.assign(navTabRowSx(minH), props.sx || {}),
       },
       tabs.map(function (t) {
-        return React.createElement(MUI.Tab, {
-          key: t.id,
-          value: t.id,
-          label: React.createElement(NavTabLabel, {
-            UI: UI,
-            icon: t.icon,
-            label: t.label || t.title || t.id,
-          }),
-          onClick: function (e) {
-            openTabInNewWindow(props.tabHref, t.id, e);
-          },
-          onAuxClick: function (e) {
-            if (e.button === 1) openTabInNewWindow(props.tabHref, t.id, e);
-          },
-        });
+        return renderNavTab(UI, props, t);
       }),
     );
   }
@@ -195,7 +218,14 @@
       if (props.showTarget === true) return true;
       return !!(Session && Session.can && Session.can("infra.target.switch"));
     }
+    /** Chip suelto en barra: solo si no hay sesión en toolbarEnd/Extra (ahí va TargetSwitchMenu). */
+    function targetSwitchChipInBar() {
+      if (props.showTarget === false) return false;
+      if (props.toolbarEnd || props.toolbarExtra) return props.showTarget === true;
+      return targetSwitchAllowed();
+    }
     const showTarget = targetSwitchAllowed();
+    const showTargetChip = targetSwitchChipInBar();
     const showTheme = props.showTheme !== false;
     const showAuthChip = props.showAuthChip === true && Auth?.isLoggedIn?.();
     const showLogout = props.showLogout === true && Auth?.isLoggedIn?.();
@@ -291,17 +321,21 @@
                 sx: { py: 0.5 },
               },
               (row.tabs || []).map(function (t) {
-                return React.createElement(
+                const blocked = Boolean(t.disabled);
+                const item = React.createElement(
                   MUI.ListItemButton,
                   {
                     key: t.id,
                     selected: row.value === t.id,
+                    disabled: blocked,
                     onClick: function (e) {
+                      if (blocked) return;
                       if (openTabInNewWindow(row.tabHref, t.id, e)) return;
                       if (row.onChange) row.onChange(t.id);
                       setDrawerOpen(false);
                     },
                     onAuxClick: function (e) {
+                      if (blocked) return;
                       if (e.button === 1) openTabInNewWindow(row.tabHref, t.id, e);
                     },
                     sx: { py: 1, px: 2 },
@@ -309,13 +343,24 @@
                   React.createElement(
                     MUI.ListItemIcon,
                     { sx: { minWidth: 36 } },
-                    React.createElement(UI.Icon, { icon: t.icon, size: 20 }),
+                    React.createElement(UI.Icon, {
+                      icon: blocked ? "mdi:lock-outline" : t.icon,
+                      size: 20,
+                    }),
                   ),
                   React.createElement(MUI.ListItemText, {
                     primary: t.label || t.title || t.id,
                     primaryTypographyProps: { fontWeight: row.value === t.id ? 700 : 500 },
                   }),
                 );
+                if (blocked && t.disabledTitle) {
+                  return React.createElement(
+                    MUI.Tooltip,
+                    { key: t.id, title: t.disabledTitle, arrow: true },
+                    React.createElement("span", { style: { display: "block" } }, item),
+                  );
+                }
+                return item;
               }),
               );
             }),
@@ -423,7 +468,7 @@
                 })
               : React.createElement(MUI.Chip, { size: "small", label: Auth.username(), variant: "outlined" }))
             : null,
-          showTarget && !showAuthChip ? React.createElement(UI.TargetSwitch, null) : null,
+          showTargetChip && !showAuthChip ? React.createElement(UI.TargetSwitch, null) : null,
           props.toolbarActions || null,
           showLogout && Auth
             ? React.createElement(MUI.Button, { size: "small", onClick: function () { Auth.logout(); } }, "Salir")

@@ -118,7 +118,7 @@ export function createWidgets(React, MUI, ns, opts = {}) {
     return { loggedIn, isLocal: loggedIn && local, setLocal: (v) => cfg().setLocal(v) };
   }
 
-  /** Switch de entorno para menú de sesión: icono + etiqueta a la izquierda, switch a la derecha. */
+  /** Switch de entorno para menú de sesión: switch a la izquierda; etiqueta + icono a la derecha. */
   function TargetSwitchMenu() {
     const { loggedIn, isLocal, setLocal } = useTargetSwitchState();
     const label = isLocal ? "Local" : "Producción";
@@ -130,27 +130,28 @@ export function createWidgets(React, MUI, ns, opts = {}) {
       MUI.Stack,
       {
         direction: "row",
-        spacing: 1,
         alignItems: "center",
         width: "100%",
         justifyContent: "space-between",
+        gap: 1,
       },
-      React.createElement(
-        MUI.Stack,
-        { direction: "row", spacing: 0.75, alignItems: "center", sx: { minWidth: 0 } },
-        React.createElement(Icon, {
-          icon: isLocal ? "mdi:laptop" : "mdi:earth",
-          size: 18,
-        }),
-        React.createElement(MUI.Typography, { variant: "body2" }, label),
-      ),
       React.createElement(MUI.Switch, {
         size: "small",
         checked: isLocal,
         disabled: !loggedIn,
         onChange: (_e, v) => { if (loggedIn) setLocal(v); },
         inputProps: { "aria-label": tip },
+        sx: { ml: -0.5, flexShrink: 0 },
       }),
+      React.createElement(
+        MUI.Stack,
+        { direction: "row", spacing: 0.75, alignItems: "center", sx: { minWidth: 0, flexShrink: 0 } },
+        React.createElement(MUI.Typography, { variant: "body2", sx: { lineHeight: 1.2 } }, label),
+        React.createElement(Icon, {
+          icon: isLocal ? "mdi:laptop" : "mdi:earth",
+          size: 18,
+        }),
+      ),
     );
   }
 

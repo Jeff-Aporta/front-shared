@@ -7,6 +7,18 @@ export function ensureCodeMirrorCss() {
   ensureCodeMirrorStyles().catch(() => { /* ignore */ });
 }
 
+function getUiColorScheme() {
+  if (typeof document === "undefined") return "dark";
+  const scheme = document.documentElement.getAttribute("data-mui-color-scheme");
+  if (scheme === "light" || scheme === "dark") return scheme;
+  return window.matchMedia?.("(prefers-color-scheme: light)")?.matches ? "light" : "dark";
+}
+
+/** Tema CodeMirror según MUI light/dark (dracula solo en oscuro). */
+export function resolveCodeMirrorTheme(scheme = getUiColorScheme()) {
+  return scheme === "light" ? "default" : "dracula";
+}
+
 function resolveMode(opts = {}) {
   if (opts.json) return { name: "javascript", json: true };
   if (opts.mode === "sql") return "text/x-sql";
@@ -102,7 +114,7 @@ export function mountCodeMirror(host, opts = {}) {
   const cmOpts = {
     value: opts.value ?? "",
     mode: resolveMode(opts),
-    theme: opts.theme ?? "dracula",
+    theme: opts.theme ?? resolveCodeMirrorTheme(),
     lineNumbers: opts.lineNumbers !== false,
     lineWrapping: !!opts.lineWrapping,
     readOnly,
@@ -310,6 +322,26 @@ export function createCodeMirrorPanel(React, MUI) {
         clearTimeout(t2);
       };
     }, [minHeight, maxHeight, fill]);
+
+    useEffect(() => {
+      if (!cmReady) return undefined;
+      function applyTheme() {
+        const cm = cmRef.current;
+        if (!cm?.setOption) return;
+        const next = resolveCodeMirrorTheme();
+        if (cm.getOption("theme") !== next) {
+          cm.setOption("theme", next);
+          cm.refresh();
+        }
+      }
+      applyTheme();
+      const obs = new MutationObserver(applyTheme);
+      obs.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["data-mui-color-scheme"],
+      });
+      return () => obs.disconnect();
+    }, [cmReady]);
 
     const panelClass = [
       "isa-cm-panel",

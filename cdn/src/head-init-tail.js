@@ -15,7 +15,7 @@
   var refMatch = src.match(/front-shared@([^/]+)/);
   var cdnMatch = src.match(/^(https:\/\/cdn\.jsdelivr\.net\/gh\/Jeff-Aporta\/front-shared@[^/]+\/cdn)/);
 
-  global.__FRONT_SHARED_REF__ = refMatch ? refMatch[1] : "bcc5453";
+  global.__FRONT_SHARED_REF__ = refMatch ? refMatch[1] : "a5a6597";
   global.__FRONT_SHARED_CDN__ = cdnMatch
     ? cdnMatch[1]
     : "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@" + global.__FRONT_SHARED_REF__ + "/cdn";

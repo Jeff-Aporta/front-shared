@@ -171,3 +171,66 @@
   height: 100%;
   resize: none;
 }
+
+/* Light mode — panel y editor (tema CodeMirror "default") */
+html[data-mui-color-scheme="light"] .isa-cm-panel {
+  background: #f8fafc;
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+html[data-mui-color-scheme="light"] .isa-cm-panel__copy {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(148, 163, 184, 0.45) !important;
+  color: #334155 !important;
+}
+
+html[data-mui-color-scheme="light"] .isa-cm-panel__copy:hover {
+  background: #f1f5f9 !important;
+  border-color: rgba(30, 144, 255, 0.35) !important;
+}
+
+html[data-mui-color-scheme="light"] .isa-cm-fallback {
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+html[data-mui-color-scheme="light"] .isa-cm-host .CodeMirror-foldgutter-open,
+html[data-mui-color-scheme="light"] .isa-cm-host .CodeMirror-foldgutter-folded {
+  color: #0369a1;
+}
+
+html[data-mui-color-scheme="light"] .isa-cm-host .CodeMirror-foldgutter-open iconify-icon,
+html[data-mui-color-scheme="light"] .isa-cm-host .CodeMirror-foldgutter-folded iconify-icon {
+  color: #0369a1;
+}
+
+html[data-mui-color-scheme="light"] .isa-cm-host .CodeMirror-foldmarker {
+  color: #64748b;
+  background: rgba(100, 116, 139, 0.15);
+}
+
+html[data-mui-color-scheme="light"] .isa-cm-host .cm-s-default.CodeMirror {
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+html[data-mui-color-scheme="light"] .isa-cm-host .cm-s-default .CodeMirror-gutters {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+html[data-mui-color-scheme="light"] .isa-cm-host .cm-s-default .CodeMirror-linenumber {
+  color: #94a3b8;
+}
+
+html[data-mui-color-scheme="light"] .isa-cm-host .cm-s-default .CodeMirror-cursor {
+  border-left-color: #1e293b;
+}
+
+html[data-mui-color-scheme="light"] .isa-cm-host .cm-s-default .CodeMirror-selected {
+  background: rgba(30, 144, 255, 0.18);
+}
+
+html[data-mui-color-scheme="light"] .isa-cm-host .cm-s-default .CodeMirror-activeline-background {
+  background: rgba(30, 144, 255, 0.06);
+}
