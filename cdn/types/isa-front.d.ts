@@ -81,6 +81,8 @@ interface NavRowProps {
   value: string;
   onChange: (id: string) => void;
   tabs: NavTabDef[];
+  /** Ctrl/Cmd+clic o clic medio: abre esta URL en pestaña nueva sin cambiar la vista actual. */
+  tabHref?: (tabId: string) => string;
   minHeight?: number;
   sx?: Record<string, unknown>;
   variant?: string;

@@ -127,6 +127,29 @@ export function createUrlState(opts = {}) {
     return getSnapshot();
   }
 
+  function hrefFor(partial) {
+    let next = getSnapshot();
+    if (partial && typeof partial === "object") {
+      if (typeof opts.merge === "function") {
+        next = opts.merge(next, partial);
+      } else if (maxValue) {
+        next = slimByMaxValue({ ...next, ...partial }, maxValue);
+      } else {
+        next = { ...next, ...partial };
+      }
+    }
+    try {
+      const slimmed = slim(next);
+      const json = JSON.stringify(slimmed);
+      const url = new URL(location.href);
+      if (json === "{}") url.searchParams.delete(PARAM);
+      else url.searchParams.set(PARAM, b64urlEncode(json));
+      return url.href;
+    } catch {
+      return location.href;
+    }
+  }
+
   function subscribe(fn) {
     listeners.push(fn);
     return () => { listeners = listeners.filter((f) => f !== fn); };
@@ -148,6 +171,7 @@ export function createUrlState(opts = {}) {
     getSnapshot,
     merge,
     mergePartial: merge,
+    hrefFor,
     reset,
     subscribe,
   };

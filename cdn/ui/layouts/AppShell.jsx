@@ -76,6 +76,18 @@
     return bag.UI;
   }
 
+  function openTabInNewWindow(tabHref, tabId, e) {
+    if (typeof tabHref !== "function") return false;
+    const mod = e && (e.ctrlKey || e.metaKey || e.button === 1);
+    if (!mod) return false;
+    const url = tabHref(tabId);
+    if (!url) return false;
+    if (e.preventDefault) e.preventDefault();
+    if (e.stopPropagation) e.stopPropagation();
+    window.open(url, "_blank", "noopener,noreferrer");
+    return true;
+  }
+
   function NavTabLabel(props) {
     const UI = props.UI || bagUi(props.ns);
     return React.createElement(
@@ -95,7 +107,8 @@
       MUI.Tabs,
       {
         value: props.value,
-        onChange: function (_e, v) {
+        onChange: function (e, v) {
+          if (e && (e.ctrlKey || e.metaKey)) return;
           if (v != null && props.onChange) props.onChange(v);
         },
         variant: props.variant || "scrollable",
@@ -110,6 +123,12 @@
             icon: t.icon,
             label: t.label || t.title || t.id,
           }),
+          onClick: function (e) {
+            openTabInNewWindow(props.tabHref, t.id, e);
+          },
+          onAuxClick: function (e) {
+            if (e.button === 1) openTabInNewWindow(props.tabHref, t.id, e);
+          },
         });
       }),
     );
@@ -277,9 +296,13 @@
                   {
                     key: t.id,
                     selected: row.value === t.id,
-                    onClick: function () {
+                    onClick: function (e) {
+                      if (openTabInNewWindow(row.tabHref, t.id, e)) return;
                       if (row.onChange) row.onChange(t.id);
                       setDrawerOpen(false);
+                    },
+                    onAuxClick: function (e) {
+                      if (e.button === 1) openTabInNewWindow(row.tabHref, t.id, e);
                     },
                     sx: { py: 1, px: 2 },
                   },

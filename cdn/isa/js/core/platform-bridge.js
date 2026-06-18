@@ -50,6 +50,10 @@ export function createPlatformBridge(ns, opts = {}) {
     get LoginButton() { return bag().UI.LoginButton; },
     get FeedbackProvider() { return bag().UI.FeedbackProvider; },
     get ProcessPanel() { return bag().UI.ProcessPanel; },
+    get RunButton() { return bag().UI.RunButton; },
+    get SqlViewer() { return bag().UI.SqlViewer; },
+    get SqlExecCard() { return bag().UI.SqlExecCard; },
+    get SqlBlock() { return bag().UI.SqlBlock; },
   };
 
   const Session = {
