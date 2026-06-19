@@ -17,6 +17,27 @@
   pointer-events: auto;
 }
 
+/* Alert extiende Paper — evitar que overrides de panel neutralicen toasts filled */
+.isa-toast-stack .MuiAlert-filledSuccess {
+  background-color: #2e7d32 !important;
+  color: #fff !important;
+}
+
+.isa-toast-stack .MuiAlert-filledError {
+  background-color: #c62828 !important;
+  color: #fff !important;
+}
+
+.isa-toast-stack .MuiAlert-filledWarning {
+  background-color: #ed6c02 !important;
+  color: #fff !important;
+}
+
+.isa-toast-stack .MuiAlert-filledInfo {
+  background-color: #0288d1 !important;
+  color: #fff !important;
+}
+
 .isa-process-anchor {
   position: fixed;
   left: 16px;
