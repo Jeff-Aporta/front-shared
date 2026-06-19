@@ -6,14 +6,8 @@ import { FRONT_SHARED_REF } from "./front-shared-ref.mjs";
 
 /** Bump al publicar front-shared (evita caché stale de jsDelivr @main). */
 export { FRONT_SHARED_REF };
-const isDevHost = typeof globalThis.location !== "undefined"
-  && /localhost|127\.0\.0\.1|\[::1\]/.test(globalThis.location.hostname);
-
 function resolveCdnBase() {
-  if (!isDevHost) {
-    return "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@" + FRONT_SHARED_REF + "/cdn/";
-  }
-  return new URL("./", import.meta.url).href;
+  return "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@" + FRONT_SHARED_REF + "/cdn/";
 }
 
 const CDN = resolveCdnBase();
