@@ -44,28 +44,12 @@ function localSharedUrls(file) {
   return urls;
 }
 
-/** @param {string} [localFsRel] ruta relativa desde el loader → …/front-shared/cdn */
-export async function importBootHelper(localFsRel) {
-  const cdn = cdnAsset("boot-helper.mjs?v=" + FRONT_SHARED_REF);
-  const urls = [...localSharedUrls("boot-helper.mjs")];
-  if (isDevHost() && localFsRel) {
-    try {
-      urls.push(new URL("boot-helper.mjs", new URL(localFsRel, import.meta.url)).href);
-    } catch (_) { /* ignore */ }
-  }
-  urls.push(cdn);
-  return importFirst(urls, "boot-helper");
+/** @param {string} [_localFsRel] ignorado — siempre jsDelivr */
+export async function importBootHelper(_localFsRel) {
+  return import(cdnAsset("boot-helper.mjs?v=" + FRONT_SHARED_REF));
 }
 
-/** @param {string} [localFsRel] */
-export async function importBootLoader(localFsRel) {
-  const cdn = cdnAsset("boot-loader.mjs?v=" + FRONT_SHARED_REF);
-  const urls = [...localSharedUrls("boot-loader.mjs")];
-  if (isDevHost() && localFsRel) {
-    try {
-      urls.push(new URL("boot-loader.mjs", new URL(localFsRel, import.meta.url)).href);
-    } catch (_) { /* ignore */ }
-  }
-  urls.push(cdn);
-  return importFirst(urls, "boot-loader");
+/** @param {string} [_localFsRel] ignorado — siempre jsDelivr */
+export async function importBootLoader(_localFsRel) {
+  return import(cdnAsset("boot-loader.mjs?v=" + FRONT_SHARED_REF));
 }
