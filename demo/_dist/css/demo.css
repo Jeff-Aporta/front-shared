@@ -1,0 +1,1 @@
+html,body,#root{height:100%;margin:0}.fs-demo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;padding:1rem 0}.fs-demo-card{border:1px solid rgba(30,144,255,0.2);border-radius:12px;padding:1rem;background:rgba(15,34,54,0.2)}html[data-mui-color-scheme="light"] .fs-demo-card{background:rgba(255,255,255,0.85);border-color:rgba(30,144,255,0.16)}

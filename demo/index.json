@@ -1,0 +1,28 @@
+{
+  "slug": "front-shared",
+  "meta": {
+    "title": "front-shared — stack ISA",
+    "applicationName": "front-shared",
+    "description": "Stack común Jeff-Aporta: AppShell, auth, tema, boot y widgets MUI.",
+    "keywords": "front-shared, ISAFront, AppShell, MUI, jeff-aporta, CDN",
+    "themeColor": "#1e90ff",
+    "themeLsKey": "jeffaporta:front-shared-demo-theme",
+    "icon": "mdi:package-variant-closed",
+    "canonical": "https://jeff-aporta.github.io/front-shared/",
+    "ogSiteName": "Jeff-Aporta",
+    "ogTitle": "front-shared — Jeff-Aporta",
+    "imageAlt": "Demo del stack front-shared con AppShell"
+  },
+  "frontSharedPin": "a5a6597",
+  "useDist": true,
+  "importMap": true,
+  "fonts": false,
+  "loader": "mjs-module",
+  "themeInit": true,
+  "appMeta": false,
+  "headIndent": "  ",
+  "viewport": "width=device-width, initial-scale=1",
+  "styles": ["shared-base", "local:css/demo.css"],
+  "preconnect": ["https://cdn.jsdelivr.net", "https://code.iconify.design"],
+  "libs": ["iconify", "loader-mjs"]
+}

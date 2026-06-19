@@ -1,0 +1,33 @@
+{
+  "builtAt": "2026-06-19T23:30:10.042Z",
+  "kind": "component-demo",
+  "demoRoot": "..\\..\\..\\components\\front-shared\\demo",
+  "files": 4,
+  "bytesIn": 5088,
+  "bytesOut": 3771,
+  "ratio": 0.741,
+  "hash": "89c6d52042f5",
+  "appBundle": "_dist/app.min.js",
+  "entries": [
+    {
+      "rel": "js\\app\\main.jsx",
+      "bytesIn": 2742,
+      "bytesOut": 2050
+    },
+    {
+      "rel": "css/demo.css",
+      "bytesIn": 487,
+      "bytesOut": 379
+    },
+    {
+      "rel": "js/boot/loader.mjs",
+      "bytesIn": 1073,
+      "bytesOut": 749
+    },
+    {
+      "rel": "js/boot/cdn.mjs",
+      "bytesIn": 786,
+      "bytesOut": 593
+    }
+  ]
+}
