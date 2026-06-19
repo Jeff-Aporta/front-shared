@@ -61,6 +61,8 @@ mountSwagger(app, openApiSpec);
 
 4. Dependencias: `@hono/swagger-ui`, `hono`
 
+**Ejemplos request/response:** editar `openapi-examples.ts` (registro por operación) y `enrich-openapi-examples.ts` (fallbacks). Se aplican automáticamente en `GET /api/swagger.json` vía `enrichOpenApiWithExamples`.
+
 Swagger UI se carga en **v5.31+** con clase `dark-mode` en `<html>` (tema oscuro fijo).
 
 ## Actualizar documentación

@@ -1,5 +1,5 @@
 /**
- * Diálogo admin — suplantación: campo de búsqueda + lista fija debajo (sin Popper en Dialog).
+ * Diálogo admin — suplantación: búsqueda + lista en Popper (portal, fuera del scroll del modal).
  */
 (function () {
   "use strict";
@@ -29,6 +29,9 @@
     const [busy, setBusy] = React.useState("");
     const debounceRef = React.useRef(null);
     const requestIdRef = React.useRef(0);
+    const anchorRef = React.useRef(null);
+    const [anchorEl, setAnchorEl] = React.useState(null);
+    const [anchorWidth, setAnchorWidth] = React.useState(null);
 
     async function fetchUsers(query, limit) {
       const q = String(query ?? "").trim();
@@ -127,6 +130,69 @@
 
     const showList = open && (loading || options.length > 0 || Boolean(inputValue.trim()));
 
+    React.useEffect(function () {
+      if (!showList || !anchorEl) return undefined;
+      function syncWidth() {
+        if (anchorEl) setAnchorWidth(anchorEl.getBoundingClientRect().width);
+      }
+      syncWidth();
+      window.addEventListener("resize", syncWidth);
+      return function () { window.removeEventListener("resize", syncWidth); };
+    }, [showList, anchorEl, inputValue, options.length, loading]);
+
+    function setSearchAnchor(node) {
+      anchorRef.current = node;
+      setAnchorEl(node);
+    }
+
+    function listPaperChildren() {
+      return [
+        loading && !options.length
+          ? React.createElement(
+            MUI.Box,
+            { key: "loading", sx: { display: "flex", alignItems: "center", gap: 1, px: 2, py: 1.5 } },
+            React.createElement(MUI.CircularProgress, { size: 18 }),
+            React.createElement(MUI.Typography, { variant: "body2", color: "text.secondary" }, "Buscando…"),
+          )
+          : null,
+        !loading && !options.length
+          ? React.createElement(
+            MUI.Typography,
+            { key: "empty", variant: "body2", color: "text.secondary", sx: { px: 2, py: 1.5 } },
+            "Sin resultados",
+          )
+          : null,
+        options.map(function (row) {
+          const active = props.currentViewAs === row.username;
+          const picking = busy === row.username;
+          return React.createElement(
+            MUI.ListItemButton,
+            {
+              key: row.username,
+              disabled: Boolean(busy),
+              selected: active,
+              onClick: function () { pick(row.username); },
+              sx: { py: 0.75 },
+            },
+            React.createElement(
+              MUI.ListItemText,
+              {
+                primary: row.username,
+                secondary: optionSecondary(row) || null,
+                primaryTypographyProps: { fontWeight: 600, variant: "body2" },
+                secondaryTypographyProps: { variant: "caption" },
+              },
+            ),
+            picking
+              ? React.createElement(MUI.CircularProgress, { size: 18 })
+              : active
+                ? React.createElement(MUI.Chip, { size: "small", label: "Activo", color: "secondary" })
+                : null,
+          );
+        }),
+      ];
+    }
+
     return React.createElement(
       MUI.Dialog,
       {
@@ -134,7 +200,7 @@
         onClose: close,
         maxWidth: "xs",
         fullWidth: true,
-        scroll: "paper",
+        scroll: "body",
         disableRestoreFocus: true,
         className: "isa-view-as-dialog",
         slotProps: {
@@ -168,7 +234,11 @@
           : null,
         React.createElement(
           MUI.Box,
-          { className: "isa-view-as-dialog__search", sx: { position: "relative" } },
+          {
+            ref: setSearchAnchor,
+            className: "isa-view-as-dialog__search",
+            sx: { position: "relative" },
+          },
           React.createElement(MUI.TextField, {
             fullWidth: true,
             size: "small",
@@ -201,71 +271,39 @@
               }
               : undefined,
           }),
-          showList
-            ? React.createElement(
+        ),
+        showList && anchorEl
+          ? React.createElement(
+            MUI.Popper,
+            {
+              open: true,
+              anchorEl: anchorEl,
+              placement: "bottom-start",
+              className: "isa-view-as-dialog__popper",
+              sx: { zIndex: 1400, width: anchorWidth || anchorEl.offsetWidth || undefined },
+              modifiers: [
+                { name: "offset", options: { offset: [0, 0] } },
+                { name: "preventOverflow", options: { padding: 8, altBoundary: true } },
+              ],
+            },
+            React.createElement(
               MUI.Paper,
               {
                 elevation: 8,
                 className: "isa-view-as-dialog__list",
                 sx: {
-                  position: "absolute",
-                  top: "100%",
-                  left: 0,
-                  right: 0,
-                  zIndex: 2,
                   maxHeight: 280,
                   overflow: "auto",
                   borderTopLeftRadius: 0,
                   borderTopRightRadius: 0,
-                  mt: 0,
+                  width: "100%",
+                  boxSizing: "border-box",
                 },
               },
-              loading && !options.length
-                ? React.createElement(
-                  MUI.Box,
-                  { sx: { display: "flex", alignItems: "center", gap: 1, px: 2, py: 1.5 } },
-                  React.createElement(MUI.CircularProgress, { size: 18 }),
-                  React.createElement(MUI.Typography, { variant: "body2", color: "text.secondary" }, "Buscando…"),
-                )
-                : null,
-              !loading && !options.length
-                ? React.createElement(
-                  MUI.Typography,
-                  { variant: "body2", color: "text.secondary", sx: { px: 2, py: 1.5 } },
-                  "Sin resultados",
-                )
-                : null,
-              options.map(function (row) {
-                const active = props.currentViewAs === row.username;
-                const picking = busy === row.username;
-                return React.createElement(
-                  MUI.ListItemButton,
-                  {
-                    key: row.username,
-                    disabled: Boolean(busy),
-                    selected: active,
-                    onClick: function () { pick(row.username); },
-                    sx: { py: 0.75 },
-                  },
-                  React.createElement(
-                    MUI.ListItemText,
-                    {
-                      primary: row.username,
-                      secondary: optionSecondary(row) || null,
-                      primaryTypographyProps: { fontWeight: 600, variant: "body2" },
-                      secondaryTypographyProps: { variant: "caption" },
-                    },
-                  ),
-                  picking
-                    ? React.createElement(MUI.CircularProgress, { size: 18 })
-                    : active
-                      ? React.createElement(MUI.Chip, { size: "small", label: "Activo", color: "secondary" })
-                      : null,
-                );
-              }),
-            )
-            : null,
-        ),
+              listPaperChildren(),
+            ),
+          )
+          : null,
       ),
       React.createElement(
         MUI.DialogActions,

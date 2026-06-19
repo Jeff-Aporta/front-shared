@@ -5,6 +5,7 @@
 import { swaggerUI } from "@hono/swagger-ui";
 import type { Context, Env, Hono } from "hono";
 import { SWAGGER_TOAST_CSS, SWAGGER_TOAST_HTML, SWAGGER_TOAST_SCRIPT } from "./swagger-toast.js";
+import { enrichOpenApiWithExamples } from "./enrich-openapi-examples.js";
 
 /** Swagger UI 5.31+ — estilos dark-mode nativos (`html.dark-mode`). */
 const SWAGGER_UI_VERSION = "5.31.0";
@@ -107,12 +108,13 @@ export function openApiDescriptionWithFront(description: string, link: FrontLink
 
 export function enrichOpenApiSpecWithFront(spec: OpenApiSpec, opts: MountSwaggerOpts): OpenApiSpec {
   const link = resolveDescriptionFrontLink(opts);
-  if (!link) return spec;
+  const withExamples = enrichOpenApiWithExamples(spec);
+  if (!link) return withExamples;
   return {
-    ...spec,
+    ...withExamples,
     info: {
-      ...spec.info,
-      description: openApiDescriptionWithFront(spec.info.description ?? "", link),
+      ...withExamples.info,
+      description: openApiDescriptionWithFront(withExamples.info.description ?? "", link),
     },
   };
 }
