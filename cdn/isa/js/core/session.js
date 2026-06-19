@@ -195,18 +195,31 @@ export function registerSession(ns, opts = {}) {
   async function fetchViewAsCatalog() {
     const s = current();
     if (!s) throw new Error("Sin sesión");
-    const res = await fetch(authUrl("/api/auth/suplantacion/catalog"), {
-      headers: {
-        Accept: "application/json",
-        Authorization: "Bearer " + s.token,
-        ...appHeader(),
-      },
-    });
+    const headers = {
+      Accept: "application/json",
+      Authorization: "Bearer " + s.token,
+      ...appHeader(),
+    };
+    const res = await fetch(authUrl("/api/auth/suplantacion/catalog"), { headers });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.ok) {
-      throw new Error(data.error || "No se pudo cargar el catálogo de suplantación");
+    if (res.ok && data.ok && Array.isArray(data.users) && data.users.length) {
+      return data.users;
     }
-    return Array.isArray(data.users) ? data.users : [];
+    const params = new URLSearchParams({ limit: "5" });
+    const res2 = await fetch(authUrl("/api/auth/suplantacion/search?" + params.toString()), { headers });
+    const data2 = await res2.json().catch(() => ({}));
+    if (res2.ok && data2.ok && Array.isArray(data2.users) && data2.users.length) {
+      return data2.users;
+    }
+    const status = res.status || res2.status;
+    const msg = data.error || data2.error;
+    if (status === 404) {
+      throw new Error("Ruta de suplantación no encontrada (404). Despliega main-orchestrator y system-login.");
+    }
+    if (status === 403) {
+      throw new Error(msg || "Sin permiso de suplantación (solo administradores).");
+    }
+    throw new Error(msg || "No se pudo cargar el catálogo de suplantación (HTTP " + status + ").");
   }
 
   const fetchSuplantacionCatalog = fetchViewAsCatalog;
@@ -265,6 +278,7 @@ export function registerSession(ns, opts = {}) {
     };
     session = next;
     saveSession(next);
+    window.dispatchEvent(new Event(authEvt));
     return next;
   }
 
@@ -274,6 +288,7 @@ export function registerSession(ns, opts = {}) {
     const next = { ...s, viewAsUsername: null };
     session = next;
     saveSession(next);
+    window.dispatchEvent(new Event(authEvt));
     return refreshProfile();
   }
 
