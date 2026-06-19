@@ -176,11 +176,28 @@ export function createWidgets(React, MUI, ns, opts = {}) {
   }
 
   function Loading(props) {
+    const label = props.label || "Cargando…";
     return React.createElement(
       MUI.Box,
-      { sx: { display: "flex", alignItems: "center", gap: 1, p: 3, color: "text.secondary" } },
-      React.createElement(MUI.CircularProgress, { size: 20 }),
-      React.createElement("span", null, props.label || "Cargando…"),
+      {
+        className: "isa-app-boot isa-app-boot--inline",
+        sx: { flex: 1, minHeight: 0, width: "100%" },
+      },
+      React.createElement(
+        "div",
+        { className: "isa-app-boot__card isa-app-boot__card--compact", role: "status", "aria-live": "polite" },
+        React.createElement(
+          "div",
+          { className: "isa-app-boot__icon-wrap isa-app-boot__icon-wrap--sm" },
+          React.createElement(Icon, { icon: "mdi:loading", size: 22, className: "isa-spin" }),
+        ),
+        React.createElement("p", { className: "isa-app-boot__label" }, label),
+        React.createElement(
+          "div",
+          { className: "isa-app-boot__bar", "aria-hidden": "true" },
+          React.createElement("span", { className: "isa-app-boot__bar-fill" }),
+        ),
+      ),
     );
   }
 

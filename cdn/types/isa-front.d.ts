@@ -110,6 +110,8 @@ interface AppShellProps {
   showLogout?: boolean;
   loginGate?: boolean;
   bodyScroll?: boolean;
+  /** Sin AppBar ni navegación (p. ej. tablero SCRUM público). */
+  chromeless?: boolean;
 }
 
 interface ViewFrameProps {

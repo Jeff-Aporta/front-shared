@@ -101,6 +101,13 @@ export function registerSession(ns, opts = {}) {
     return Boolean(viewAsUsername());
   }
 
+  function auditAuthor() {
+    const real = String(realUsername() || username() || "").trim().toUpperCase();
+    const va = String(viewAsUsername() || "").trim().toUpperCase();
+    if (va && real && va !== real) return `${real} -> ${va}`;
+    return real || va || "";
+  }
+
   function adminCapabilities() {
     const s = current();
     const caps = s?.adminCapabilities;
@@ -247,6 +254,20 @@ export function registerSession(ns, opts = {}) {
 
   const searchViewAsUsers = searchSuplantacionUsers;
 
+  function reloadAfterSuplantacionChange() {
+    try {
+      const url = new URL(location.href);
+      if (url.searchParams.has("s")) {
+        url.searchParams.delete("s");
+        history.replaceState(null, "", url.pathname + url.search + url.hash);
+      }
+    } catch { /* ignore */ }
+    try {
+      sessionStorage.removeItem("isa-patyia:paty-jwt");
+    } catch { /* ignore */ }
+    window.location.reload();
+  }
+
   async function setViewAs(targetUsername) {
     const target = String(targetUsername || "").trim().toUpperCase();
     if (!target) return clearViewAs();
@@ -279,6 +300,7 @@ export function registerSession(ns, opts = {}) {
     session = next;
     saveSession(next);
     window.dispatchEvent(new Event(authEvt));
+    reloadAfterSuplantacionChange();
     return next;
   }
 
@@ -289,7 +311,9 @@ export function registerSession(ns, opts = {}) {
     session = next;
     saveSession(next);
     window.dispatchEvent(new Event(authEvt));
-    return refreshProfile();
+    await refreshProfile().catch(() => null);
+    reloadAfterSuplantacionChange();
+    return session;
   }
 
   async function login(user, pass) {
@@ -351,6 +375,7 @@ export function registerSession(ns, opts = {}) {
     suplantadoUsername,
     isViewingAs,
     isSuplantando,
+    auditAuthor,
     authHeader,
     appHeader,
     appId: () => appId,

@@ -65,6 +65,8 @@ export function createPlatformBridge(ns, opts = {}) {
     suplantadoUsername: () => sessionApi().suplantadoUsername?.() ?? sessionApi().viewAsUsername?.() ?? null,
     isViewingAs: () => sessionApi().isViewingAs?.() ?? false,
     isSuplantando: () => sessionApi().isSuplantando?.() ?? sessionApi().isViewingAs?.() ?? false,
+    auditAuthor: () => sessionApi().auditAuthor?.()
+      ?? String(sessionApi().username?.() || "").trim().toUpperCase(),
     authHeader: () => sessionApi().authHeader(),
     appHeader: () => sessionApi().appHeader(),
     appId: () => sessionApi().appId(),

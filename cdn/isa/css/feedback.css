@@ -1,41 +1,110 @@
 /* Feedback — toasts MUI, panel de procesos y confirmaciones compartidas */
 
-.isa-toast-stack {
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
-  z-index: 10000;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-width: min(420px, calc(100vw - 32px));
-  pointer-events: none;
-}
-
-.isa-toast-stack .MuiSnackbar-root {
-  position: relative !important;
-  pointer-events: auto;
-}
-
 /* Alert extiende Paper — evitar que overrides de panel neutralicen toasts filled */
-.isa-toast-stack .MuiAlert-filledSuccess {
-  background-color: #2e7d32 !important;
-  color: #fff !important;
+
+@keyframes isa-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
-.isa-toast-stack .MuiAlert-filledError {
-  background-color: #c62828 !important;
-  color: #fff !important;
+/* SqlExec inline progress (heredado) */
+
+@keyframes isa-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.85); }
 }
 
-.isa-toast-stack .MuiAlert-filledWarning {
-  background-color: #ed6c02 !important;
-  color: #fff !important;
+/* SqlExecCard / SqlViewer — compartido (PatyIA, jagudeloe, bitácora) */
+
+[data-mui-color-scheme="dark"] .isa-process-panel {
+  --isa-process-bg: rgba(18, 24, 38, 0.96);
 }
 
-.isa-toast-stack .MuiAlert-filledInfo {
-  background-color: #0288d1 !important;
-  color: #fff !important;
+body.dark .isa-process-panel {
+  --isa-process-bg: rgba(18, 24, 38, 0.96);
+}
+
+[data-mui-color-scheme="dark"] .exec-progress .elapsed {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+[data-mui-color-scheme="dark"] .isa-exec-progress .elapsed {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+[data-mui-color-scheme="light"] .sql-exec-card {
+  background: rgba(248, 250, 252, 0.92);
+}
+
+body.light .sql-exec-card {
+  background: rgba(248, 250, 252, 0.92);
+}
+
+[data-mui-color-scheme="light"] .sql-viewer {
+  background: rgba(15, 23, 42, 0.06);
+}
+
+body.light .sql-viewer {
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.exec-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  margin: 6px 0;
+  border-radius: 8px;
+  background: rgba(30, 144, 255, 0.08);
+  font-size: 0.8125rem;
+  & .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #1e90ff;
+    animation: isa-pulse 1.2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+  & .elapsed {
+    font-variant-numeric: tabular-nums;
+    color: rgba(0, 0, 0, 0.55);
+    font-size: 0.75rem;
+  }
+  & .msg {
+    flex: 1 1 auto;
+  }
+}
+
+.isa-confirm-message {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.isa-exec-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  margin: 6px 0;
+  border-radius: 8px;
+  background: rgba(30, 144, 255, 0.08);
+  font-size: 0.8125rem;
+  & .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #1e90ff;
+    animation: isa-pulse 1.2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+  & .elapsed {
+    font-variant-numeric: tabular-nums;
+    color: rgba(0, 0, 0, 0.55);
+    font-size: 0.75rem;
+  }
+  & .msg {
+    flex: 1 1 auto;
+  }
 }
 
 .isa-process-anchor {
@@ -47,80 +116,52 @@
   pointer-events: none;
 }
 
-.isa-process-panel-wrap {
-  pointer-events: auto;
-}
-
 .isa-process-panel {
   border: 1px solid rgba(30, 144, 255, 0.25);
   background: var(--isa-process-bg, rgba(255, 255, 255, 0.96)) !important;
+  &-wrap {
+    pointer-events: auto;
+  }
 }
 
-[data-mui-color-scheme="dark"] .isa-process-panel,
-body.dark .isa-process-panel {
-  --isa-process-bg: rgba(18, 24, 38, 0.96);
+.isa-process-step {
+  & iconify-icon.isa-spin {
+    animation: isa-spin 1s linear infinite;
+  }
 }
 
-.isa-process-step iconify-icon.isa-spin {
-  animation: isa-spin 1s linear infinite;
-}
-
-@keyframes isa-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.isa-confirm-message {
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-/* SqlExec inline progress (heredado) */
-.exec-progress,
-.isa-exec-progress {
+.isa-toast-stack {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 10000;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 8px;
-  padding: 6px 10px;
-  margin: 6px 0;
-  border-radius: 8px;
-  background: rgba(30, 144, 255, 0.08);
-  font-size: 0.8125rem;
+  max-width: min(420px, calc(100vw - 32px));
+  pointer-events: none;
+  & .MuiAlert-filledError {
+    background-color: #c62828 !important;
+    color: #fff !important;
+  }
+  & .MuiAlert-filledInfo {
+    background-color: #0288d1 !important;
+    color: #fff !important;
+  }
+  & .MuiAlert-filledSuccess {
+    background-color: #2e7d32 !important;
+    color: #fff !important;
+  }
+  & .MuiAlert-filledWarning {
+    background-color: #ed6c02 !important;
+    color: #fff !important;
+  }
+  & .MuiSnackbar-root {
+    position: relative !important;
+    pointer-events: auto;
+  }
 }
 
-.exec-progress .dot,
-.isa-exec-progress .dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #1e90ff;
-  animation: isa-pulse 1.2s ease-in-out infinite;
-  flex-shrink: 0;
-}
-
-.exec-progress .msg,
-.isa-exec-progress .msg {
-  flex: 1 1 auto;
-}
-
-.exec-progress .elapsed,
-.isa-exec-progress .elapsed {
-  font-variant-numeric: tabular-nums;
-  color: rgba(0, 0, 0, 0.55);
-  font-size: 0.75rem;
-}
-
-[data-mui-color-scheme="dark"] .exec-progress .elapsed,
-[data-mui-color-scheme="dark"] .isa-exec-progress .elapsed {
-  color: rgba(255, 255, 255, 0.55);
-}
-
-@keyframes isa-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.45; transform: scale(0.85); }
-}
-
-/* SqlExecCard / SqlViewer — compartido (PatyIA, jagudeloe, bitácora) */
 .run-group {
   display: inline-flex;
   align-items: center;
@@ -135,11 +176,6 @@ body.dark .isa-process-panel {
   border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
   border-radius: 8px;
   background: rgba(15, 23, 42, 0.35);
-}
-
-[data-mui-color-scheme="light"] .sql-exec-card,
-body.light .sql-exec-card {
-  background: rgba(248, 250, 252, 0.92);
 }
 
 .sql-exec-head {
@@ -164,7 +200,4 @@ body.light .sql-exec-card {
   word-break: break-word;
 }
 
-[data-mui-color-scheme="light"] .sql-viewer,
-body.light .sql-viewer {
-  background: rgba(15, 23, 42, 0.06);
-}
+/* nest-css-max:processed */
