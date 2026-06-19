@@ -93,6 +93,84 @@ export const dodgerComponentOverrides = {
               borderColor: "rgba(30,144,255,0.16)",
               boxShadow: "0 8px 28px rgba(15,23,42,0.06)",
             },
+      elevation: ({ theme }) =>
+        theme.palette.mode === "dark"
+          ? {
+              background: "linear-gradient(145deg, rgba(15,34,54,0.96), rgba(11,18,32,0.98))",
+              border: "1px solid rgba(30,144,255,0.28)",
+              boxShadow: "0 12px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)",
+            }
+          : {
+              background: "linear-gradient(145deg, rgba(255,255,255,0.98), rgba(240,247,255,0.94))",
+              border: "1px solid rgba(30,144,255,0.18)",
+              boxShadow: "0 12px 32px rgba(15,23,42,0.08)",
+            },
+    },
+  },
+  MuiDialog: {
+    styleOverrides: {
+      paper: ({ theme }) => ({
+        backgroundImage: "none",
+        borderRadius: 14,
+        ...(theme.palette.mode === "dark"
+          ? {
+              background: "linear-gradient(145deg, rgba(15,34,54,0.96), rgba(11,18,32,0.98))",
+              border: "1px solid rgba(30,144,255,0.28)",
+              boxShadow: "0 12px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)",
+              color: theme.palette.text.primary,
+            }
+          : {
+              background: "linear-gradient(145deg, rgba(255,255,255,0.98), rgba(240,247,255,0.94))",
+              border: "1px solid rgba(30,144,255,0.18)",
+              boxShadow: "0 12px 32px rgba(15,23,42,0.08)",
+              color: theme.palette.text.primary,
+            }),
+      }),
+    },
+  },
+  MuiAutocomplete: {
+    styleOverrides: {
+      paper: ({ theme }) => ({
+        backgroundImage: "none",
+        marginTop: 4,
+        ...(theme.palette.mode === "dark"
+          ? {
+              background: "linear-gradient(145deg, rgba(15,34,54,0.98), rgba(11,18,32,0.99))",
+              border: "1px solid rgba(30,144,255,0.22)",
+              boxShadow: "0 8px 28px rgba(0,0,0,0.35)",
+              color: theme.palette.text.primary,
+            }
+          : {
+              background: "linear-gradient(145deg, rgba(255,255,255,0.98), rgba(240,247,255,0.95))",
+              border: "1px solid rgba(30,144,255,0.16)",
+              boxShadow: "0 8px 24px rgba(15,23,42,0.08)",
+              color: theme.palette.text.primary,
+            }),
+      }),
+      option: ({ theme }) => ({
+        "&[aria-selected='true']": {
+          backgroundColor: theme.palette.mode === "dark"
+            ? "rgba(30,144,255,0.18) !important"
+            : "rgba(30,144,255,0.12) !important",
+        },
+        "&.Mui-focused": {
+          backgroundColor: theme.palette.mode === "dark"
+            ? "rgba(30,144,255,0.12) !important"
+            : "rgba(30,144,255,0.08) !important",
+        },
+      }),
+      listbox: ({ theme }) => ({
+        color: theme.palette.text.primary,
+      }),
+    },
+  },
+  MuiBackdrop: {
+    styleOverrides: {
+      root: ({ theme }) => ({
+        backgroundColor: theme.palette.mode === "dark"
+          ? "rgba(3, 8, 16, 0.72)"
+          : "rgba(10, 37, 64, 0.32)",
+      }),
     },
   },
   MuiIconButton: {
