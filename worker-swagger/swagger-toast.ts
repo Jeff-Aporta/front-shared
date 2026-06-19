@@ -2,29 +2,11 @@
  * Toast embebido en Swagger UI (Workers / bridge Azure).
  * Fuente canónica — consumir vía npm `@jeff-aporta/front-shared/worker-swagger/swagger-toast`.
  */
+import { SWAGGER_TOAST_CSS } from "./swagger-templates.js";
+
+export { SWAGGER_TOAST_CSS };
 
 export const SWAGGER_TOAST_ROOT_ID = "swagger-toast-root";
-
-/** CSS para inyectar dentro del <style> del fragmento Swagger UI. */
-export const SWAGGER_TOAST_CSS = `
-  #swagger-toast-root {
-    position: fixed; right: 16px; bottom: 16px; z-index: 10050;
-    display: flex; flex-direction: column; gap: 8px; pointer-events: none;
-    max-width: min(420px, 92vw);
-  }
-  .swagger-toast {
-    padding: 12px 14px; border-radius: 8px; font-family: system-ui, sans-serif;
-    font-size: 13px; line-height: 1.45; color: #fff;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-    opacity: 0; transform: translateY(8px);
-    transition: opacity 0.25s ease, transform 0.25s ease;
-  }
-  .swagger-toast.show { opacity: 1; transform: translateY(0); }
-  .swagger-toast-error { background: #c62828; border-left: 4px solid #ff8a80; }
-  .swagger-toast-success { background: #2e7d32; border-left: 4px solid #81c784; }
-  .swagger-toast-info { background: #1565c0; border-left: 4px solid #64b5f6; }
-  .swagger-toast-warning { background: #ef6c00; border-left: 4px solid #ffb74d; }
-`.trim();
 
 export const SWAGGER_TOAST_HTML =
   `<div id="${SWAGGER_TOAST_ROOT_ID}" aria-live="polite" aria-relevant="additions"></div>`;

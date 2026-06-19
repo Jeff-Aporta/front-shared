@@ -63,7 +63,8 @@
     "./cloudflare-workers/workers-runtime": "./cloudflare-workers/workers-runtime.d.ts"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "embed:templates": "node worker-swagger/embed-templates.mjs",
+    "build": "npm run embed:templates && tsc -p tsconfig.build.json",
     "prepublishOnly": "npm run build",
     "refresh:mui-llms": "curl -fsSL -o docs/mui-llms.txt https://mui.com/material-ui/llms.txt"
   },

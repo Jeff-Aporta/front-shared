@@ -65,8 +65,21 @@ mountSwagger(app, openApiSpec);
 
 Swagger UI se carga en **v5.31+** con clase `dark-mode` en `<html>` (tema oscuro fijo).
 
+## Plantillas UI (`templates/`)
+
+| Archivo | Contenido |
+|---------|-----------|
+| `swagger-shell.css` | Shell dark + auth bar + modales + footer + ocultar versiones |
+| `swagger-toast.css` | Toasts del panel auth |
+| `swagger-auth-shell.html` | Barra auth + modales login/JWT |
+
+`node embed-templates.mjs` genera `swagger-templates.ts` (constantes TS). `swagger-ui-shared.ts` solo orquesta.
+
 ## Actualizar documentación
 
 Editar `src/openapi/spec.ts` cuando agregues rutas. Para parámetros restringidos preferir `pathEnum` / `queryEnum` (renderizan `<select>` en Swagger UI) y `default` + `example` para Try it out.
 
-Tras cambiar `swagger.ts`, `swagger-toast.ts`, `openapi-params.ts` o `auth-proxy.ts` canónicos, volver a copiar a todos los backends y **desplegar** los Workers.
+Tras cambiar `swagger.ts`, `swagger-toast.ts`, `templates/*`, `openapi-params.ts` o `auth-proxy.ts` canónicos:
+
+1. Regenerar constantes: `cd front-shared/worker-swagger && node embed-templates.mjs`
+2. Volver a copiar a todos los backends y **desplegar** los Workers.

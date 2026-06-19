@@ -5,7 +5,7 @@ Repositorio único para **CDN (fronts estáticos GH Pages)** y utilidades de bac
 ## Árbol recomendado (actual)
 
 ```
-apps/front-shared/
+apps/components/front-shared/
 ├── cdn/
 │   ├── stack.mjs              # React + MUI 9 (ESM único, import map)
 │   ├── boot-helper.mjs        # bootApp: stack → isa → ui TSX → app
@@ -75,4 +75,4 @@ Un solo repo GitHub **`Jeff-Aporta/front-shared`**, rama `@main` en jsDelivr:
 - `…/cdn/ui/layouts/AppShell.jsx`
 - `…/cdn/stack.mjs`
 
-Local monorepo: `boot-resolver.mjs` + `boot-helper.mjs` desde `apps/front-shared/cdn/`; assets (stack/isa/ui) vía jsDelivr.
+Local monorepo: `boot-resolver.mjs` + `boot-helper.mjs` desde `apps/components/front-shared/cdn/`; assets (stack/isa/ui) vía jsDelivr.

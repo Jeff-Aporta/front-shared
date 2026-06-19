@@ -99,10 +99,10 @@ https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@main/cdn/isa/js/index.js
 https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@main/cdn/ui/layouts/AppShell.jsx
 ```
 
-Local (Live Server en monorepo): los loaders importan `boot-resolver.mjs` y `boot-helper.mjs` desde `apps/front-shared/cdn/`; **stack, isa y ui** siguen yendo a jsDelivr. GH Pages: todo el arranque desde jsDelivr.
+Local (Live Server en monorepo): los loaders importan `boot-resolver.mjs` y `boot-helper.mjs` desde `apps/components/front-shared/cdn/`; **stack, isa y ui** siguen yendo a jsDelivr. GH Pages: todo el arranque desde jsDelivr.
 
 ## MUI llms
 
 ```bash
-cd apps/front-shared && npm run refresh:mui-llms
+cd apps/components/front-shared && npm run refresh:mui-llms
 ```

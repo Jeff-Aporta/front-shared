@@ -1,0 +1,31 @@
+<div id="swagger-auth-bar">
+  <h2>Autenticación Swagger</h2>
+  <button type="button" id="swagger-open-login">Iniciar sesión</button>
+  <button type="button" id="swagger-open-jwt" class="secondary">Pegar JWT</button>
+  <button type="button" id="swagger-auth-clear" class="secondary">Limpiar</button>
+  <div id="swagger-auth-status"></div>
+</div>
+<div id="swagger-login-modal" class="swagger-modal hidden" aria-hidden="true">
+  <div class="swagger-modal-backdrop" data-close="login"></div>
+  <div class="swagger-modal-dialog" role="dialog" aria-labelledby="swagger-login-title">
+    <h3 id="swagger-login-title">Iniciar sesión</h3>
+    <label>Usuario<input id="swagger-auth-user" type="text" autocomplete="username" placeholder="usuario"/></label>
+    <label>Contraseña<input id="swagger-auth-pass" type="password" autocomplete="current-password" placeholder="••••"/></label>
+    <label class="swagger-modal-remember"><input id="swagger-auth-remember" type="checkbox" checked /><span>Recordar usuario y contraseña</span></label>
+    <div class="swagger-modal-actions">
+      <button type="button" class="secondary" data-close="login">Cancelar</button>
+      <button type="button" id="swagger-auth-btn">Obtener JWT y autorizar</button>
+    </div>
+  </div>
+</div>
+<div id="swagger-jwt-modal" class="swagger-modal hidden" aria-hidden="true">
+  <div class="swagger-modal-backdrop" data-close="jwt"></div>
+  <div class="swagger-modal-dialog" role="dialog" aria-labelledby="swagger-jwt-title">
+    <h3 id="swagger-jwt-title">Pegar JWT</h3>
+    <label>Token<textarea id="swagger-jwt-paste" placeholder="eyJhbG…"></textarea></label>
+    <div class="swagger-modal-actions">
+      <button type="button" class="secondary" data-close="jwt">Cancelar</button>
+      <button type="button" id="swagger-jwt-apply">Aplicar JWT</button>
+    </div>
+  </div>
+</div>

@@ -23,7 +23,7 @@
   var host = global.location && global.location.hostname ? global.location.hostname : "";
   var isLocal = host === "localhost" || host === "127.0.0.1" || host === "[::1]";
   var cssBase = isLocal
-    ? (global.__FS_LOCAL__ || "../../front-shared/cdn/")
+    ? (global.__FS_LOCAL__ || "../../components/front-shared/cdn/")
     : global.__FRONT_SHARED_CDN__ + "/";
   var cssAttr = script && script.getAttribute("data-isa-css");
   var cssList = cssAttr ? cssAttr.split(",") : ["isa/css/base.css"];

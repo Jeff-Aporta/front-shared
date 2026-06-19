@@ -6,7 +6,7 @@
 (function () {
   "use strict";
   var ref = window.__FS_REF__ || "main";
-  var localBase = window.__FS_LOCAL__ || "../../front-shared/cdn/";
+  var localBase = window.__FS_LOCAL__ || "../../components/front-shared/cdn/";
   var local = /localhost|127\.0\.0\.1/.test(location.hostname);
   var src = local
     ? localBase + "isa/js/core/theme-init.mjs"
