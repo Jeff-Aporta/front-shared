@@ -230,18 +230,21 @@
     const showAuthChip = props.showAuthChip === true && Auth?.isLoggedIn?.();
     const showLogout = props.showLogout === true && Auth?.isLoggedIn?.();
     const navRows = Array.isArray(props.navRows) ? props.navRows : [];
+    const chromeless = props.chromeless === true;
     const toolbarNav = navRows[0] || null;
     const subNavRows = navRows.slice(1);
     const FP = UI.FeedbackProvider;
     const brand = resolveBrand(props);
     const brandClick = resolveBrandClick(props);
     const showTitle = props.showTitle !== false;
-    const mobileNavEnabled = props.mobileNav !== false && navRows.length > 0;
-    const mobileBreakpoint = props.mobileBreakpoint || "md";
-    const compactNav = mobileNavEnabled && useMatchDown(mobileBreakpoint);
+    const mobileNavEnabled = !chromeless && props.mobileNav !== false && navRows.length > 0;
+    /** Drawer/hamburger solo en viewport estrecho; las tabs del toolbar siempre visibles. */
+    const drawerBreakpoint = props.mobileBreakpoint || props.mobileDrawerBreakpoint || "xs";
+    const drawerNav = mobileNavEnabled && useMatchDown(drawerBreakpoint);
+    const showToolbarTabs = Boolean(toolbarNav);
     const [drawerOpen, setDrawerOpen] = React.useState(false);
 
-    const menuButton = compactNav
+    const menuButton = drawerNav
       ? React.createElement(
           MUI.IconButton,
           {
@@ -255,7 +258,7 @@
         )
       : null;
 
-    const mobileNavDrawer = compactNav
+    const mobileNavDrawer = drawerNav
       ? React.createElement(
           MUI.Drawer,
           {
@@ -368,7 +371,7 @@
         )
       : null;
 
-    const bar = React.createElement(
+    const bar = chromeless ? null : React.createElement(
       MUI.AppBar,
       {
         position: "static",
@@ -427,24 +430,22 @@
                 ? React.createElement(MUI.Typography, {
                     variant: "h6",
                     component: "span",
-                    sx: { flexShrink: 0, display: compactNav ? { xs: "none", sm: "inline" } : "inline" },
+                    sx: { flexShrink: 0, display: drawerNav ? { xs: "none", sm: "inline" } : "inline" },
                   }, brand.title)
                 : null,
             )
           : null,
-        toolbarNav && !compactNav
+        showToolbarTabs
           ? React.createElement(
               MUI.Box,
-              { sx: { flex: 1, minWidth: 0, display: "flex", alignItems: "center" } },
+              { sx: { flex: 1, minWidth: 0, display: "flex", alignItems: "center", overflow: "hidden" } },
               React.createElement(NavTabRow, Object.assign({}, toolbarNav, {
                 ns: props.ns,
                 minHeight: toolbarNav.minHeight != null ? toolbarNav.minHeight : TOOLBAR_TAB_H,
-                sx: Object.assign({ flex: 1, minHeight: TOOLBAR_TAB_H }, toolbarNav.sx || {}),
+                sx: Object.assign({ flex: 1, minWidth: 0, minHeight: TOOLBAR_TAB_H }, toolbarNav.sx || {}),
               })),
             )
-          : compactNav
-            ? React.createElement(MUI.Box, { sx: { flex: 1, minWidth: 0 } })
-            : React.createElement(MUI.Box, { sx: { flex: 1 } }),
+          : React.createElement(MUI.Box, { sx: { flex: 1 } }),
         React.createElement(
           MUI.Stack,
           {
@@ -477,7 +478,7 @@
           props.toolbarEnd || null,
         ),
       ),
-      !compactNav
+      subNavRows.length
         ? subNavRows.map(function (row, i) {
             return React.createElement(NavTabRow, Object.assign({ key: row.id || "nav-" + i, ns: props.ns }, row, {
               sx: Object.assign({ px: 1, borderTop: 1, borderColor: "divider" }, row.sx || {}),
