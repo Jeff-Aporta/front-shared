@@ -93,18 +93,26 @@ export const dodgerComponentOverrides = {
               borderColor: "rgba(30,144,255,0.16)",
               boxShadow: "0 8px 28px rgba(15,23,42,0.06)",
             },
-      elevation: ({ theme }) =>
-        theme.palette.mode === "dark"
-          ? {
-              background: "linear-gradient(145deg, rgba(15,34,54,0.96), rgba(11,18,32,0.98))",
-              border: "1px solid rgba(30,144,255,0.28)",
-              boxShadow: "0 12px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)",
-            }
-          : {
-              background: "linear-gradient(145deg, rgba(255,255,255,0.98), rgba(240,247,255,0.94))",
-              border: "1px solid rgba(30,144,255,0.18)",
-              boxShadow: "0 12px 32px rgba(15,23,42,0.08)",
-            },
+    },
+  },
+  MuiAlert: {
+    styleOverrides: {
+      filledSuccess: ({ theme }) => ({
+        backgroundColor: theme.palette.success.main,
+        color: theme.palette.success.contrastText,
+      }),
+      filledError: ({ theme }) => ({
+        backgroundColor: theme.palette.error.main,
+        color: theme.palette.error.contrastText,
+      }),
+      filledWarning: ({ theme }) => ({
+        backgroundColor: theme.palette.warning.main,
+        color: theme.palette.warning.contrastText,
+      }),
+      filledInfo: ({ theme }) => ({
+        backgroundColor: theme.palette.info.main,
+        color: theme.palette.info.contrastText,
+      }),
     },
   },
   MuiDialog: {
@@ -190,7 +198,10 @@ export function makeDodgerTheme(MUI, mode) {
       mode,
       primary: { main: NEON.blue, light: "#63b3ff", dark: "#1565c0" },
       secondary: { main: NEON.purple, light: "#818cf8", dark: "#4f46e5" },
-      info: { main: NEON.cyan },
+      info: { main: NEON.cyan, contrastText: "#042a3a" },
+      success: { main: "#2e7d32", contrastText: "#fff" },
+      error: { main: "#c62828", contrastText: "#fff" },
+      warning: { main: "#ed6c02", contrastText: "#fff" },
       background: dark
         ? { default: "#060d18", paper: "#0f2236" }
         : { default: "#eef4ff", paper: "#ffffff" },
