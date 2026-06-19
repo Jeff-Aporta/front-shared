@@ -143,8 +143,10 @@ export function createCapFetch(opts = {}) {
     if (res.status === 404) {
       const serverErr = String(data?.error ?? "").trim();
       let msg;
-      if (/not found|verify-access|autorizaci|verificaci/i.test(serverErr)) {
+      if (/verify-access|autorizaci|verificaci/i.test(serverErr)) {
         msg = "No se pudo verificar permisos AppTools. Cierra sesión, vuelve a entrar y comprueba tu rol en system-login.";
+      } else if (/^not found$/i.test(serverErr)) {
+        msg = "Recurso o operación no encontrada en el servidor." + devHint();
       } else if (serverErr) {
         msg = sanitizeApiError(serverErr, "Recurso no encontrado.");
       } else {

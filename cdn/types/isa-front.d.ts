@@ -7,7 +7,9 @@ type FC<P = Record<string, unknown>> = (props: P) => ReactNode;
 interface ReactHooks {
   useState<S>(initial: S | (() => S)): [S, (v: S | ((prev: S) => S)) => void];
   useEffect(effect: () => void | (() => void), deps?: unknown[]): void;
-  useCallback<T extends (...args: never[]) => unknown>(fn: T, deps: unknown[]): T;
+  useLayoutEffect(effect: () => void | (() => void), deps?: unknown[]): void;
+  useCallback<T extends (...args: any[]) => any>(fn: T, deps: unknown[]): T;
+  useMemo<T>(factory: () => T, deps: unknown[]): T;
   useRef<T>(initial: T | null): { current: T | null };
   Fragment: unique symbol;
   createElement<P>(type: FC<P>, props?: P, ...children: ReactNode[]): ReactElement;
