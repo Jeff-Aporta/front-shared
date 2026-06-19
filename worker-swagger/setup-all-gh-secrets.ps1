@@ -26,7 +26,9 @@ $repos = @(
   @{ R = "Jeff-Aporta/iatools-back"; Extra = @{ NEON_DATABASE_URL = $neon } },
   @{ R = "Jeff-Aporta/conversations-back"; Extra = @{ NEON_DATABASE_URL = $neon } },
   @{ R = "Jeff-Aporta/flsjeff-back"; Extra = @{ NEON_DATABASE_URL = $neon } },
-  @{ R = "Jeff-Aporta/cf-ai-back"; Extra = @{} }
+  @{ R = "Jeff-Aporta/cf-ai-back"; Extra = @{} },
+  @{ R = "Jeff-Aporta/scrum-back"; Extra = @{ SCRUM_DATABASE_URL = $neon; NEON_DATABASE_URL = $neon } },
+  @{ R = "Jeff-Aporta/tree-msgs-back"; Extra = @{ TREE_MSGS_DATABASE_URL = $neon; NEON_DATABASE_URL = $neon } }
 )
 
 foreach ($item in $repos) {
