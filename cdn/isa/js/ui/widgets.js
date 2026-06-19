@@ -118,7 +118,7 @@ export function createWidgets(React, MUI, ns, opts = {}) {
     return { loggedIn, isLocal: loggedIn && local, setLocal: (v) => cfg().setLocal(v) };
   }
 
-  /** Switch de entorno para menú de sesión: switch a la izquierda; etiqueta + icono a la derecha. */
+  /** Switch de entorno para menú de sesión: icono + etiqueta alineados al resto del menú; switch a la derecha. */
   function TargetSwitchMenu() {
     const { loggedIn, isLocal, setLocal } = useTargetSwitchState();
     const label = isLocal ? "Local" : "Producción";
@@ -127,31 +127,45 @@ export function createWidgets(React, MUI, ns, opts = {}) {
       : "Producción (inicia sesión para cambiar el entorno)";
 
     return React.createElement(
-      MUI.Stack,
+      MUI.Box,
       {
-        direction: "row",
-        alignItems: "center",
-        width: "100%",
-        justifyContent: "space-between",
-        gap: 1,
+        sx: {
+          display: "flex",
+          alignItems: "center",
+          width: "100%",
+          maxWidth: "100%",
+          minHeight: 24,
+          overflow: "hidden",
+          boxSizing: "border-box",
+        },
       },
+      React.createElement(
+        MUI.ListItemIcon,
+        { sx: { minWidth: 32, mr: 0, alignSelf: "center" } },
+        React.createElement(Icon, {
+          icon: isLocal ? "mdi:laptop" : "mdi:earth",
+          size: 18,
+        }),
+      ),
+      React.createElement(MUI.ListItemText, {
+        primary: label,
+        sx: { my: 0, flex: "1 1 auto", minWidth: 0, alignSelf: "center", pr: 0.5 },
+        primaryTypographyProps: { variant: "body2", noWrap: true, sx: { lineHeight: 1.25 } },
+      }),
       React.createElement(MUI.Switch, {
         size: "small",
         checked: isLocal,
         disabled: !loggedIn,
         onChange: (_e, v) => { if (loggedIn) setLocal(v); },
         inputProps: { "aria-label": tip },
-        sx: { ml: -0.5, flexShrink: 0 },
+        sx: {
+          flexShrink: 0,
+          ml: "auto",
+          mr: 0,
+          my: 0,
+          alignSelf: "center",
+        },
       }),
-      React.createElement(
-        MUI.Stack,
-        { direction: "row", spacing: 0.75, alignItems: "center", sx: { minWidth: 0, flexShrink: 0 } },
-        React.createElement(MUI.Typography, { variant: "body2", sx: { lineHeight: 1.2 } }, label),
-        React.createElement(Icon, {
-          icon: isLocal ? "mdi:laptop" : "mdi:earth",
-          size: 18,
-        }),
-      ),
     );
   }
 
