@@ -18,6 +18,7 @@
     const [anchor, setAnchor] = React.useState(null);
     const [testOpen, setTestOpen] = React.useState(false);
     const [viewAsOpen, setViewAsOpen] = React.useState(false);
+    const viewAsPendingRef = React.useRef(false);
     const [, authRev] = React.useState(0);
     const open = Boolean(anchor);
 
@@ -47,9 +48,24 @@
 
     function closeMenu() { setAnchor(null); }
 
+    function flushViewAsOpen() {
+      if (!viewAsPendingRef.current) return;
+      viewAsPendingRef.current = false;
+      setViewAsOpen(true);
+    }
+
     function openViewAsDialog() {
+      if (!ViewAsDialog) {
+        toast("error", "Suplantación no disponible. Recarga la página (Ctrl+F5).");
+        return;
+      }
+      viewAsPendingRef.current = true;
       closeMenu();
-      window.setTimeout(function () { setViewAsOpen(true); }, 0);
+      window.setTimeout(flushViewAsOpen, 160);
+    }
+
+    function handleMenuExited() {
+      flushViewAsOpen();
     }
 
     function toast(kind, message) {
@@ -145,7 +161,11 @@
           onClose: closeMenu,
           anchorOrigin: { vertical: "bottom", horizontal: "right" },
           transformOrigin: { vertical: "top", horizontal: "right" },
-          slotProps: { paper: { sx: { minWidth: 240, mt: 0.5 } } },
+          TransitionProps: { onExited: handleMenuExited },
+          slotProps: {
+            paper: { sx: { minWidth: 240, maxWidth: 280, mt: 0.5, overflow: "hidden" } },
+            transition: { onExited: handleMenuExited },
+          },
         },
         React.createElement(
           MUI.Box,
@@ -205,7 +225,21 @@
               MUI.MenuItem,
               {
                 disableRipple: true,
-                sx: { cursor: "default", "&:hover": { bgcolor: "transparent" } },
+                sx: {
+                  cursor: "default",
+                  width: "100%",
+                  maxWidth: "100%",
+                  boxSizing: "border-box",
+                  pl: 2,
+                  pr: 1.5,
+                  py: 0,
+                  minHeight: 36,
+                  overflow: "hidden",
+                  display: "flex",
+                  alignItems: "center",
+                  "&:hover": { bgcolor: "transparent" },
+                  "& > .MuiBox-root": { width: "100%", maxWidth: "100%" },
+                },
                 onClick: function (e) { e.stopPropagation(); },
               },
               React.createElement(TargetSwitchMenu, null),
@@ -258,7 +292,7 @@
             title: props.unitTestTitle || "Test unitario",
           })
         : null,
-      ViewAsDialog && (canViewAs || viewAsUsername || viewAsOpen)
+      canViewAs && ViewAsDialog
         ? React.createElement(ViewAsDialog, {
           ns: ns,
           open: viewAsOpen,
