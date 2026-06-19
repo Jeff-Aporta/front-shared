@@ -6,6 +6,20 @@
   const React = window.React;
   const MUI = MaterialUI;
 
+  /** Avatar por nombre — https://ui-avatars.com (misma API que isa-patyia buildUserAvatarUrl). */
+  function buildAvatarUrl(name, size) {
+    const label = String(name || "").trim() || "Usuario";
+    const params = new URLSearchParams({
+      name: label,
+      size: String(size || 64),
+      background: "1e90ff",
+      color: "ffffff",
+      bold: "true",
+      format: "svg",
+    });
+    return "https://ui-avatars.com/api/?" + params.toString();
+  }
+
   function UserSessionMenu(props) {
     const ns = props.ns || "ISA";
     const bag = window[ns] || {};
@@ -36,15 +50,24 @@
     const viewAsUsername = props.viewAsUsername !== undefined
       ? (props.viewAsUsername || "")
       : (Session?.viewAsUsername?.() || "");
-    const role = props.role || Session?.current?.()?.role || "";
+    const sessionRole = String(
+      props.role || Session?.current?.()?.role || "",
+    ).trim();
     const canViewAs = props.canViewAs !== undefined
       ? props.canViewAs
       : !!(Session?.can && Session.can("session.view_as"))
-        || String(role || "").trim().toLowerCase() === "admin";
+        || sessionRole.toLowerCase() === "admin";
     const displayLabel = viewAsUsername
       ? realUsername + " → " + viewAsUsername
       : username;
     const chipSx = props.chipSx || {};
+    const theme = MUI.useTheme();
+    const compactHeader = MUI.useMediaQuery(theme.breakpoints.down("md"));
+    const avatarName = viewAsUsername || username;
+    const avatarUrl = props.buildAvatarUrl
+      ? props.buildAvatarUrl(avatarName, 64)
+      : buildAvatarUrl(avatarName, 64);
+    const ariaLabel = displayLabel + (sessionRole ? " · rol " + sessionRole : "");
 
     function closeMenu() { setAnchor(null); }
 
@@ -134,22 +157,39 @@
           props.signalDot || null,
           React.createElement(
             MUI.Tooltip,
-            { title: (role ? displayLabel + " · rol " + role : displayLabel) + " — menú", arrow: true },
-            React.createElement(MUI.Chip, {
-              size: "small",
-              variant: "filled",
-              className: "header-session-chip",
-              clickable: true,
-              label: displayLabel,
-              onClick: function (e) { setAnchor(e.currentTarget); },
-              sx: Object.assign({ cursor: "pointer" }, chipSx, viewAsUsername ? {
-                bgcolor: "rgba(245, 158, 11, 0.18)",
-                border: "1px solid rgba(245, 158, 11, 0.45)",
-              } : {}),
-              "aria-label": displayLabel + (role ? " · rol " + role : ""),
-              "aria-haspopup": "true",
-              "aria-expanded": open ? "true" : "false",
-            }),
+            { title: (sessionRole ? displayLabel + " · rol " + sessionRole : displayLabel) + " — menú", arrow: true },
+            compactHeader
+              ? React.createElement(MUI.IconButton, {
+                size: "small",
+                className: "header-session-avatar-btn" + (viewAsUsername ? " header-session-avatar-btn--view-as" : ""),
+                onClick: function (e) { setAnchor(e.currentTarget); },
+                "aria-label": ariaLabel,
+                "aria-haspopup": "true",
+                "aria-expanded": open ? "true" : "false",
+              }, React.createElement("img", {
+                className: "header-session-avatar",
+                src: avatarUrl,
+                alt: "",
+                decoding: "async",
+                loading: "lazy",
+                width: 32,
+                height: 32,
+              }))
+              : React.createElement(MUI.Chip, {
+                size: "small",
+                variant: "filled",
+                className: "header-session-chip",
+                clickable: true,
+                label: displayLabel,
+                onClick: function (e) { setAnchor(e.currentTarget); },
+                sx: Object.assign({ cursor: "pointer" }, chipSx, viewAsUsername ? {
+                  bgcolor: "rgba(245, 158, 11, 0.18)",
+                  border: "1px solid rgba(245, 158, 11, 0.45)",
+                } : {}),
+                "aria-label": ariaLabel,
+                "aria-haspopup": "true",
+                "aria-expanded": open ? "true" : "false",
+              }),
           ),
         ),
       ),
@@ -171,8 +211,8 @@
           MUI.Box,
           { sx: { px: 2, py: 1.25 } },
           React.createElement(MUI.Typography, { variant: "subtitle2" }, displayLabel),
-          role
-            ? React.createElement(MUI.Typography, { variant: "caption", color: "text.secondary" }, "Rol: " + role)
+          sessionRole
+            ? React.createElement(MUI.Typography, { variant: "caption", color: "text.secondary" }, "Rol: " + sessionRole)
             : null,
           viewAsUsername
             ? React.createElement(
