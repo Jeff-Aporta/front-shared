@@ -59,7 +59,7 @@ index.html (import map + Babel)
 
 - Código de negocio de una sola app → `apps/<app>/frontend/js/`.
 - Backend / Workers → `apps/<app>/backend/`.
-- Langlab monolito Azure → `apps/langlab/` (stack distinto).
+- Monolito Azure legacy — retirado; ver `apps/src/docs/DEPRECATED-langlab-azure.md`.
 
 ## Próximos candidatos a `cdn/ui/`
 

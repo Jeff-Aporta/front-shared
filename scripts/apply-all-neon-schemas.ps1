@@ -1,16 +1,13 @@
-# Aplica todos los esquemas Jeff-Aporta en Neon (lee URL desde langlab/local.settings.json).
+# Aplica todos los esquemas Jeff-Aporta en Neon (lee URL desde Personal/apps/local.settings.json).
 param(
   [switch]$Migrate,
   [switch]$SkipAuthMigrate
 )
 
 $ErrorActionPreference = "Stop"
-$appsRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
-$settingsPath = Join-Path $appsRoot "langlab-azure\local.settings.json"
-if (-not (Test-Path $settingsPath)) {
-  $settingsPath = Join-Path $appsRoot "langlab\local.settings.json"
-}
-if (-not (Test-Path $settingsPath)) { throw "No se encontro langlab/local.settings.json ni langlab-azure/local.settings.json" }
+$appsRoot = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
+$settingsPath = Join-Path $appsRoot "local.settings.json"
+if (-not (Test-Path $settingsPath)) { throw "No se encontro local.settings.json en $appsRoot" }
 
 $settings = Get-Content $settingsPath | ConvertFrom-Json
 $neon = ($settings.Values.NEON_DATABASE_URL -replace '&channel_binding=require', '')

@@ -11,16 +11,13 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$appsRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+$appsRoot = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
 
 if (-not $SettingsPath) {
-  $SettingsPath = Join-Path $appsRoot "langlab-azure\local.settings.json"
-  if (-not (Test-Path $SettingsPath)) {
-    $SettingsPath = Join-Path $appsRoot "langlab\local.settings.json"
-  }
+  $SettingsPath = Join-Path $appsRoot "local.settings.json"
 }
 if (-not (Test-Path $SettingsPath)) {
-  throw "No local.settings.json con NEON_DATABASE_URL en langlab-azure o langlab"
+  throw "No local.settings.json con NEON_DATABASE_URL en $appsRoot"
 }
 
 $settings = Get-Content $SettingsPath | ConvertFrom-Json

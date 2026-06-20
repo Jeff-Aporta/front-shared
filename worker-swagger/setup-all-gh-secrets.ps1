@@ -1,12 +1,15 @@
 # Configura secretos GitHub para todos los backends Jeff-Aporta
 # Requiere: $env:CLOUDFLARE_API_TOKEN — template **Edit Cloudflare Workers** (NO FILESTORE_API_TOKEN / R2)
 param(
-  [string]$LanglabSettings = "..\apps\langlab\local.settings.json"
+  [string]$AppsSettings = ""
 )
 
 $ErrorActionPreference = "Stop"
-$root = Split-Path $PSScriptRoot -Parent
-$v = (Get-Content (Join-Path $root $LanglabSettings) -Raw | ConvertFrom-Json).Values
+$appsRoot = Split-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) -Parent
+if (-not $AppsSettings) {
+  $AppsSettings = Join-Path $appsRoot "local.settings.json"
+}
+$v = (Get-Content $AppsSettings -Raw | ConvertFrom-Json).Values
 
 if (-not $env:CLOUDFLARE_API_TOKEN) {
   Write-Host "Define CLOUDFLARE_API_TOKEN (Workers Edit, igual que flsjeff-back)." -ForegroundColor Yellow
