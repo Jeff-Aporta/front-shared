@@ -317,14 +317,17 @@ export function registerSession(ns, opts = {}) {
   }
 
   async function login(user, pass) {
+    const trimmed = user.trim();
+    const credBody = {
+      password: wrapPassword(pass),
+      app: appId,
+    };
+    if (trimmed.includes("@")) credBody.semail = trimmed;
+    else credBody.username = trimmed;
     const res = await fetch(authUrl("/api/auth/token"), {
       method: "POST",
       headers: { "Content-Type": "application/json", ...appHeader() },
-      body: JSON.stringify({
-        username: user.trim(),
-        password: wrapPassword(pass),
-        app: appId,
-      }),
+      body: JSON.stringify(credBody),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.token) {
