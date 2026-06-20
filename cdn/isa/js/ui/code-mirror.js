@@ -107,9 +107,17 @@ export function mountCodeMirror(host, opts = {}) {
   if (!CM || !host) return null;
 
   const readOnly = !!opts.readOnly;
+  const selectAllKeys = {
+    "Ctrl-A": (cm) => cm.execCommand("selectAll"),
+    "Cmd-A": (cm) => cm.execCommand("selectAll"),
+  };
   const extraKeys = readOnly
-    ? {}
-    : { Tab: (editor) => editor.replaceSelection("  ", "end") };
+    ? { ...selectAllKeys, ...(opts.extraKeys || {}) }
+    : {
+        Tab: (editor) => editor.replaceSelection("  ", "end"),
+        ...selectAllKeys,
+        ...(opts.extraKeys || {}),
+      };
 
   const cmOpts = {
     value: opts.value ?? "",
