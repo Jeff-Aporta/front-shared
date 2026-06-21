@@ -7,6 +7,11 @@ import { FRONT_SHARED_REF } from "./front-shared-ref.mjs";
 /** Bump al publicar front-shared (evita caché stale de jsDelivr @main). */
 export { FRONT_SHARED_REF };
 function resolveCdnBase() {
+  if (typeof location !== "undefined" && /localhost|127\.0\.0\.1|\[::1\]/.test(location.hostname)) {
+    try {
+      return new URL("./", import.meta.url).href;
+    } catch (_) { /* ignore */ }
+  }
   return "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@" + FRONT_SHARED_REF + "/cdn/";
 }
 

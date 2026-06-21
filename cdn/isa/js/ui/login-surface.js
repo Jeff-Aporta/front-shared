@@ -3,6 +3,18 @@
 export const LOGIN_SUBTITLE_DEFAULT =
   "Use su usuario y contraseña de la organización. La misma sesión sirve en todas las aplicaciones.";
 
+export const CONTAPYME_LOGIN_ID_HELPER = "Puede omitir @contapyme.com; se envía en minúsculas.";
+
+/** Props comunes del campo Usuario en modales de login Jeff-Aporta. */
+export function contapymeLoginTextFieldProps(extra = {}) {
+  return {
+    label: "Usuario",
+    autoComplete: "username",
+    helperText: CONTAPYME_LOGIN_ID_HELPER,
+    ...extra,
+  };
+}
+
 export function loginPageSx(extra = {}) {
   return {
     flex: 1,

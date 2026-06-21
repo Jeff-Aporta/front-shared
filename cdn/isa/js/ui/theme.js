@@ -6,6 +6,11 @@ const NEON = {
   purple: "#6366f1",
 };
 
+/** Sub-nav AppShell (navRows[1+], tier secondary) — ~60% del alto MUI default. */
+export const SUB_NAV_TAB_H = 26;
+const SUB_NAV_TABS = ".isa-layout-root > header.MuiAppBar-root > &";
+const SUB_NAV_TAB = ".isa-nav-row--secondary &";
+
 /** Sin mayúsculas forzadas — cada label define su propia capitalización. */
 export const dodgerComponentOverrides = {
   MuiCssBaseline: {
@@ -37,11 +42,65 @@ export const dodgerComponentOverrides = {
         textTransform: "none",
         transition: "color 0.2s, text-shadow 0.2s",
         "&.Mui-selected": { textShadow: "0 0 14px rgba(30,144,255,0.55)" },
+        [`${SUB_NAV_TABS} &`]: {
+          minHeight: SUB_NAV_TAB_H,
+          height: SUB_NAV_TAB_H,
+          maxHeight: SUB_NAV_TAB_H,
+          paddingTop: 0,
+          paddingBottom: 0,
+          fontSize: "0.7rem",
+          lineHeight: 1.15,
+          minWidth: 56,
+        },
+        [`${SUB_NAV_TAB}`]: {
+          minHeight: SUB_NAV_TAB_H,
+          height: SUB_NAV_TAB_H,
+          maxHeight: SUB_NAV_TAB_H,
+          paddingTop: 0,
+          paddingBottom: 0,
+          fontSize: "0.7rem",
+          lineHeight: 1.15,
+          minWidth: 56,
+        },
       },
     },
   },
   MuiTabs: {
     styleOverrides: {
+      root: {
+        [SUB_NAV_TABS]: {
+          minHeight: SUB_NAV_TAB_H,
+          height: SUB_NAV_TAB_H,
+          maxHeight: SUB_NAV_TAB_H,
+        },
+        [`${SUB_NAV_TABS} .MuiTabs-scroller`]: {
+          minHeight: SUB_NAV_TAB_H,
+          height: SUB_NAV_TAB_H,
+        },
+        [`${SUB_NAV_TABS} .MuiTabs-list`]: {
+          minHeight: SUB_NAV_TAB_H,
+          height: SUB_NAV_TAB_H,
+        },
+        [`${SUB_NAV_TABS} .MuiTabs-indicator`]: {
+          height: 2,
+        },
+        "&.isa-nav-row--secondary": {
+          minHeight: SUB_NAV_TAB_H,
+          height: SUB_NAV_TAB_H,
+          maxHeight: SUB_NAV_TAB_H,
+        },
+        "&.isa-nav-row--secondary .MuiTabs-scroller": {
+          minHeight: SUB_NAV_TAB_H,
+          height: SUB_NAV_TAB_H,
+        },
+        "&.isa-nav-row--secondary .MuiTabs-list": {
+          minHeight: SUB_NAV_TAB_H,
+          height: SUB_NAV_TAB_H,
+        },
+        "&.isa-nav-row--secondary .MuiTabs-indicator": {
+          height: 2,
+        },
+      },
       indicator: {
         height: 3,
         borderRadius: 2,

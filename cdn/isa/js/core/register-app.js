@@ -5,7 +5,7 @@ import { registerTheme } from "../ui/theme.js";
 import { registerWidgets } from "../ui/widgets.js";
 import { registerLoginGates } from "../ui/login-gate.js";
 import { registerRealtime } from "./realtime.js";
-import { createRealtimeStatusUI, createNoopRealtimeStatusUI } from "../ui/realtime-status.js";
+import { createRealtimeStatusUI } from "../ui/realtime-status.js";
 import { registerToast } from "../ui/toast.js";
 import { registerFeedback } from "../ui/feedback/register.js";
 import { registerSqlExec } from "../ui/sql-exec.js";
@@ -53,13 +53,14 @@ export function registerApp(opts) {
     }
   }
 
+  if (typeof window.React !== "undefined" && typeof window.MaterialUI !== "undefined") {
+    const rtUi = createRealtimeStatusUI(window.React, window.MaterialUI, ns);
+    window[ns].UI = window[ns].UI || {};
+    Object.assign(window[ns].UI, rtUi);
+  }
+
   if (opts.realtime) {
     registerRealtime(ns, typeof opts.realtime === "object" ? opts.realtime : {});
-    if (typeof window.React !== "undefined" && typeof window.MaterialUI !== "undefined") {
-      const ui = createRealtimeStatusUI(window.React, window.MaterialUI, ns);
-      window[ns].UI = window[ns].UI || {};
-      Object.assign(window[ns].UI, ui);
-    }
   }
 
   if (opts.toast !== false) {

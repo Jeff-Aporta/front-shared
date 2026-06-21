@@ -3,6 +3,7 @@ import { wrapPassword } from "./caesar.js";
 import { createTokenStore, isTokenValid } from "./token-store.js";
 import { blockReasonFor, resolveCapId } from "./capabilities.js";
 import { sanitizeUserMessage } from "./sanitize-user-message.js";
+import { normalizeContapymeLoginId } from "./format.js";
 
 const ADMIN_PERSISTENT_CAPS = new Set([
   "session.view_as",
@@ -317,13 +318,15 @@ export function registerSession(ns, opts = {}) {
   }
 
   async function login(user, pass) {
-    const trimmed = user.trim();
+    const loginId = normalizeContapymeLoginId(user);
+    if (!loginId) {
+      throw new Error("Usuario y contraseña requeridos");
+    }
     const credBody = {
       password: wrapPassword(pass),
       app: appId,
+      semail: loginId,
     };
-    if (trimmed.includes("@")) credBody.semail = trimmed;
-    else credBody.username = trimmed;
     const res = await fetch(authUrl("/api/auth/token"), {
       method: "POST",
       headers: { "Content-Type": "application/json", ...appHeader() },

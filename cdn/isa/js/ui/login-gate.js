@@ -4,7 +4,9 @@ import {
   loginPageSx,
   loginCardSx,
   LoginHeaderBand,
+  contapymeLoginTextFieldProps,
 } from "./login-surface.js";
+import { normalizeContapymeLoginId } from "../core/format.js";
 
 export function createLoginGates(React, MUI, ns, UI, opts = {}) {
   const Auth = () => window[ns].Auth;
@@ -30,8 +32,7 @@ export function createLoginGates(React, MUI, ns, UI, opts = {}) {
       { sx: { p: { xs: 2, sm: 2.5, md: 3 } } },
       React.createElement(MUI.Typography, { variant: "body2", color: "text.secondary", sx: { mb: 2, lineHeight: 1.6 } }, subtitle),
       err ? React.createElement(MUI.Alert, { severity: "error", sx: { mb: 2 } }, err) : null,
-      React.createElement(MUI.TextField, {
-        label: "Usuario",
+      React.createElement(MUI.TextField, contapymeLoginTextFieldProps({
         fullWidth: true,
         size: "small",
         required: true,
@@ -39,7 +40,7 @@ export function createLoginGates(React, MUI, ns, UI, opts = {}) {
         value: user,
         onChange: (e) => setUser(e.target.value),
         onKeyDown: (e) => { if (e.key === "Enter") onLogin(); },
-      }),
+      })),
       React.createElement(MUI.TextField, {
         label: "Contraseña",
         type: showPass ? "text" : "password",
@@ -95,7 +96,7 @@ export function createLoginGates(React, MUI, ns, UI, opts = {}) {
     async function onLogin() {
       setErr("");
       try {
-        await Auth().login(user, pass);
+        await Auth().login(normalizeContapymeLoginId(user), pass);
         setOk(true);
       } catch (e) {
         setErr(e.message);

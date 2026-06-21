@@ -2,6 +2,16 @@
 
 const CONTAPYME_EMAIL_SUFFIX = /@contapyme\.com$/i;
 
+export const CONTAPYME_LOGIN_DOMAIN = "@contapyme.com";
+
+/** Login ContaPyme: minúsculas; añade @contapyme.com si falta el dominio. */
+export function normalizeContapymeLoginId(value) {
+  const s = String(value ?? "").trim();
+  if (!s) return "";
+  if (s.includes("@")) return s.toLowerCase();
+  return `${s.toLowerCase()}${CONTAPYME_LOGIN_DOMAIN}`;
+}
+
 function titleCaseWord(word) {
   const s = String(word || "").trim();
   if (!s) return "";

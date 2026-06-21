@@ -63,6 +63,7 @@ import {
   formatLocalDate,
   formatLocalDateTime,
   stripContapymeEmail,
+  normalizeContapymeLoginId,
   formatSessionDisplayName,
   formatSessionChipLabel,
 } from "./core/format.js";
@@ -83,6 +84,8 @@ import {
   loginHeaderBandSx,
   loginIconBoxSx,
   LoginHeaderBand,
+  contapymeLoginTextFieldProps,
+  CONTAPYME_LOGIN_ID_HELPER,
 } from "./ui/login-surface.js";
 
 window.ISAFront = {
@@ -120,6 +123,7 @@ window.ISAFront = {
   formatLocalDate,
   formatLocalDateTime,
   stripContapymeEmail,
+  normalizeContapymeLoginId,
   formatSessionDisplayName,
   formatSessionChipLabel,
   estimatePromptTokens,
@@ -186,6 +190,9 @@ window.ISAFront = {
   loginCardSx,
   loginHeaderBandSx,
   LoginHeaderBand,
+  contapymeLoginTextFieldProps,
+  CONTAPYME_LOGIN_ID_HELPER,
+  normalizeContapymeLoginId,
   Layout: { ...(typeof window !== "undefined" && window.ISAFront?.Layout ? window.ISAFront.Layout : {}) },
 };
 

@@ -28,10 +28,8 @@ export function realtimeDotTone(state) {
   switch (state) {
     case "connected":
       return "green";
-    case "connecting":
-    case "reconnecting":
     case "error":
-      return "orange";
+      return "red";
     default:
       return "gray";
   }

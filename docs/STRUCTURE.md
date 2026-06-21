@@ -51,7 +51,7 @@ index.html (import map + Babel)
 ## Homogeneidad
 
 - **Estilos:** `isa/css/base.css` + tema dodgerblue (`Theme.useThemeMode`).
-- **Shell:** `ISAFront.Layout.AppShell({ ns, navRows, toolbarExtra, children })` — filas de tabs + chip Local/Producción + body sin scroll global.
+- **Shell:** `ISAFront.Layout.AppShell({ ns, navRows, toolbarExtra, children })` — `navRows[0]` (tier `primary`) en toolbar del AppBar; `navRows[1+]` (tier `secondary` por defecto) compactos (26px) bajo la barra vía AppShell + `base.css` + tema dodger; chip Local/Producción + body sin scroll global.
 - **Tabs:** `NavTabRow`, `ViewFrame` (tercer nivel dentro de vistas).
 - **Auth / API local-prod:** `ISAFront.registerApp({ ns, api, … })` en `js/core/isa-setup.ts` (único archivo por app).
 

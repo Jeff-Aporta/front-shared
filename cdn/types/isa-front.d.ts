@@ -85,6 +85,11 @@ interface NavRowProps {
   tabs: NavTabDef[];
   /** Ctrl/Cmd+clic o clic medio: abre esta URL en pestaña nueva sin cambiar la vista actual. */
   tabHref?: (tabId: string) => string;
+  /** primary = toolbar (nav principal); secondary = fila compacta bajo AppBar. */
+  tier?: "primary" | "secondary";
+  /** Alias de tier secondary — tabs más bajos (26px, ~60% MUI default). */
+  compact?: boolean;
+  iconSize?: number;
   minHeight?: number;
   sx?: Record<string, unknown>;
   variant?: string;

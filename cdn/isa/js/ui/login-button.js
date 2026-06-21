@@ -6,7 +6,9 @@ import {
   loginCardSx,
   LoginHeaderBand,
   loginDialogBackdropSx,
+  contapymeLoginTextFieldProps,
 } from "./login-surface.js";
+import { normalizeContapymeLoginId, stripContapymeEmail } from "../core/format.js";
 
 /**
  * Botón de sesión + modal login (MUI). Usa window[ns].Session → main-orchestrator /api/auth/token.
@@ -93,6 +95,7 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
     const rtHook = hasRt ? rtHookFn() : null;
     const realtimeEl = rtHook
       ? React.createElement(StatusDot, {
+        state: rtHook.state,
         tone: rtHook.tone,
         tip: rtHook.tip,
         onReconnect: rtHook.reconnect,
@@ -120,17 +123,19 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
         setErr("Usuario y contraseña requeridos");
         return;
       }
+      const loginId = normalizeContapymeLoginId(user);
       setBusy(true);
       setErr("");
       try {
         if (showRemember) saveLoginCredentials(user.trim(), pass, remember);
-        const session = await auth.login(user.trim(), pass);
+        const session = await auth.login(loginId, pass);
         setPass("");
         setShowPass(false);
         setOpen(false);
         const sv = sessionView(auth) || session;
         const role = sv?.role ? ` (${sv.role})` : "";
-        toast("success", `Sesión iniciada · ${sv?.username || user.trim()}${role}`);
+        const label = stripContapymeEmail(sv?.username || loginId) || loginId;
+        toast("success", `Sesión iniciada · ${label}${role}`);
         props.onLoggedIn?.(sv || session);
       } catch (e) {
         const msg = sanitizeLoginError(e instanceof Error ? e.message : String(e));
@@ -342,14 +347,14 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
           React.createElement(
             Stack,
             { spacing: 2 },
-            React.createElement(TextField, {
-              label: "Usuario",
+            React.createElement(TextField, contapymeLoginTextFieldProps({
               value: user,
               onChange: (e) => setUser(e.target.value),
               fullWidth: true,
               autoFocus: true,
               size: "small",
-            }),
+              onKeyDown: (e) => { if (e.key === "Enter") submit(); },
+            })),
             passField,
             showRemember ? React.createElement(FormControlLabel, {
               control: React.createElement(Checkbox, {

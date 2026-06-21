@@ -284,6 +284,55 @@ html[data-mui-color-scheme="light"] .header-session-avatar-btn {
   flex-direction: column;
 }
 
+/* AppShell — nav principal en toolbar; secundaria compacta bajo AppBar (navRows[1+]). */
+.isa-layout-root > header.MuiAppBar-root {
+  & .isa-nav-row--primary .MuiTab-root {
+    font-weight: 600;
+  }
+}
+
+.isa-layout-root > header.MuiAppBar-root > .MuiTabs-root,
+.isa-layout-root > header.MuiAppBar-root .isa-nav-row--secondary.MuiTabs-root {
+  min-height: 26px !important;
+  height: 26px !important;
+  max-height: 26px !important;
+  flex-shrink: 0;
+}
+
+.isa-layout-root > header.MuiAppBar-root > .MuiTabs-root .MuiTabs-scroller,
+.isa-layout-root > header.MuiAppBar-root > .MuiTabs-root .MuiTabs-list,
+.isa-layout-root > header.MuiAppBar-root .isa-nav-row--secondary .MuiTabs-scroller,
+.isa-layout-root > header.MuiAppBar-root .isa-nav-row--secondary .MuiTabs-list {
+  min-height: 26px !important;
+  height: 26px !important;
+  max-height: 26px !important;
+}
+
+.isa-layout-root > header.MuiAppBar-root > .MuiTabs-root .MuiTab-root,
+.isa-layout-root > header.MuiAppBar-root .isa-nav-row--secondary .MuiTab-root {
+  min-height: 26px !important;
+  height: 26px !important;
+  max-height: 26px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  font-size: 0.7rem !important;
+  line-height: 1.15 !important;
+  min-width: 56px !important;
+  font-weight: 500;
+  opacity: 0.92;
+}
+
+.isa-layout-root > header.MuiAppBar-root > .MuiTabs-root .MuiTabs-indicator,
+.isa-layout-root > header.MuiAppBar-root .isa-nav-row--secondary .MuiTabs-indicator {
+  height: 2px !important;
+}
+
+.isa-layout-root > header.MuiAppBar-root > .MuiTabs-root .MuiTab-root svg,
+.isa-layout-root > header.MuiAppBar-root .isa-nav-row--secondary .MuiTab-root svg {
+  width: 13px !important;
+  height: 13px !important;
+}
+
 .panel {
   border: 1px solid rgba(30, 144, 255, 0.25);
   border-radius: 12px;
@@ -330,6 +379,57 @@ body {
 html {
   height: 100%;
   overflow: hidden;
+}
+
+/* Realtime — dot en toolbar (LoginButton / LabAuth) + puntos inline en tablas. */
+.status-dot-trigger,
+.realtime-status-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  margin: 0 0.2rem;
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
+  transition: box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.status-dot--inline {
+  margin: 0;
+  width: 8px;
+  height: 8px;
+}
+
+.status-dot--disconnected,
+.status-dot--gray {
+  background: #64748b;
+  box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.28);
+}
+
+.status-dot--error,
+.status-dot--red {
+  background: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.28);
+}
+
+.status-dot--orange,
+.status-dot--pending {
+  background: #f97316;
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.28);
+}
+
+.status-dot--green,
+.status-dot--ok {
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.28);
 }
 
 

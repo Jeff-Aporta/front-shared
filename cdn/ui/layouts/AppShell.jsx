@@ -11,6 +11,7 @@
   const TAB_LABEL_STYLE = { display: "inline-flex", alignItems: "center", gap: "10px" };
   const TOOLBAR_MIN_H = 48;
   const TOOLBAR_TAB_H = 36;
+  const SUB_NAV_TAB_H = 26;
   const BRAND_HOME_EVENT = "isa:brand-home";
 
   function readMetaTag(name) {
@@ -54,20 +55,39 @@
     return defaultBrandClick;
   }
 
-  function navTabRowSx(minH) {
+  function navTabRowSx(minH, opts) {
+    const compact = opts && opts.compact;
     return {
       minHeight: minH,
       flexShrink: 0,
-      "& .MuiTabs-root": { minHeight: minH },
-      "& .MuiTabs-scroller": { display: "flex", alignItems: "center" },
-      "& .MuiTabs-list": { alignItems: "center" },
+      "& .MuiTabs-scroller": { display: "flex", alignItems: "center", minHeight: minH },
+      "& .MuiTabs-list": { alignItems: "center", minHeight: minH },
       "& .MuiTab-root": {
         minHeight: minH,
+        height: minH,
+        maxHeight: minH,
         textTransform: "none",
-        py: 0.75,
+        py: compact ? 0 : 0.75,
+        px: compact ? 1 : 1.5,
+        minWidth: compact ? 64 : 72,
+        fontSize: compact ? "0.75rem" : "0.875rem",
+        lineHeight: 1.2,
         display: "inline-flex",
         alignItems: "center",
       },
+    };
+  }
+
+  /** @param {{ tier?: string, compact?: boolean, minHeight?: number }} row @param {"toolbar"|"sub"} placement */
+  function resolveNavRowLayout(row, placement) {
+    const tier = row.tier || (placement === "toolbar" ? "primary" : "secondary");
+    const secondary = tier === "secondary" || row.compact === true;
+    return {
+      tier: secondary ? "secondary" : "primary",
+      minHeight: row.minHeight != null ? row.minHeight : secondary ? SUB_NAV_TAB_H : TOOLBAR_TAB_H,
+      iconSize: row.iconSize != null ? row.iconSize : secondary ? 13 : 18,
+      className: secondary ? "isa-nav-row isa-nav-row--secondary" : "isa-nav-row isa-nav-row--primary",
+      compact: secondary,
     };
   }
 
@@ -92,10 +112,11 @@
   function NavTabLabel(props) {
     const UI = props.UI || bagUi(props.ns);
     const icon = props.locked ? "mdi:lock-outline" : props.icon;
+    const size = props.iconSize != null ? props.iconSize : 18;
     return React.createElement(
       "span",
-      { style: TAB_LABEL_STYLE },
-      React.createElement(UI.Icon, { icon: icon, size: 18 }),
+      { style: Object.assign({}, TAB_LABEL_STYLE, props.compact ? { gap: "6px" } : null) },
+      React.createElement(UI.Icon, { icon: icon, size: size }),
       React.createElement("span", null, props.label),
     );
   }
@@ -110,6 +131,8 @@
         icon: t.icon,
         label: t.label || t.title || t.id,
         locked: Boolean(t.disabled),
+        iconSize: props.iconSize,
+        compact: props.compact,
       }),
       onClick: function (e) {
         if (t.disabled) {
@@ -138,21 +161,27 @@
   /** Fila de tabs con icono + etiqueta (estilo jagudeloe). */
   function NavTabRow(props) {
     const UI = props.UI || bagUi(props.ns);
-    const minH = props.minHeight != null ? props.minHeight : 44;
+    const layout = resolveNavRowLayout(props, props.placement || (props.tier === "primary" ? "toolbar" : "sub"));
+    const minH = props.minHeight != null ? props.minHeight : layout.minHeight;
     const tabs = props.tabs || [];
     return React.createElement(
       MUI.Tabs,
       {
+        className: props.className || layout.className,
         value: props.value,
         onChange: function (e, v) {
           if (e && (e.ctrlKey || e.metaKey)) return;
           if (v != null && props.onChange) props.onChange(v);
         },
         variant: props.variant || "scrollable",
-        sx: Object.assign(navTabRowSx(minH), props.sx || {}),
+        sx: Object.assign(navTabRowSx(minH, { compact: layout.compact }), props.sx || {}),
       },
       tabs.map(function (t) {
-        return renderNavTab(UI, props, t);
+        return renderNavTab(
+          UI,
+          Object.assign({}, props, { iconSize: props.iconSize != null ? props.iconSize : layout.iconSize, compact: layout.compact }),
+          t,
+        );
       }),
     );
   }
@@ -441,8 +470,9 @@
               { sx: { flex: 1, minWidth: 0, display: "flex", alignItems: "center", overflow: "hidden" } },
               React.createElement(NavTabRow, Object.assign({}, toolbarNav, {
                 ns: props.ns,
-                minHeight: toolbarNav.minHeight != null ? toolbarNav.minHeight : TOOLBAR_TAB_H,
-                sx: Object.assign({ flex: 1, minWidth: 0, minHeight: TOOLBAR_TAB_H }, toolbarNav.sx || {}),
+                placement: "toolbar",
+                tier: toolbarNav.tier || "primary",
+                sx: Object.assign({ flex: 1, minWidth: 0 }, toolbarNav.sx || {}),
               })),
             )
           : React.createElement(MUI.Box, { sx: { flex: 1 } }),
@@ -480,8 +510,9 @@
       ),
       subNavRows.length
         ? subNavRows.map(function (row, i) {
-            return React.createElement(NavTabRow, Object.assign({ key: row.id || "nav-" + i, ns: props.ns }, row, {
-              sx: Object.assign({ px: 1, borderTop: 1, borderColor: "divider" }, row.sx || {}),
+            return React.createElement(NavTabRow, Object.assign({ key: row.id || "nav-" + i, ns: props.ns, placement: "sub" }, row, {
+              tier: row.tier || "secondary",
+              sx: Object.assign({ px: 0.75, borderTop: 1, borderColor: "divider" }, row.sx || {}),
             }));
           })
         : null,
