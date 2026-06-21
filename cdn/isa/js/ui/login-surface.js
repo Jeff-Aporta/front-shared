@@ -5,13 +5,21 @@ export const LOGIN_SUBTITLE_DEFAULT =
 
 export const CONTAPYME_LOGIN_ID_HELPER = "Puede omitir @contapyme.com; se envía en minúsculas.";
 
+export const LOGIN_REMEMBER_LABEL = "Recordarme";
+
 /** Props comunes del campo Usuario en modales de login Jeff-Aporta. */
 export function contapymeLoginTextFieldProps(extra = {}) {
+  const { inputProps: extraInputProps, ...rest } = extra;
   return {
     label: "Usuario",
     autoComplete: "username",
-    helperText: CONTAPYME_LOGIN_ID_HELPER,
-    ...extra,
+    ...rest,
+    inputProps: {
+      spellCheck: false,
+      autoCorrect: "off",
+      autoCapitalize: "none",
+      ...extraInputProps,
+    },
   };
 }
 
@@ -60,7 +68,10 @@ export function loginCardSx(extra = {}) {
 export function loginHeaderBandSx(accent = "#1e90ff") {
   return {
     px: { xs: 2, sm: 2.5 },
-    py: 1.75,
+    py: 2,
+    minHeight: 64,
+    display: "flex",
+    alignItems: "center",
     borderBottom: 1,
     borderColor: (t) => (t.palette.mode === "dark" ? "rgba(99,102,241,0.25)" : "divider"),
     background: (t) =>
@@ -74,11 +85,20 @@ export function loginHeaderBandSx(accent = "#1e90ff") {
   };
 }
 
+export function loginHeaderTitleSx() {
+  return {
+    fontWeight: 700,
+    letterSpacing: -0.35,
+    fontSize: { xs: "1.35rem", sm: "1.5rem" },
+    lineHeight: 1.15,
+  };
+}
+
 export function loginIconBoxSx(accent = "#1e90ff") {
   return {
-    width: 36,
-    height: 36,
-    borderRadius: 1.5,
+    width: 42,
+    height: 42,
+    borderRadius: 1.75,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -104,9 +124,13 @@ export function LoginHeaderBand(React, MUI, UI, { icon, title, accent }) {
       React.createElement(
         MUI.Box,
         { sx: loginIconBoxSx(color) },
-        React.createElement(UI.Icon, { icon: icon || "mdi:shield-key-outline", size: 20 }),
+        React.createElement(UI.Icon, { icon: icon || "mdi:shield-key-outline", size: 24 }),
       ),
-      React.createElement(MUI.Typography, { variant: "subtitle1", sx: { fontWeight: 700, letterSpacing: -0.2 } }, title),
+      React.createElement(MUI.Typography, {
+        variant: "h5",
+        component: "h2",
+        sx: loginHeaderTitleSx(),
+      }, title),
     ),
   );
 }
@@ -116,5 +140,25 @@ export function loginDialogBackdropSx() {
     backdropFilter: "blur(6px)",
     WebkitBackdropFilter: "blur(6px)",
     backgroundColor: "rgba(11,18,32,0.55)",
+  };
+}
+
+/** Props MUI Dialog compartidas (modal login Jeff-Aporta). */
+export function loginDialogProps(extra = {}) {
+  const { PaperProps, slotProps, ...rest } = extra;
+  return {
+    maxWidth: "xs",
+    fullWidth: true,
+    className: "isa-login-dialog",
+    slotProps: {
+      backdrop: { sx: loginDialogBackdropSx() },
+      ...(slotProps || {}),
+    },
+    PaperProps: {
+      className: "isa-login-card isa-glass-card",
+      sx: loginCardSx({ maxWidth: 440, m: 1 }),
+      ...(PaperProps || {}),
+    },
+    ...rest,
   };
 }

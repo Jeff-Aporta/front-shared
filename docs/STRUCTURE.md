@@ -52,8 +52,26 @@ index.html (import map + Babel)
 
 - **Estilos:** `isa/css/base.css` + tema dodgerblue (`Theme.useThemeMode`).
 - **Shell:** `ISAFront.Layout.AppShell({ ns, navRows, toolbarExtra, children })` — `navRows[0]` (tier `primary`) en toolbar del AppBar; `navRows[1+]` (tier `secondary` por defecto) compactos (26px) bajo la barra vía AppShell + `base.css` + tema dodger; chip Local/Producción + body sin scroll global.
+- **Login modal:** estándar único en `ui/login-button.js` + `ui/login-surface.js` (`isa-login-dialog`, `LoginHeaderBand`, `contapymeLoginTextFieldProps`, botones Cancelar/Entrar). **No duplicar** modales de login en apps — usar `UI.LoginButton` registrado vía `registerApp({ loginButton: … })`.
 - **Tabs:** `NavTabRow`, `ViewFrame` (tercer nivel dentro de vistas).
 - **Auth / API local-prod:** `ISAFront.registerApp({ ns, api, … })` en `js/core/isa-setup.ts` (único archivo por app).
+
+## Sincronizar tras cambios en front-shared
+
+Cuando se modifica o pushea **`components/front-shared`**, propagar el pin y refs a **todos** los consumidores desde `apps/src/scripts`:
+
+```bash
+cd Personal/apps/src/scripts
+npm run sync:front-shared-ref:git    # HEAD → versions.json + pins @commit en fronts
+npm run sync:cdn-refs:git             # stack/base.css y assets CDN alineados
+npm run sync:component-refs:git       # swagger, lightbox, neon-glass
+```
+
+Opcional por app: `npm run gen:front-dist -- --slug <app>` si el front usa `_dist`.
+
+Skill Cursor: **`sync-front-shared`** (obligatorio tras push de front-shared o cambios en login/AppShell/base.css).
+
+Ver también `push-personal` — el push de front-shared debe ir seguido de sync + commit de punteros en Apps-fullstack.
 
 ## Qué no va aquí
 

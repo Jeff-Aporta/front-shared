@@ -42,7 +42,7 @@ export const CAPABILITY_CATALOG = [
   {
     id: "patyia.scrum",
     label: "Tablero Scrum (isa-patyia, en desarrollo)",
-    denyLoggedOut: "Inicia sesión para acceder a Scrum",
+    denyLoggedOut: "Inicia sesión para crear o editar tableros DevFlow",
     denyForbidden: "En desarrollo",
   },
   {

@@ -3,10 +3,10 @@ import { formatLocalDateTime, formatSessionChipLabel } from "../core/format.js";
 import { readLoginCredentials, saveLoginCredentials } from "../core/login-credentials.js";
 import {
   LOGIN_SUBTITLE_DEFAULT,
-  loginCardSx,
   LoginHeaderBand,
-  loginDialogBackdropSx,
+  loginDialogProps,
   contapymeLoginTextFieldProps,
+  LOGIN_REMEMBER_LABEL,
 } from "./login-surface.js";
 import { normalizeContapymeLoginId, stripContapymeEmail } from "../core/format.js";
 
@@ -28,7 +28,7 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
   const showPasswordToggle = opts.showPasswordToggle !== false;
   const showRemember = opts.showRemember !== false;
   const showExpiryInTooltip = opts.showExpiryInTooltip === true;
-  const showIntroText = opts.showIntroText !== false;
+  const showIntroText = opts.showIntroText === true;
 
   function authApi() {
     const bag = window[ns] || {};
@@ -89,7 +89,9 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
     const ui = uiBag();
     const rtHookFn = ui.useRealtimeStatus;
     const StatusDot = ui.RealtimeStatusDot;
+    const rtBag = window[ns]?.Realtime;
     const hasRt = showRealtimeDot
+      && rtBag?.isConfigured
       && typeof rtHookFn === "function"
       && typeof StatusDot === "function";
     const rtHook = hasRt ? rtHookFn() : null;
@@ -272,6 +274,7 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
       fullWidth: true,
       size: "small",
       autoComplete: "current-password",
+      inputProps: { spellCheck: false, autoCorrect: "off", autoCapitalize: "none" },
       onKeyDown: (e) => { if (e.key === "Enter") submit(); },
       ...(showPasswordToggle && Icon ? {
         InputProps: {
@@ -323,17 +326,10 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
       ),
       React.createElement(
         Dialog,
-        {
+        loginDialogProps({
           open,
           onClose: busy ? undefined : () => { setOpen(false); setShowPass(false); },
-          maxWidth: "xs",
-          fullWidth: true,
-          className: "isa-login-dialog",
-          slotProps: {
-            backdrop: { sx: loginDialogBackdropSx() },
-          },
-          PaperProps: { className: "isa-login-card isa-glass-card", sx: loginCardSx({ maxWidth: 440, m: 1 }) },
-        },
+        }),
         LoginHeaderBand(React, MUI, uiBag(), { icon: "mdi:account-key-outline", title: "Iniciar sesión", accent: "#1e90ff" }),
         React.createElement(
           DialogContent,
@@ -362,7 +358,7 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
                 onChange: (e) => setRemember(!!e.target.checked),
                 size: "small",
               }),
-              label: "Recordar usuario y contraseña",
+              label: LOGIN_REMEMBER_LABEL,
             }) : null,
           ),
         ),

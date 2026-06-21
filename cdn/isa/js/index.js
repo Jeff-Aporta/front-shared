@@ -12,7 +12,7 @@ import { createWidgets, registerWidgets } from "./ui/widgets.js";
 import { createLoginGates, registerLoginGates } from "./ui/login-gate.js";
 import { createLoginButton, registerLoginButton } from "./ui/login-button.js";
 import { registerApp } from "./core/register-app.js";
-import { REALTIME, wsUrlFromHttpBase, createRealtime, registerRealtime, REALTIME_EVENT } from "./core/realtime.js";
+import { REALTIME, REALTIME_CAP, wsUrlFromHttpBase, createRealtime, registerRealtime, REALTIME_EVENT } from "./core/realtime.js";
 import { showToast, registerToast, TOAST_EVENT } from "./ui/toast.js";
 import { createSqlExec, registerSqlExec } from "./ui/sql-exec.js";
 import { registerCodeMirror } from "./ui/code-mirror.js";
@@ -86,6 +86,7 @@ import {
   LoginHeaderBand,
   contapymeLoginTextFieldProps,
   CONTAPYME_LOGIN_ID_HELPER,
+  loginDialogProps,
 } from "./ui/login-surface.js";
 
 window.ISAFront = {
@@ -113,6 +114,7 @@ window.ISAFront = {
   registerLoginGates,
   registerApp,
   REALTIME,
+  REALTIME_CAP,
   REALTIME_EVENT,
   wsUrlFromHttpBase,
   createRealtime,
@@ -193,6 +195,7 @@ window.ISAFront = {
   contapymeLoginTextFieldProps,
   CONTAPYME_LOGIN_ID_HELPER,
   normalizeContapymeLoginId,
+  loginDialogProps,
   Layout: { ...(typeof window !== "undefined" && window.ISAFront?.Layout ? window.ISAFront.Layout : {}) },
 };
 

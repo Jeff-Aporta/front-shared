@@ -5,7 +5,7 @@ import { registerTheme } from "../ui/theme.js";
 import { registerWidgets } from "../ui/widgets.js";
 import { registerLoginGates } from "../ui/login-gate.js";
 import { registerRealtime } from "./realtime.js";
-import { createRealtimeStatusUI } from "../ui/realtime-status.js";
+import { createRealtimeStatusUI, createNoopRealtimeStatusUI } from "../ui/realtime-status.js";
 import { registerToast } from "../ui/toast.js";
 import { registerFeedback } from "../ui/feedback/register.js";
 import { registerSqlExec } from "../ui/sql-exec.js";
@@ -54,7 +54,9 @@ export function registerApp(opts) {
   }
 
   if (typeof window.React !== "undefined" && typeof window.MaterialUI !== "undefined") {
-    const rtUi = createRealtimeStatusUI(window.React, window.MaterialUI, ns);
+    const rtUi = opts.realtime
+      ? createRealtimeStatusUI(window.React, window.MaterialUI, ns)
+      : createNoopRealtimeStatusUI(window.React, window.MaterialUI, ns);
     window[ns].UI = window[ns].UI || {};
     Object.assign(window[ns].UI, rtUi);
   }
@@ -77,11 +79,12 @@ export function registerApp(opts) {
 
   if (opts.loginButton !== false && typeof window.React !== "undefined" && typeof window.MaterialUI !== "undefined") {
     const loginBtnOpts = typeof opts.loginButton === "object" ? opts.loginButton : {};
+    const { showRealtimeDot: showRtDotOpt, ...loginBtnRest } = loginBtnOpts;
     registerLoginButton(ns, {
       showPasswordToggle: true,
       showRemember: true,
-      showIntroText: true,
-      ...loginBtnOpts,
+      ...loginBtnRest,
+      showRealtimeDot: Boolean(opts.realtime) && showRtDotOpt !== false,
     });
   }
 }

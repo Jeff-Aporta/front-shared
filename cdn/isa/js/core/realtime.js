@@ -4,10 +4,35 @@ export const REALTIME_EVENT = "isa:realtime";
 /** Cambios de estado del socket: `{ ns, status }` en detail. */
 export const REALTIME_STATUS_EVENT = "isa:realtime:status";
 
+/** Capacidad BD_AUTH para notificaciones WebSocket (legacy id `signalr`). */
+export const REALTIME_CAP = "signalr";
+
 /** Tipos de mensaje realtime del orquestador (Jeff-Aporta). */
 export const REALTIME = {
   CHECKS_UPDATED: "checks.updated",
 };
+
+/** Sesión iniciada + capacidad `signalr` (opt-in por rol en BD_AUTH). */
+export function defaultRealtimeEnabled(ns) {
+  const session = window[ns]?.Session;
+  if (!session?.isLoggedIn?.()) return false;
+  if (typeof session.can === "function") return session.can(REALTIME_CAP);
+  return false;
+}
+
+function wireRealtimeSession(ns, rt, enabled) {
+  const evt = window[ns]?.Session?.EVENT;
+  if (!evt) return;
+  function sync() {
+    if (enabled()) {
+      if (rt.getStatus() !== "connected" && rt.getStatus() !== "connecting") rt.start();
+    } else {
+      rt.disconnect();
+    }
+  }
+  window.addEventListener(evt, sync);
+  sync();
+}
 
 export function realtimeStatusTip(state, lastErr) {
   switch (state) {
@@ -63,7 +88,7 @@ export function createRealtime(opts = {}) {
   const getUrl = opts.getUrl || (() => "");
   const onMessage = opts.onMessage;
   const onStatus = opts.onStatus;
-  const enabled = opts.enabled || (() => true);
+  const enabled = opts.enabled || (() => false);
   const ns = opts.ns || "";
 
   /** @type {WebSocket | null} */
@@ -184,7 +209,7 @@ export function registerRealtime(ns, opts = {}) {
     const cfg = window[ns] && window[ns].Config;
     return cfg && cfg.base ? cfg.base() : "";
   });
-  const enabled = opts.enabled || (() => true);
+  const enabled = typeof opts.enabled === "function" ? opts.enabled : () => defaultRealtimeEnabled(ns);
   const rt = createRealtime({
     ns,
     getUrl: () => wsUrlFromHttpBase(getBase()),
@@ -193,8 +218,11 @@ export function registerRealtime(ns, opts = {}) {
     onStatus: opts.onStatus,
   });
 
+  rt.isConfigured = true;
   window[ns].Realtime = rt;
 
-  if (opts.autoStart !== false) rt.start();
+  wireRealtimeSession(ns, rt, enabled);
+
+  if (opts.autoStart === true && enabled()) rt.start();
   return rt;
 }
