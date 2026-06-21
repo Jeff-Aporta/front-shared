@@ -86,6 +86,7 @@ import {
 } from "./ui/login-surface.js";
 
 window.ISAFront = {
+  ...(typeof window !== "undefined" && window.ISAFront ? window.ISAFront : {}),
   CDN_BASE,
   uiBase: UI_CDN_BASE,
   cssUrl: CDN_BASE + "/css/base.css",
@@ -185,7 +186,7 @@ window.ISAFront = {
   loginCardSx,
   loginHeaderBandSx,
   LoginHeaderBand,
-  Layout: {},
+  Layout: { ...(typeof window !== "undefined" && window.ISAFront?.Layout ? window.ISAFront.Layout : {}) },
 };
 
 if (typeof window !== "undefined" && window.React && window.MaterialUI) {

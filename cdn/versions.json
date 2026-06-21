@@ -5,6 +5,6 @@
   "emotionStyled": "11.14.1",
   "babelStandalone": "7.26.9",
   "cdn": "esm.sh",
-  "frontSharedRef": "123f307",
+  "frontSharedRef": "13ef59d",
   "note": "MUI v6+ no publica bundle UMD; usar import map + esm.sh. Actualizar frontSharedRef tras push a front-shared."
 }
