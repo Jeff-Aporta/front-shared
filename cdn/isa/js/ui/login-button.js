@@ -1,29 +1,32 @@
 import { sanitizeUserMessage } from "../core/sanitize-user-message.js";
 import { formatLocalDateTime, formatSessionChipLabel } from "../core/format.js";
+import { readLoginCredentials, saveLoginCredentials } from "../core/login-credentials.js";
 import {
   LOGIN_SUBTITLE_DEFAULT,
   loginCardSx,
   LoginHeaderBand,
+  loginDialogBackdropSx,
 } from "./login-surface.js";
 
 /**
- * Botón de sesión + modal login (MUI). Usa window[ns].AppSession si existe, si no Session.
- * Opciones: showRealtimeDot, showPasswordToggle, showExpiryInTooltip, showIntroText, wrapClass, btnClass.
+ * Botón de sesión + modal login (MUI). Usa window[ns].Session → main-orchestrator /api/auth/token.
+ * Opciones: showRealtimeDot, showPasswordToggle, showRemember, showExpiryInTooltip, showIntroText.
  */
 export function createLoginButton(React, MUI, ns, opts = {}) {
   const { useState, useEffect } = React;
   const {
     Box, Stack, Tooltip, Chip, IconButton, Button,
     Dialog, DialogContent, DialogActions, Typography, Alert, TextField, InputAdornment,
-    Menu, MenuItem, ListItemIcon, ListItemText, Divider,
+    Menu, MenuItem, ListItemIcon, ListItemText, Divider, FormControlLabel, Checkbox,
   } = MUI;
 
   const wrapClass = opts.wrapClass || "header-session-wrap";
   const btnClass = opts.btnClass || "header-session-btn";
   const showRealtimeDot = opts.showRealtimeDot !== false;
-  const showPasswordToggle = opts.showPasswordToggle === true;
+  const showPasswordToggle = opts.showPasswordToggle !== false;
+  const showRemember = opts.showRemember !== false;
   const showExpiryInTooltip = opts.showExpiryInTooltip === true;
-  const showIntroText = opts.showIntroText === true;
+  const showIntroText = opts.showIntroText !== false;
 
   function authApi() {
     const bag = window[ns] || {};
@@ -73,6 +76,7 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
     const setOpen = props.onLoginOpenChange || setOpenInternal;
     const [user, setUser] = useState("");
     const [pass, setPass] = useState("");
+    const [remember, setRemember] = useState(true);
     const [showPass, setShowPass] = useState(false);
     const [err, setErr] = useState("");
     const [busy, setBusy] = useState(false);
@@ -102,6 +106,15 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
       return () => window.removeEventListener(authEvt, onAuth);
     }, [authEvt]);
 
+    useEffect(() => {
+      if (!open) return;
+      const saved = readLoginCredentials();
+      setUser(saved.username || "");
+      setPass(saved.password || "");
+      setRemember(saved.remember !== false);
+      setErr("");
+    }, [open]);
+
     async function submit() {
       if (!user.trim() || !pass) {
         setErr("Usuario y contraseña requeridos");
@@ -110,6 +123,7 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
       setBusy(true);
       setErr("");
       try {
+        if (showRemember) saveLoginCredentials(user.trim(), pass, remember);
         const session = await auth.login(user.trim(), pass);
         setPass("");
         setShowPass(false);
@@ -252,6 +266,7 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
       onChange: (e) => setPass(e.target.value),
       fullWidth: true,
       size: "small",
+      autoComplete: "current-password",
       onKeyDown: (e) => { if (e.key === "Enter") submit(); },
       ...(showPasswordToggle && Icon ? {
         InputProps: {
@@ -259,14 +274,19 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
             InputAdornment,
             { position: "end" },
             React.createElement(
-              IconButton,
-              {
-                size: "small",
-                edge: "end",
-                "aria-label": showPass ? "Ocultar contraseña" : "Mostrar contraseña",
-                onClick: () => setShowPass((v) => !v),
-              },
-              React.createElement(Icon, { icon: showPass ? "mdi:eye-off" : "mdi:eye", size: 20 }),
+              Tooltip,
+              { title: showPass ? "Ocultar contraseña" : "Mostrar contraseña", arrow: true },
+              React.createElement(
+                IconButton,
+                {
+                  size: "small",
+                  edge: "end",
+                  tabIndex: -1,
+                  "aria-label": showPass ? "Ocultar contraseña" : "Mostrar contraseña",
+                  onClick: () => setShowPass((v) => !v),
+                },
+                React.createElement(Icon, { icon: showPass ? "mdi:eye-off-outline" : "mdi:eye-outline", size: 20 }),
+              ),
             ),
           ),
         },
@@ -303,6 +323,10 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
           onClose: busy ? undefined : () => { setOpen(false); setShowPass(false); },
           maxWidth: "xs",
           fullWidth: true,
+          className: "isa-login-dialog",
+          slotProps: {
+            backdrop: { sx: loginDialogBackdropSx() },
+          },
           PaperProps: { className: "isa-login-card isa-glass-card", sx: loginCardSx({ maxWidth: 440, m: 1 }) },
         },
         LoginHeaderBand(React, MUI, uiBag(), { icon: "mdi:account-key-outline", title: "Iniciar sesión", accent: "#1e90ff" }),
@@ -327,6 +351,14 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
               size: "small",
             }),
             passField,
+            showRemember ? React.createElement(FormControlLabel, {
+              control: React.createElement(Checkbox, {
+                checked: remember,
+                onChange: (e) => setRemember(!!e.target.checked),
+                size: "small",
+              }),
+              label: "Recordar usuario y contraseña",
+            }) : null,
           ),
         ),
         React.createElement(

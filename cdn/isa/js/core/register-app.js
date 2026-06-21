@@ -75,6 +75,12 @@ export function registerApp(opts) {
   }
 
   if (opts.loginButton !== false && typeof window.React !== "undefined" && typeof window.MaterialUI !== "undefined") {
-    registerLoginButton(ns, typeof opts.loginButton === "object" ? opts.loginButton : {});
+    const loginBtnOpts = typeof opts.loginButton === "object" ? opts.loginButton : {};
+    registerLoginButton(ns, {
+      showPasswordToggle: true,
+      showRemember: true,
+      showIntroText: true,
+      ...loginBtnOpts,
+    });
   }
 }
