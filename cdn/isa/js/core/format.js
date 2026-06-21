@@ -1,5 +1,34 @@
 /** Fecha/hora → texto en locale y zona horaria del navegador. */
 
+const CONTAPYME_EMAIL_SUFFIX = /@contapyme\.com$/i;
+
+function titleCaseWord(word) {
+  const s = String(word || "").trim();
+  if (!s) return "";
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}
+
+/** Quita el dominio corporativo (jagudeloe@contapyme.com → jagudeloe). */
+export function stripContapymeEmail(value) {
+  return String(value ?? "").trim().replace(CONTAPYME_EMAIL_SUFFIX, "");
+}
+
+/** Nombre legible para tooltip/menú — sin mayúsculas sostenidas. */
+export function formatSessionDisplayName(value) {
+  const cleaned = stripContapymeEmail(value);
+  const raw = cleaned || String(value ?? "").trim();
+  if (!raw) return "";
+  if (/\s/.test(raw)) return raw.split(/\s+/).filter(Boolean).map(titleCaseWord).join(" ");
+  return titleCaseWord(raw);
+}
+
+/** Etiqueta compacta del chip de sesión — solo primer nombre. */
+export function formatSessionChipLabel(value, fallback = "Usuario") {
+  const display = formatSessionDisplayName(value);
+  if (!display) return fallback;
+  return display.split(/\s+/).filter(Boolean)[0] || fallback;
+}
+
 function parseInput(value) {
   if (value == null || value === "") return null;
   if (value instanceof Date) return value;

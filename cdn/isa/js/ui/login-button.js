@@ -1,5 +1,5 @@
 import { sanitizeUserMessage } from "../core/sanitize-user-message.js";
-import { formatLocalDateTime } from "../core/format.js";
+import { formatLocalDateTime, formatSessionChipLabel } from "../core/format.js";
 import {
   LOGIN_SUBTITLE_DEFAULT,
   loginCardSx,
@@ -200,10 +200,10 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
                 ? React.createElement(
                   Stack,
                   { direction: "row", spacing: 0.25, alignItems: "center" },
-                  loggedIn.username,
+                  formatSessionChipLabel(loggedIn.username, loggedIn.username),
                   React.createElement(Icon, { icon: "mdi:chevron-down", size: 14 }),
                 )
-                : loggedIn.username,
+                : formatSessionChipLabel(loggedIn.username, loggedIn.username),
               sx: {
                 pl: 0.75,
                 "& .MuiChip-label": { pl: 0.75 },

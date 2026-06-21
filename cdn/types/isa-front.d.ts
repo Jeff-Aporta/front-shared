@@ -138,6 +138,9 @@ interface IsaFrontApi {
   wsUrlFromHttpBase(httpBase: string): string;
   formatLocalDate?(value: unknown): string;
   formatLocalDateTime?(value: unknown): string;
+  stripContapymeEmail?(value: unknown): string;
+  formatSessionDisplayName?(value: unknown): string;
+  formatSessionChipLabel?(value: unknown, fallback?: string): string;
   estimatePromptTokens?(text: unknown): number;
   ensureLazyStylesheet?(href: string): Promise<void>;
   loadLazyScript?(src: string): Promise<void>;

@@ -45,6 +45,9 @@
 
     void authRev;
 
+    const fmt = window.ISAFront || {};
+    const chipLabel = fmt.formatSessionChipLabel || function (n) { return String(n || "").trim(); };
+    const displayName = fmt.formatSessionDisplayName || function (n) { return String(n || "").trim(); };
     const username = props.username || Session?.username?.() || "";
     const realUsername = props.realUsername || Session?.realUsername?.() || username;
     const viewAsUsername = props.viewAsUsername !== undefined
@@ -58,8 +61,11 @@
       : !!(Session?.can && Session.can("session.view_as"))
         || sessionRole.toLowerCase() === "admin";
     const displayLabel = viewAsUsername
-      ? realUsername + " → " + viewAsUsername
-      : username;
+      ? chipLabel(realUsername, realUsername) + " → " + chipLabel(viewAsUsername, viewAsUsername)
+      : chipLabel(username, username);
+    const tooltipLabel = viewAsUsername
+      ? displayName(realUsername) + " → " + displayName(viewAsUsername)
+      : displayName(username);
     const chipSx = props.chipSx || {};
     const theme = MUI.useTheme();
     const compactHeader = MUI.useMediaQuery(theme.breakpoints.down("md"));
@@ -67,7 +73,7 @@
     const avatarUrl = props.buildAvatarUrl
       ? props.buildAvatarUrl(avatarName, 64)
       : buildAvatarUrl(avatarName, 64);
-    const ariaLabel = displayLabel + (sessionRole ? " · rol " + sessionRole : "");
+    const ariaLabel = tooltipLabel + (sessionRole ? " · rol " + sessionRole : "");
 
     function closeMenu() { setAnchor(null); }
 
@@ -157,7 +163,7 @@
           props.signalDot || null,
           React.createElement(
             MUI.Tooltip,
-            { title: (sessionRole ? displayLabel + " · rol " + sessionRole : displayLabel) + " — menú", arrow: true },
+            { title: (sessionRole ? tooltipLabel + " · rol " + sessionRole : tooltipLabel) + " — menú", arrow: true },
             compactHeader
               ? React.createElement(MUI.IconButton, {
                 size: "small",
@@ -210,7 +216,7 @@
         React.createElement(
           MUI.Box,
           { sx: { px: 2, py: 1.25 } },
-          React.createElement(MUI.Typography, { variant: "subtitle2" }, displayLabel),
+          React.createElement(MUI.Typography, { variant: "subtitle2" }, tooltipLabel),
           sessionRole
             ? React.createElement(MUI.Typography, { variant: "caption", color: "text.secondary" }, "Rol: " + sessionRole)
             : null,

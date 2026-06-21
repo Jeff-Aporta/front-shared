@@ -59,7 +59,13 @@ import {
   toastFromPayload,
 } from "./ui/feedback/toast-bus.js";
 import { createProcessRunner, FEEDBACK_PROCESS_EVENT } from "./ui/feedback/process-bus.js";
-import { formatLocalDate, formatLocalDateTime } from "./core/format.js";
+import {
+  formatLocalDate,
+  formatLocalDateTime,
+  stripContapymeEmail,
+  formatSessionDisplayName,
+  formatSessionChipLabel,
+} from "./core/format.js";
 import { estimatePromptTokens } from "./core/prompt-tokens.js";
 import {
   ensureLazyStylesheet,
@@ -112,6 +118,9 @@ window.ISAFront = {
   TOAST_EVENT,
   formatLocalDate,
   formatLocalDateTime,
+  stripContapymeEmail,
+  formatSessionDisplayName,
+  formatSessionChipLabel,
   estimatePromptTokens,
   ensureLazyStylesheet,
   loadLazyScript,
