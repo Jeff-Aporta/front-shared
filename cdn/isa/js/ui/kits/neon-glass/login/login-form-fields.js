@@ -89,7 +89,7 @@ export function createLoginPasswordField(React, MUI, UI, opts = {}) {
   });
 }
 
-/** Stack Usuario + Contraseña + Recordarme + errores (cuerpo del modal estándar). */
+/** Stack Usuario + Contraseña + Empresa + Recordarme + errores (cuerpo del modal estándar). */
 export function createLoginFormFields(React, MUI, UI, opts = {}) {
   const {
     user,
@@ -105,15 +105,23 @@ export function createLoginFormFields(React, MUI, UI, opts = {}) {
     showRemember = true,
     showPasswordToggle = true,
     onEnter,
+    terceros,
+    selectedItercero,
+    setSelectedItercero,
   } = opts;
-  const { Stack, TextField, FormControlLabel, Checkbox, Alert } = MUI;
+  const { Stack, TextField, FormControlLabel, Checkbox, Alert, MenuItem } = MUI;
   const fieldDisabled = busy;
+  const empresaOptions = Array.isArray(terceros) ? terceros : [];
+  const needsEmpresa = empresaOptions.length > 0;
 
   return React.createElement(
     Stack,
     { spacing: 2 },
     err
       ? React.createElement(Alert, { severity: "error" }, String(err))
+      : null,
+    needsEmpresa
+      ? React.createElement(Alert, { severity: "info" }, "Seleccione la empresa con la que desea ingresar.")
       : null,
     React.createElement(TextField, contapymeLoginTextFieldProps({
       value: user,
@@ -123,7 +131,7 @@ export function createLoginFormFields(React, MUI, UI, opts = {}) {
         if (formatted && formatted !== user) setUser(formatted);
       },
       fullWidth: true,
-      autoFocus: !fieldDisabled,
+      autoFocus: !fieldDisabled && !needsEmpresa,
       size: "small",
       disabled: fieldDisabled,
       onKeyDown: (e) => { if (e.key === "Enter" && onEnter && !fieldDisabled) { e.preventDefault(); onEnter(e); } },
@@ -137,6 +145,24 @@ export function createLoginFormFields(React, MUI, UI, opts = {}) {
       onEnter,
       busy: fieldDisabled,
     }),
+    needsEmpresa
+      ? React.createElement(TextField, {
+        select: true,
+        label: "Empresa",
+        value: selectedItercero || "",
+        onChange: (e) => setSelectedItercero?.(e.target.value),
+        fullWidth: true,
+        size: "small",
+        disabled: fieldDisabled,
+        autoFocus: !fieldDisabled,
+        helperText: "El correo está asociado a varias empresas.",
+        onKeyDown: (e) => { if (e.key === "Enter" && onEnter && !fieldDisabled) { e.preventDefault(); onEnter(e); } },
+      }, empresaOptions.map((t) => React.createElement(
+        MenuItem,
+        { key: t.itercero, value: t.itercero },
+        t.ntercero ? `${t.ntercero} (${t.itercero})` : t.itercero,
+      )))
+      : null,
     showRemember
       ? React.createElement(FormControlLabel, {
         control: React.createElement(Checkbox, {
@@ -212,6 +238,8 @@ export function createLoginPageFormComponent(React, MUI, defaultNs) {
     const [showPass, setShowPass] = React.useState(false);
     const [busy, setBusy] = React.useState(false);
     const [err, setErr] = React.useState("");
+    const [terceros, setTerceros] = React.useState([]);
+    const [selectedItercero, setSelectedItercero] = React.useState("");
 
     const title = props.title || "Iniciar sesión";
     const accent = props.accent || "#1e90ff";
@@ -233,6 +261,10 @@ export function createLoginPageFormComponent(React, MUI, defaultNs) {
         setErr("Usuario y contraseña requeridos");
         return;
       }
+      if (terceros.length && !selectedItercero) {
+        setErr("Seleccione la empresa para continuar");
+        return;
+      }
       if (typeof props.onLogin !== "function") {
         setErr("Login no configurado");
         return;
@@ -243,9 +275,19 @@ export function createLoginPageFormComponent(React, MUI, defaultNs) {
       setErr("");
       try {
         if (props.showRemember !== false) saveLoginCredentials(formatContapymeLoginInput(user) || user.trim(), pass, remember);
-        await props.onLogin(loginId, pass, remember);
+        const loginOpts = { remember };
+        if (selectedItercero) loginOpts.itercero = selectedItercero;
+        await props.onLogin(loginId, pass, loginOpts);
+        setTerceros([]);
+        setSelectedItercero("");
         props.onSuccess?.();
       } catch (e) {
+        if (e?.code === "MULTI_EMPRESA" && Array.isArray(e.terceros) && e.terceros.length) {
+          setTerceros(e.terceros);
+          setSelectedItercero(String(e.terceros[0]?.itercero || ""));
+          setErr(e?.message || String(e));
+          return;
+        }
         setErr(e?.message || String(e));
       } finally {
         submitLock.current = false;
@@ -283,11 +325,14 @@ export function createLoginPageFormComponent(React, MUI, defaultNs) {
             showRemember: props.showRemember !== false,
             showPasswordToggle: props.showPasswordToggle !== false,
             onEnter: submit,
+            terceros,
+            selectedItercero,
+            setSelectedItercero,
           }),
         ),
         createLoginFormActions(React, MUI, {
           busy,
-          canSubmit: !!user.trim() && !!pass,
+          canSubmit: !!user.trim() && !!pass && (!terceros.length || !!selectedItercero),
           submitViaForm: true,
           fullWidthSubmit: props.fullWidthSubmit === true,
           showCancel: false,

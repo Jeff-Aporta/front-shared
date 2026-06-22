@@ -337,6 +337,12 @@ export function registerSession(ns, opts = {}) {
   }
 
   function loginErrorMessage(res, data) {
+    if (data?.code === "MULTI_EMPRESA" && Array.isArray(data.terceros) && data.terceros.length) {
+      const e = new Error(String(data.error || "Elija la empresa para continuar."));
+      e.code = "MULTI_EMPRESA";
+      e.terceros = data.terceros;
+      return e;
+    }
     const apiErr = String(data?.error || "").trim();
     if (apiErr && !/^HTTP \d{3}$/.test(apiErr)) {
       return sanitizeUserMessage(apiErr, "No se pudo iniciar sesión");
@@ -350,7 +356,7 @@ export function registerSession(ns, opts = {}) {
     return "No se pudo iniciar sesión";
   }
 
-  async function login(user, pass) {
+  async function login(user, pass, opts = {}) {
     const loginId = normalizeContapymeLoginId(user);
     if (!loginId) {
       throw new Error("Usuario y contraseña requeridos");
@@ -360,6 +366,8 @@ export function registerSession(ns, opts = {}) {
       app: appId,
       semail: loginId,
     };
+    const itercero = String(opts.itercero ?? "").trim();
+    if (itercero) credBody.itercero = itercero;
     const isLocal = authBase() === authLocal;
     const hint = localDevHint(isLocal && isDevHost());
     let res;
@@ -374,7 +382,9 @@ export function registerSession(ns, opts = {}) {
     }
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.token) {
-      throw new Error(loginErrorMessage(res, data));
+      const err = loginErrorMessage(res, data);
+      if (err instanceof Error && err.code === "MULTI_EMPRESA") throw err;
+      throw new Error(typeof err === "string" ? err : "No se pudo iniciar sesión");
     }
     if (data.app && data.app !== appId) {
       throw new Error("Token emitido para otra aplicación");

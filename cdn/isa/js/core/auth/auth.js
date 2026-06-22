@@ -55,16 +55,27 @@ export function createAuth(opts = {}) {
     return s?.token ? { Authorization: "Bearer " + s.token, ...appHeader() } : {};
   }
 
-  async function login(user, pass) {
+  async function login(user, pass, opts = {}) {
     const loginId = normalizeContapymeLoginId(user);
     if (!loginId || !pass) throw new Error("Usuario y contraseña requeridos");
+    const body = { semail: loginId, password: wrapPassword(pass), app: appId };
+    const itercero = String(opts.itercero ?? "").trim();
+    if (itercero) body.itercero = itercero;
     const res = await fetch(authBase().replace(/\/$/, "") + "/api/auth/token", {
       method: "POST",
       headers: { "Content-Type": "application/json", ...appHeader() },
-      body: JSON.stringify({ semail: loginId, password: wrapPassword(pass), app: appId }),
+      body: JSON.stringify(body),
     });
     const data = await res.json();
-    if (!res.ok || !data.token) throw new Error(data.error || "Login fallido");
+    if (!res.ok || !data.token) {
+      if (data?.code === "MULTI_EMPRESA" && Array.isArray(data.terceros) && data.terceros.length) {
+        const e = new Error(String(data.error || "Elija la empresa para continuar."));
+        e.code = "MULTI_EMPRESA";
+        e.terceros = data.terceros;
+        throw e;
+      }
+      throw new Error(data.error || "Login fallido");
+    }
     if (data.app && data.app !== appId) throw new Error("Token emitido para otra aplicación");
     store.save({
       username: data.username || loginId,

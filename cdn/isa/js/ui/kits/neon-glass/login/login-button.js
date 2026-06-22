@@ -75,6 +75,8 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
     const [showPass, setShowPass] = useState(false);
     const [err, setErr] = useState("");
     const [busy, setBusy] = useState(false);
+    const [terceros, setTerceros] = useState([]);
+    const [selectedItercero, setSelectedItercero] = useState("");
     const [, tick] = useState(0);
     const [menuEl, setMenuEl] = useState(null);
     const menuOpen = Boolean(menuEl);
@@ -111,6 +113,8 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
       setPass(saved.password || "");
       setRemember(saved.remember !== false);
       setErr("");
+      setTerceros([]);
+      setSelectedItercero("");
     }, [open]);
 
     async function submit() {
@@ -118,19 +122,34 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
         setErr("Usuario y contraseña requeridos");
         return;
       }
+      if (terceros.length && !selectedItercero) {
+        setErr("Seleccione la empresa para continuar");
+        return;
+      }
       const loginId = normalizeContapymeLoginId(user);
       setBusy(true);
       setErr("");
       try {
         if (showRemember) saveLoginCredentials(formatContapymeLoginInput(user) || user.trim(), pass, remember);
-        const session = await auth.login(loginId, pass);
+        const loginOpts = selectedItercero ? { itercero: selectedItercero } : {};
+        const session = await auth.login(loginId, pass, loginOpts);
         setPass("");
         setShowPass(false);
+        setTerceros([]);
+        setSelectedItercero("");
         setOpen(false);
         const sv = sessionView(auth) || session;
         toast("success", "Sesión iniciada");
         props.onLoggedIn?.(sv || session);
       } catch (e) {
+        if (e?.code === "MULTI_EMPRESA" && Array.isArray(e.terceros) && e.terceros.length) {
+          setTerceros(e.terceros);
+          setSelectedItercero(String(e.terceros[0]?.itercero || ""));
+          const msg = sanitizeLoginError(e instanceof Error ? e.message : String(e));
+          setErr(msg);
+          toast("warning", msg);
+          return;
+        }
         const msg = sanitizeLoginError(e instanceof Error ? e.message : String(e));
         setErr(msg);
         toast("error", msg);
@@ -300,8 +319,12 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
             setRemember,
             showPass,
             setShowPass,
+            err,
             showPasswordToggle,
             onEnter: submit,
+            terceros,
+            selectedItercero,
+            setSelectedItercero,
           }),
         ),
         React.createElement(
@@ -309,7 +332,7 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
           null,
           ...createLoginActionButtons(React, MUI, {
             busy,
-            canSubmit: !!user.trim() && !!pass,
+            canSubmit: !!user.trim() && !!pass && (!terceros.length || !!selectedItercero),
             onCancel: () => { setOpen(false); setShowPass(false); },
             onSubmit: submit,
             showCancel: true,
