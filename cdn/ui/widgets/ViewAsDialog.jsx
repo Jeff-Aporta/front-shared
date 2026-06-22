@@ -10,6 +10,7 @@
   const SEARCH_DEBOUNCE_MS = 320;
   const SEARCH_MIN_CHARS = 1;
   const INITIAL_SUGGESTIONS = 5;
+  const EMPTY_CATALOG_INFO = "Eres el único usuario registrado. La suplantación requiere otra cuenta activa en isa-patyia (distinta a la tuya).";
 
   function ViewAsDialog(props) {
     const open = Boolean(props.open);
@@ -26,6 +27,7 @@
     const [options, setOptions] = React.useState([]);
     const [loading, setLoading] = React.useState(false);
     const [err, setErr] = React.useState("");
+    const [info, setInfo] = React.useState("");
     const [busy, setBusy] = React.useState("");
     const debounceRef = React.useRef(null);
     const requestIdRef = React.useRef(0);
@@ -37,37 +39,33 @@
       const q = String(query ?? "").trim();
       if (catalogFn && !q) {
         const users = await catalogFn();
-        const list = Array.isArray(users) ? users : [];
-        if (!list.length) {
-          throw new Error("El catálogo de suplantación está vacío o no está desplegado en el servidor.");
-        }
-        return list.slice(0, limit);
+        return (Array.isArray(users) ? users : []).slice(0, limit);
       }
       if (!searchFn) {
         throw new Error("Búsqueda de suplantación no disponible. Recarga con Ctrl+F5.");
       }
       const users = await searchFn(q, limit);
-      const list = Array.isArray(users) ? users : [];
-      if (!list.length && !q) {
-        throw new Error("No se recibieron usuarios. Verifica deploy de system-login (suplantación/catalog).");
-      }
-      return list;
+      return Array.isArray(users) ? users : [];
     }
 
     function loadSuggestions(query) {
       if (!catalogFn && !searchFn) {
         setErr("Búsqueda de suplantación no disponible. Recarga con Ctrl+F5.");
+        setInfo("");
         setOptions([]);
         setLoading(false);
         return;
       }
       const reqId = ++requestIdRef.current;
+      const q = String(query ?? "").trim();
       setLoading(true);
       setErr("");
-      fetchUsers(query, INITIAL_SUGGESTIONS)
+      setInfo("");
+      fetchUsers(q, INITIAL_SUGGESTIONS)
         .then(function (users) {
           if (reqId !== requestIdRef.current) return;
           setOptions(users);
+          if (!users.length && !q) setInfo(EMPTY_CATALOG_INFO);
         })
         .catch(function (e) {
           if (reqId !== requestIdRef.current) return;
@@ -85,6 +83,7 @@
       setInputValue("");
       setOptions([]);
       setErr("");
+      setInfo("");
       if (debounceRef.current) clearTimeout(debounceRef.current);
       loadSuggestions("");
       return function () {
@@ -159,7 +158,7 @@
           ? React.createElement(
             MUI.Typography,
             { key: "empty", variant: "body2", color: "text.secondary", sx: { px: 2, py: 1.5 } },
-            "Sin resultados",
+            inputValue.trim() ? "Sin resultados para esa búsqueda." : "Sin otros usuarios disponibles.",
           )
           : null,
         options.map(function (row) {
@@ -223,6 +222,9 @@
         ),
         err
           ? React.createElement(MUI.Alert, { severity: "error", sx: { mb: 1.5 } }, err)
+          : null,
+        info
+          ? React.createElement(MUI.Alert, { severity: "info", sx: { mb: 1.5 } }, info)
           : null,
         props.currentViewAs
           ? React.createElement(MUI.Chip, {

@@ -1,5 +1,5 @@
 import { sanitizeUserMessage } from "../../../../core/util/sanitize-user-message.js";
-import { formatLocalDateTime, resolveSessionHeaderLabel, normalizeContapymeLoginId, stripContapymeEmail, formatContapymeLoginInput } from "../../../../core/util/format.js";
+import { formatLocalDateTime, resolveSessionHeaderLabel, normalizeContapymeLoginId, formatContapymeLoginInput } from "../../../../core/util/format.js";
 import { readLoginCredentials, saveLoginCredentials } from "../../../../core/auth/login-credentials.js";
 import { LoginHeaderBand, loginDialogProps, resolveLoginUi } from "./login-surface.js";
 import { createLoginFormFields, createLoginActionButtons, loginFormContentSx } from "./login-form-fields.js";
@@ -128,9 +128,7 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
         setShowPass(false);
         setOpen(false);
         const sv = sessionView(auth) || session;
-        const role = sv?.role ? ` (${sv.role})` : "";
-        const label = stripContapymeEmail(sv?.username || loginId) || loginId;
-        toast("success", `Sesión iniciada · ${label}${role}`);
+        toast("success", "Sesión iniciada");
         props.onLoggedIn?.(sv || session);
       } catch (e) {
         const msg = sanitizeLoginError(e instanceof Error ? e.message : String(e));

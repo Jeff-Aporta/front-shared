@@ -220,24 +220,33 @@ export function registerSession(ns, opts = {}) {
     };
     const res = await fetch(authUrl("/api/auth/suplantacion/catalog"), { headers });
     const data = await res.json().catch(() => ({}));
-    if (res.ok && data.ok && Array.isArray(data.users) && data.users.length) {
+    if (res.ok && data.ok && Array.isArray(data.users)) {
       return data.users;
+    }
+    if (!res.ok) {
+      const msg = data.error;
+      if (res.status === 404) {
+        throw new Error("Ruta de suplantación no encontrada (404). Despliega main-orchestrator y system-login.");
+      }
+      if (res.status === 403) {
+        throw new Error(msg || "Sin permiso de suplantación (solo administradores).");
+      }
+      throw new Error(msg || "No se pudo cargar el catálogo de suplantación (HTTP " + res.status + ").");
+    }
+    if (data.ok === false) {
+      throw new Error(data.error || "No se pudo cargar el catálogo de suplantación.");
     }
     const params = new URLSearchParams({ limit: "5" });
     const res2 = await fetch(authUrl("/api/auth/suplantacion/search?" + params.toString()), { headers });
     const data2 = await res2.json().catch(() => ({}));
-    if (res2.ok && data2.ok && Array.isArray(data2.users) && data2.users.length) {
+    if (res2.ok && data2.ok && Array.isArray(data2.users)) {
       return data2.users;
     }
-    const status = res.status || res2.status;
-    const msg = data.error || data2.error;
-    if (status === 404) {
-      throw new Error("Ruta de suplantación no encontrada (404). Despliega main-orchestrator y system-login.");
+    if (res2.ok && data2.ok === false) {
+      throw new Error(data2.error || "No se pudo buscar usuarios para suplantación.");
     }
-    if (status === 403) {
-      throw new Error(msg || "Sin permiso de suplantación (solo administradores).");
-    }
-    throw new Error(msg || "No se pudo cargar el catálogo de suplantación (HTTP " + status + ").");
+    const status = res2.status || res.status;
+    throw new Error(data2.error || data.error || "Respuesta inválida del catálogo de suplantación (HTTP " + status + ").");
   }
 
   const fetchSuplantacionCatalog = fetchViewAsCatalog;

@@ -157,15 +157,6 @@ body {
   background: #eef4ff;
 }
 
-/* Cuenta regresiva penalización login */
-@keyframes isa-penalty-tick {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.08); opacity: 0.88; }
-}
-.isa-login-penalty-alert .isa-login-penalty-countdown {
-  animation: isa-penalty-tick 1s ease-in-out infinite;
-}
-
 /* nest-css-max:processed */
 
 /**

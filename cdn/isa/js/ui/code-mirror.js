@@ -289,10 +289,16 @@ export function createCodeMirrorPanel(React, MUI) {
         else cm?.refresh?.();
       };
       window.addEventListener("resize", onResize);
+      let ro = null;
+      if (fill && typeof ResizeObserver !== "undefined") {
+        ro = new ResizeObserver(() => onResize());
+        ro.observe(host);
+      }
       const t = setTimeout(onResize, 0);
       const t2 = setTimeout(onResize, 120);
 
       return () => {
+        ro?.disconnect();
         clearTimeout(t);
         clearTimeout(t2);
         window.removeEventListener("resize", onResize);
