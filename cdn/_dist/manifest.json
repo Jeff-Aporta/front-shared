@@ -1,6 +1,6 @@
 {
   "frontSharedRef": "7dc17e4",
-  "builtAt": "2026-06-22T21:52:03.838Z",
+  "builtAt": "2026-06-22T22:11:11.867Z",
   "note": "Artefactos minificados — boot-helper usa _dist en producción (no localhost).",
   "css": {
     "isa/css/base.min.css": {
@@ -30,7 +30,7 @@
   },
   "js": {
     "isa/js/index.min.js": {
-      "bytes": 119069,
+      "bytes": 119084,
       "entry": "isa/js/index.js"
     },
     "isa/js/kits/neon-glass.min.js": {

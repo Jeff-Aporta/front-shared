@@ -75,9 +75,9 @@ export function createServiceSession(opts = {}) {
     if (notifyAuth) notifyAuth();
   }
 
-  async function login(username, password) {
+  async function login(username, password, opts = {}) {
     clearServiceTokens();
-    const session = await Session.login(username, password);
+    const session = await Session.login(username, password, opts);
     if (notifyAuth) notifyAuth();
     return session;
   }
