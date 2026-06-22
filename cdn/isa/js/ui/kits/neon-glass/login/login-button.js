@@ -131,7 +131,10 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
       setErr("");
       try {
         if (showRemember) saveLoginCredentials(formatContapymeLoginInput(user) || user.trim(), pass, remember);
-        const loginOpts = selectedItercero ? { itercero: selectedItercero } : {};
+        const itercero = String(
+          selectedItercero || (terceros.length ? terceros[0]?.itercero : "") || "",
+        ).trim();
+        const loginOpts = itercero ? { itercero } : {};
         const session = await auth.login(loginId, pass, loginOpts);
         setPass("");
         setShowPass(false);

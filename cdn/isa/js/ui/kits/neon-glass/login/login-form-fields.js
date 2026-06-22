@@ -277,6 +277,7 @@ export function createLoginPageFormComponent(React, MUI, defaultNs) {
         if (props.showRemember !== false) saveLoginCredentials(formatContapymeLoginInput(user) || user.trim(), pass, remember);
         const loginOpts = { remember };
         if (selectedItercero) loginOpts.itercero = selectedItercero;
+        else if (terceros.length) loginOpts.itercero = String(terceros[0]?.itercero || "").trim();
         await props.onLogin(loginId, pass, loginOpts);
         setTerceros([]);
         setSelectedItercero("");
