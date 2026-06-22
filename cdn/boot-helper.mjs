@@ -86,6 +86,9 @@ export async function transpileUrl(url, Babel) {
 
 /** JSX compartidos — transpilados en runtime (mismo Babel que la app). */
 export const SHARED_UI_FILES = [
+  "layouts/split-view-constants.js",
+  "layouts/useResizablePanel.js",
+  "layouts/IsaSplitView.jsx",
   "widgets/UserSessionMenu.jsx",
   "widgets/ViewAsDialog.jsx",
   "widgets/UnitTestStreamModal.jsx",

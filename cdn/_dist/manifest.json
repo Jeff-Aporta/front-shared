@@ -1,10 +1,10 @@
 {
-  "frontSharedRef": "cc6b3f2",
-  "builtAt": "2026-06-22T15:00:41.071Z",
+  "frontSharedRef": "13629aa",
+  "builtAt": "2026-06-22T17:06:39.485Z",
   "note": "Artefactos minificados — boot-helper usa _dist en producción (no localhost).",
   "css": {
     "isa/css/base.min.css": {
-      "bytes": 7878,
+      "bytes": 7921,
       "src": [
         "isa/css/base.css"
       ]
@@ -22,7 +22,7 @@
       ]
     },
     "isa/css/kits/neon-glass.min.css": {
-      "bytes": 12854,
+      "bytes": 12641,
       "src": [
         "isa/css/kits/neon-glass/neon-glass.css"
       ]
@@ -30,7 +30,7 @@
   },
   "js": {
     "isa/js/index.min.js": {
-      "bytes": 115021,
+      "bytes": 116884,
       "entry": "isa/js/index.js"
     },
     "isa/js/kits/neon-glass.min.js": {

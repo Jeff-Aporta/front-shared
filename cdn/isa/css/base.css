@@ -3,6 +3,7 @@
 @import "./kits/neon-glass/theme.css";
 @import "./kits/neon-glass/glass.css";
 @import "./kits/neon-glass/page.css";
+@import "./kits/neon-glass/split-view.css";
 
 *, *::before, *::after { box-sizing: border-box; }
 
