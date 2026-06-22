@@ -13,20 +13,6 @@ import {
 } from "./login-surface.js";
 import { readLoginCredentials, saveLoginCredentials } from "../../../../core/auth/login-credentials.js";
 import { normalizeContapymeLoginId, formatContapymeLoginInput } from "../../../../core/util/format.js";
-import {
-  capturePenaltyState,
-  createLoginPenaltyAlert,
-  penaltyBlocksSubmit,
-} from "../../../../core/auth/login-penalty.js";
-
-const _penaltyAlertCache = new WeakMap();
-
-function getLoginPenaltyAlert(React, MUI) {
-  if (!_penaltyAlertCache.has(React)) {
-    _penaltyAlertCache.set(React, createLoginPenaltyAlert(React, MUI));
-  }
-  return _penaltyAlertCache.get(React);
-}
 
 export function loginFormActionsSx() {
   return {
@@ -119,20 +105,15 @@ export function createLoginFormFields(React, MUI, UI, opts = {}) {
     showRemember = true,
     showPasswordToggle = true,
     onEnter,
-    penalty,
-    retryAfterSeconds,
   } = opts;
-  const { Stack, TextField, FormControlLabel, Checkbox } = MUI;
-  const LoginPenaltyAlert = getLoginPenaltyAlert(React, MUI);
-  const penaltyState = penalty || (retryAfterSeconds ? capturePenaltyState({ retryAfterSeconds }) : null);
-  const locked = penaltyBlocksSubmit(penaltyState);
-  const fieldDisabled = busy || locked;
+  const { Stack, TextField, FormControlLabel, Checkbox, Alert } = MUI;
+  const fieldDisabled = busy;
 
   return React.createElement(
     Stack,
     { spacing: 2 },
     err
-      ? React.createElement(LoginPenaltyAlert, { err, penalty: penaltyState })
+      ? React.createElement(Alert, { severity: "error" }, String(err))
       : null,
     React.createElement(TextField, contapymeLoginTextFieldProps({
       value: user,
@@ -142,10 +123,10 @@ export function createLoginFormFields(React, MUI, UI, opts = {}) {
         if (formatted && formatted !== user) setUser(formatted);
       },
       fullWidth: true,
-      autoFocus: !locked,
+      autoFocus: !fieldDisabled,
       size: "small",
       disabled: fieldDisabled,
-      onKeyDown: (e) => { if (e.key === "Enter" && onEnter && !locked) { e.preventDefault(); onEnter(e); } },
+      onKeyDown: (e) => { if (e.key === "Enter" && onEnter && !fieldDisabled) { e.preventDefault(); onEnter(e); } },
     })),
     createLoginPasswordField(React, MUI, UI, {
       pass,
@@ -153,7 +134,7 @@ export function createLoginFormFields(React, MUI, UI, opts = {}) {
       showPass,
       setShowPass,
       showPasswordToggle,
-      onEnter: locked ? undefined : onEnter,
+      onEnter,
       busy: fieldDisabled,
     }),
     showRemember
@@ -231,7 +212,6 @@ export function createLoginPageFormComponent(React, MUI, defaultNs) {
     const [showPass, setShowPass] = React.useState(false);
     const [busy, setBusy] = React.useState(false);
     const [err, setErr] = React.useState("");
-    const [penalty, setPenalty] = React.useState(null);
 
     const title = props.title || "Iniciar sesión";
     const accent = props.accent || "#1e90ff";
@@ -249,7 +229,6 @@ export function createLoginPageFormComponent(React, MUI, defaultNs) {
     async function submit(ev) {
       if (ev?.preventDefault) ev.preventDefault();
       if (submitLock.current || busy) return;
-      if (penaltyBlocksSubmit(penalty)) return;
       if (!user.trim() || !pass) {
         setErr("Usuario y contraseña requeridos");
         return;
@@ -262,14 +241,12 @@ export function createLoginPageFormComponent(React, MUI, defaultNs) {
       submitLock.current = true;
       setBusy(true);
       setErr("");
-      setPenalty(null);
       try {
         if (props.showRemember !== false) saveLoginCredentials(formatContapymeLoginInput(user) || user.trim(), pass, remember);
         await props.onLogin(loginId, pass, remember);
         props.onSuccess?.();
       } catch (e) {
         setErr(e?.message || String(e));
-        setPenalty(e?.penalty || capturePenaltyState(e) || null);
       } finally {
         submitLock.current = false;
         setBusy(false);
@@ -306,12 +283,11 @@ export function createLoginPageFormComponent(React, MUI, defaultNs) {
             showRemember: props.showRemember !== false,
             showPasswordToggle: props.showPasswordToggle !== false,
             onEnter: submit,
-            penalty: props.penalty || capturePenaltyState({ retryAfterSeconds: props.retryAfterSeconds }) || penalty,
           }),
         ),
         createLoginFormActions(React, MUI, {
           busy,
-          canSubmit: !!user.trim() && !!pass && !penaltyBlocksSubmit(penalty),
+          canSubmit: !!user.trim() && !!pass,
           submitViaForm: true,
           fullWidthSubmit: props.fullWidthSubmit === true,
           showCancel: false,
@@ -335,6 +311,5 @@ export function registerLoginPageForm(ns) {
   window.ISAFront.createLoginFormActions = createLoginFormActions;
   window.ISAFront.resolveLoginUi = resolveLoginUi;
   window.ISAFront.createLoginIcon = createLoginIcon;
-  window.ISAFront.UI.LoginPenaltyAlert = getLoginPenaltyAlert(React, MUI);
   return Comp;
 }

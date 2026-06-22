@@ -12,7 +12,6 @@ const shims = {
   "token-store.js": "auth/token-store.js",
   "caesar.js": "auth/caesar.js",
   "login-credentials.js": "auth/login-credentials.js",
-  "login-penalty.js": "auth/login-penalty.js",
   "api-http.js": "http/api-http.js",
   "gateway-url.js": "http/gateway-url.js",
   "gateway-legacy.js": "http/gateway-legacy.js",

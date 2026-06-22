@@ -1,7 +1,6 @@
 import { sanitizeUserMessage } from "../../../../core/util/sanitize-user-message.js";
 import { formatLocalDateTime, resolveSessionHeaderLabel, normalizeContapymeLoginId, stripContapymeEmail, formatContapymeLoginInput } from "../../../../core/util/format.js";
 import { readLoginCredentials, saveLoginCredentials } from "../../../../core/auth/login-credentials.js";
-import { capturePenaltyState, penaltyBlocksSubmit } from "../../../../core/auth/login-penalty.js";
 import { LoginHeaderBand, loginDialogProps, resolveLoginUi } from "./login-surface.js";
 import { createLoginFormFields, createLoginActionButtons, loginFormContentSx } from "./login-form-fields.js";
 /**
@@ -75,7 +74,6 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
     const [remember, setRemember] = useState(true);
     const [showPass, setShowPass] = useState(false);
     const [err, setErr] = useState("");
-    const [penalty, setPenalty] = useState(null);
     const [busy, setBusy] = useState(false);
     const [, tick] = useState(0);
     const [menuEl, setMenuEl] = useState(null);
@@ -113,11 +111,9 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
       setPass(saved.password || "");
       setRemember(saved.remember !== false);
       setErr("");
-      setPenalty(null);
     }, [open]);
 
     async function submit() {
-      if (penaltyBlocksSubmit(penalty)) return;
       if (!user.trim() || !pass) {
         setErr("Usuario y contraseña requeridos");
         return;
@@ -125,7 +121,6 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
       const loginId = normalizeContapymeLoginId(user);
       setBusy(true);
       setErr("");
-      setPenalty(null);
       try {
         if (showRemember) saveLoginCredentials(formatContapymeLoginInput(user) || user.trim(), pass, remember);
         const session = await auth.login(loginId, pass);
@@ -140,7 +135,6 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
       } catch (e) {
         const msg = sanitizeLoginError(e instanceof Error ? e.message : String(e));
         setErr(msg);
-        setPenalty(e?.penalty || capturePenaltyState(e) || null);
         toast("error", msg);
       } finally {
         setBusy(false);
@@ -308,12 +302,8 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
             setRemember,
             showPass,
             setShowPass,
-            err,
-            busy,
-            showRemember,
             showPasswordToggle,
             onEnter: submit,
-            penalty,
           }),
         ),
         React.createElement(
@@ -321,7 +311,7 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
           null,
           ...createLoginActionButtons(React, MUI, {
             busy,
-            canSubmit: !!user.trim() && !!pass && !penaltyBlocksSubmit(penalty),
+            canSubmit: !!user.trim() && !!pass,
             onCancel: () => { setOpen(false); setShowPass(false); },
             onSubmit: submit,
             showCancel: true,

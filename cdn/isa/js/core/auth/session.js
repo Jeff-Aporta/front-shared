@@ -3,7 +3,6 @@ import { wrapPassword } from "./caesar.js";
 import { createTokenStore, isTokenValid } from "./token-store.js";
 import { blockReasonFor, resolveCapId } from "../caps/capabilities.js";
 import { sanitizeUserMessage } from "../util/sanitize-user-message.js";
-import { applyLoginPenaltyToError } from "./login-penalty.js";
 import { normalizeContapymeLoginId } from "../util/format.js";
 import { fetchRaw, wrapFetchError, localDevHint, isDevHost } from "../http/api-http.js";
 
@@ -328,6 +327,20 @@ export function registerSession(ns, opts = {}) {
     return session;
   }
 
+  function loginErrorMessage(res, data) {
+    const apiErr = String(data?.error || "").trim();
+    if (apiErr && !/^HTTP \d{3}$/.test(apiErr)) {
+      return sanitizeUserMessage(apiErr, "No se pudo iniciar sesión");
+    }
+    if (res.status === 403) {
+      if (data?.app) return `No tiene acceso a la aplicación (${data.app}). Solicite permiso al administrador.`;
+      return "No tiene acceso a esta aplicación.";
+    }
+    if (res.status === 401) return "Usuario o contraseña incorrectos.";
+    if (res.status >= 500) return "El servicio de acceso no está disponible. Intente más tarde.";
+    return "No se pudo iniciar sesión";
+  }
+
   async function login(user, pass) {
     const loginId = normalizeContapymeLoginId(user);
     if (!loginId) {
@@ -352,12 +365,7 @@ export function registerSession(ns, opts = {}) {
     }
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.token) {
-      let msg = "No se pudo iniciar sesión";
-      if (res.status === 401 || res.status === 403) msg = "Usuario o contraseña incorrectos";
-      else if (data.error) msg = sanitizeUserMessage(data.error, msg);
-      const err = new Error(msg);
-      applyLoginPenaltyToError(err, res, data);
-      throw err;
+      throw new Error(loginErrorMessage(res, data));
     }
     if (data.app && data.app !== appId) {
       throw new Error("Token emitido para otra aplicación");

@@ -29,16 +29,6 @@ import { registerCodeMirror } from "./ui/code-mirror.js";
 import { CAPABILITY_CATALOG, blockReasonFor, resolveCapId } from "./core/caps/capabilities.js";
 import { sanitizeUserMessage } from "./core/util/sanitize-user-message.js";
 import {
-  capturePenaltyState,
-  createLoginPenaltyAlert,
-  createUseLoginPenaltyCountdown,
-  parseLoginPenaltyPayload,
-  applyLoginPenaltyToError,
-  penaltyBlocksSubmit,
-  remainingPenaltySeconds,
-  formatLoginPenaltyMessage,
-} from "./core/auth/login-penalty.js";
-import {
   DEFAULT_FETCH_TIMEOUT_MS,
   isDevHost,
   localDevHint,
@@ -177,14 +167,6 @@ window.ISAFront = {
   blockReasonFor,
   resolveCapId,
   sanitizeUserMessage,
-  capturePenaltyState,
-  parseLoginPenaltyPayload,
-  applyLoginPenaltyToError,
-  penaltyBlocksSubmit,
-  remainingPenaltySeconds,
-  formatLoginPenaltyMessage,
-  createLoginPenaltyAlert,
-  createUseLoginPenaltyCountdown,
   sanitizeApiError,
   normalizeApiPath,
   DEFAULT_FETCH_TIMEOUT_MS,
