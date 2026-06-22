@@ -70,6 +70,7 @@
     "embed:templates": "node worker-swagger/embed-templates.mjs",
     "build": "npm run embed:templates && tsc -p tsconfig.build.json",
     "build:cdn-dist": "node scripts/build-cdn-dist.mjs",
+    "build:head": "node scripts/build-head-init.mjs",
     "build:neon-glass-demo": "node scripts/build-neon-glass-demo.mjs",
     "build:cdn": "npm run sync:core-shims && npm run build:cdn-dist && npm run build:neon-glass-demo",
     "sync:core-shims": "node scripts/write-core-shims.mjs",
