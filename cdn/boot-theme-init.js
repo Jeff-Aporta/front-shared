@@ -9,7 +9,7 @@
   var localBase = window.__FS_LOCAL__ || "../../components/front-shared/cdn/";
   var local = /localhost|127\.0\.0\.1/.test(location.hostname);
   var src = local
-    ? localBase + "isa/js/core/theme-init.mjs"
-    : "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@" + ref + "/cdn/isa/js/core/theme-init.mjs";
+    ? localBase + "isa/js/core/boot/theme-init.mjs"
+    : "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@" + ref + "/cdn/isa/js/core/boot/theme-init.mjs";
   document.write('<script src="' + src + '"><\/script>');
 })();

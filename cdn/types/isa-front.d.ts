@@ -40,9 +40,10 @@ interface IsaAuth {
 }
 
 interface IsaSession {
-  current(): { username: string; role: string | null; token: string; expiresAt: string | null } | null;
+  current(): { username: string; displayName?: string | null; role: string | null; token: string; expiresAt: string | null } | null;
   isLoggedIn(): boolean;
   username(): string | null;
+  displayName?(): string | null;
   authHeader(): Record<string, string>;
   login(user: string, pass: string): Promise<unknown>;
   logout(): void;
@@ -146,6 +147,7 @@ interface IsaFrontApi {
   stripContapymeEmail?(value: unknown): string;
   formatSessionDisplayName?(value: unknown): string;
   formatSessionChipLabel?(value: unknown, fallback?: string): string;
+  resolveSessionHeaderLabel?(displayName: unknown, username: unknown, fallback?: string): string;
   estimatePromptTokens?(text: unknown): number;
   ensureLazyStylesheet?(href: string): Promise<void>;
   loadLazyScript?(src: string): Promise<void>;

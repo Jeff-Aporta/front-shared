@@ -1,6 +1,8 @@
 /* ISA Front UI Common — layout + scrollbars dodgerblue */
 
-@import "./neon-theme.css";
+@import "./kits/neon-glass/theme.css";
+@import "./kits/neon-glass/glass.css";
+@import "./kits/neon-glass/page.css";
 
 *, *::before, *::after { box-sizing: border-box; }
 
@@ -71,6 +73,13 @@
   & .MuiChip-label {
     color: inherit;
   }
+  & .MuiChip-icon img.header-session-avatar {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-left: 2px;
+  }
 }
 
 .header-session-avatar-btn {
@@ -130,12 +139,13 @@ html[data-mui-color-scheme="light"] .header-session-avatar-btn {
     min-width: min(17.5rem, 88vw);
     max-width: 22rem;
     border-radius: 14px;
-    border: 1px solid rgba(0, 229, 255, 0.24);
-    background: linear-gradient(165deg, rgba(11, 18, 32, 0.94), rgba(15, 23, 42, 0.82));
-    box-shadow:
+    border: 1px solid var(--isa-glass-border-dark, rgba(0, 229, 255, 0.24));
+    background-color: var(--isa-glass-bg-dark, rgba(11, 18, 32, 0.94));
+    background-image: var(--mesh-dark);
+    box-shadow: var(--isa-glass-shadow-dark,
       0 0 0 1px rgba(30, 144, 255, 0.08),
       0 10px 36px rgba(30, 144, 255, 0.14),
-      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      inset 0 1px 0 rgba(255, 255, 255, 0.05));
     text-align: center;
   }
   &__card--compact {
@@ -199,9 +209,10 @@ html[data-mui-color-scheme="light"] .header-session-avatar-btn {
   }
   html[data-mui-color-scheme="light"] & {
     &__card {
-      border-color: rgba(30, 144, 255, 0.2);
-      background: linear-gradient(165deg, rgba(255, 255, 255, 0.98), rgba(240, 247, 255, 0.92));
-      box-shadow: 0 8px 28px rgba(30, 144, 255, 0.1);
+      border-color: var(--isa-glass-border-light, rgba(30, 144, 255, 0.2));
+      background-color: var(--isa-glass-bg-light, rgba(255, 255, 255, 0.98));
+      background-image: var(--mesh-light);
+      box-shadow: var(--isa-glass-shadow-light, 0 8px 28px rgba(30, 144, 255, 0.1));
     }
     &__icon-wrap {
       border-color: rgba(30, 144, 255, 0.28);
@@ -331,13 +342,6 @@ html[data-mui-color-scheme="light"] .header-session-avatar-btn {
 .isa-layout-root > header.MuiAppBar-root .isa-nav-row--secondary .MuiTab-root svg {
   width: 13px !important;
   height: 13px !important;
-}
-
-.panel {
-  border: 1px solid rgba(30, 144, 255, 0.25);
-  border-radius: 12px;
-  padding: 16px 20px;
-  background: rgba(30, 144, 255, 0.04);
 }
 
 .paty-mobile-sidebar-drawer {

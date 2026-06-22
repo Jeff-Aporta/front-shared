@@ -47,8 +47,14 @@
 
     const fmt = window.ISAFront || {};
     const chipLabel = fmt.formatSessionChipLabel || function (n) { return String(n || "").trim(); };
-    const displayName = fmt.formatSessionDisplayName || function (n) { return String(n || "").trim(); };
+    const displayNameFmt = fmt.formatSessionDisplayName || function (n) { return String(n || "").trim(); };
+    const headerLabelFn = fmt.resolveSessionHeaderLabel || function (dn, un, fb) {
+      return chipLabel(dn || un, fb || un || "Usuario");
+    };
     const username = props.username || Session?.username?.() || "";
+    const sessionDisplayName = props.displayName !== undefined
+      ? (props.displayName || "")
+      : (Session?.displayName?.() || "");
     const realUsername = props.realUsername || Session?.realUsername?.() || username;
     const viewAsUsername = props.viewAsUsername !== undefined
       ? (props.viewAsUsername || "")
@@ -60,20 +66,21 @@
       ? props.canViewAs
       : !!(Session?.can && Session.can("session.view_as"))
         || sessionRole.toLowerCase() === "admin";
-    const displayLabel = viewAsUsername
-      ? chipLabel(realUsername, realUsername) + " → " + chipLabel(viewAsUsername, viewAsUsername)
-      : chipLabel(username, username);
+    const headerLabel = viewAsUsername
+      ? headerLabelFn("", realUsername, realUsername) + " → " + headerLabelFn("", viewAsUsername, viewAsUsername)
+      : headerLabelFn(sessionDisplayName, username, username || "Usuario");
     const tooltipLabel = viewAsUsername
-      ? displayName(realUsername) + " → " + displayName(viewAsUsername)
-      : displayName(username);
+      ? displayNameFmt(sessionDisplayName || realUsername) + " → " + displayNameFmt(viewAsUsername)
+      : displayNameFmt(sessionDisplayName || username);
     const chipSx = props.chipSx || {};
-    const theme = MUI.useTheme();
-    const compactHeader = MUI.useMediaQuery(theme.breakpoints.down("md"));
-    const avatarName = viewAsUsername || username;
+    const avatarName = viewAsUsername
+      ? (displayNameFmt(viewAsUsername) || viewAsUsername)
+      : (sessionDisplayName || username);
     const avatarUrl = props.buildAvatarUrl
       ? props.buildAvatarUrl(avatarName, 64)
       : buildAvatarUrl(avatarName, 64);
-    const ariaLabel = tooltipLabel + (sessionRole ? " · rol " + sessionRole : "");
+    const ariaLabel = (tooltipLabel || headerLabel) + (sessionRole ? " · rol " + sessionRole : "");
+    const useChipFallback = !Icon && !String(sessionDisplayName || "").trim();
 
     function closeMenu() { setAnchor(null); }
 
@@ -163,32 +170,50 @@
           props.signalDot || null,
           React.createElement(
             MUI.Tooltip,
-            { title: (sessionRole ? tooltipLabel + " · rol " + sessionRole : tooltipLabel) + " — menú", arrow: true },
-            compactHeader
-              ? React.createElement(MUI.IconButton, {
+            { title: (sessionRole ? (tooltipLabel || headerLabel) + " · rol " + sessionRole : (tooltipLabel || headerLabel)) + " — menú", arrow: true },
+            useChipFallback
+              ? React.createElement(MUI.Chip, {
                 size: "small",
-                className: "header-session-avatar-btn" + (viewAsUsername ? " header-session-avatar-btn--view-as" : ""),
+                variant: "filled",
+                className: "header-session-chip",
+                clickable: true,
+                label: headerLabel,
                 onClick: function (e) { setAnchor(e.currentTarget); },
+                sx: Object.assign({ cursor: "pointer" }, chipSx, viewAsUsername ? {
+                  bgcolor: "rgba(245, 158, 11, 0.18)",
+                  border: "1px solid rgba(245, 158, 11, 0.45)",
+                } : {}),
                 "aria-label": ariaLabel,
                 "aria-haspopup": "true",
                 "aria-expanded": open ? "true" : "false",
-              }, React.createElement("img", {
-                className: "header-session-avatar",
-                src: avatarUrl,
-                alt: "",
-                decoding: "async",
-                loading: "lazy",
-                width: 32,
-                height: 32,
-              }))
+              })
               : React.createElement(MUI.Chip, {
                 size: "small",
                 variant: "filled",
                 className: "header-session-chip",
                 clickable: true,
-                label: displayLabel,
+                icon: Icon
+                  ? React.createElement(Icon, { icon: "mdi:account-circle-outline", size: 18 })
+                  : React.createElement("img", {
+                    className: "header-session-avatar",
+                    src: avatarUrl,
+                    alt: "",
+                    decoding: "async",
+                    loading: "lazy",
+                    width: 18,
+                    height: 18,
+                    style: { borderRadius: "50%", marginLeft: 4 },
+                  }),
+                label: headerLabel,
                 onClick: function (e) { setAnchor(e.currentTarget); },
-                sx: Object.assign({ cursor: "pointer" }, chipSx, viewAsUsername ? {
+                sx: Object.assign({
+                  cursor: "pointer",
+                  height: "auto",
+                  minHeight: 28,
+                  py: 0.375,
+                  px: 1.25,
+                  "& .MuiChip-label": { px: 0.25, py: 0.25 },
+                }, chipSx, viewAsUsername ? {
                   bgcolor: "rgba(245, 158, 11, 0.18)",
                   border: "1px solid rgba(245, 158, 11, 0.45)",
                 } : {}),

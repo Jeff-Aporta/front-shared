@@ -490,6 +490,7 @@
               ? React.createElement(window.ISAFront.UI.UserSessionMenu, {
                   ns: props.ns,
                   username: Session?.username?.() || Auth.username(),
+                  displayName: Session?.displayName?.() || "",
                   role: Auth.role?.() || Session?.current?.()?.role || "",
                   onLogout: function () { Auth.logout(); },
                   showTarget: showTarget,

@@ -3,10 +3,14 @@
   "version": "0.1.1",
   "description": "CDN, worker-swagger y worker-unit-test compartidos (Jeff-Aporta).",
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": [
+    "cdn/isa/js/**/*.js",
+    "cdn/isa/js/index.js"
+  ],
   "files": [
     "dist",
     "cdn",
+    "cdn/_dist",
     "cloudflare-workers",
     "README.md"
   ],
@@ -65,6 +69,10 @@
   "scripts": {
     "embed:templates": "node worker-swagger/embed-templates.mjs",
     "build": "npm run embed:templates && tsc -p tsconfig.build.json",
+    "build:cdn-dist": "node scripts/build-cdn-dist.mjs",
+    "build:neon-glass-demo": "node scripts/build-neon-glass-demo.mjs",
+    "build:cdn": "npm run sync:core-shims && npm run build:cdn-dist && npm run build:neon-glass-demo",
+    "sync:core-shims": "node scripts/write-core-shims.mjs",
     "prepublishOnly": "npm run build",
     "refresh:mui-llms": "curl -fsSL -o docs/mui-llms.txt https://mui.com/material-ui/llms.txt"
   },
@@ -74,12 +82,19 @@
     "jose": "^5.9.0"
   },
   "peerDependenciesMeta": {
-    "@hono/swagger-ui": { "optional": true },
-    "hono": { "optional": true },
-    "jose": { "optional": true }
+    "@hono/swagger-ui": {
+      "optional": true
+    },
+    "hono": {
+      "optional": true
+    },
+    "jose": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@hono/swagger-ui": "^0.5.1",
+    "esbuild": "^0.25.12",
     "hono": "^4.6.14",
     "jose": "^5.9.6",
     "typescript": "^5.8.2"

@@ -1,0 +1,28 @@
+{
+  "slug": "neon-glass",
+  "meta": {
+    "title": "neon-glass — catálogo",
+    "applicationName": "neon-glass",
+    "description": "Catálogo de superficies glass neon tech reutilizables — MUI + ISAFront.Glass (front-shared).",
+    "keywords": "glass, neon, MUI, jeff-aporta, CDN, tk-doc, ISAFront.Glass",
+    "themeColor": "#1e90ff",
+    "themeLsKey": "jeffaporta:neon-glass-demo-theme",
+    "icon": "mdi:palette-swatch-outline",
+    "canonical": "https://jeff-aporta.github.io/front-shared/neon-glass/",
+    "ogSiteName": "Jeff-Aporta",
+    "ogTitle": "neon-glass — Jeff-Aporta",
+    "imageAlt": "Demo neon-glass con cards, toolbars y tablas glass"
+  },
+  "useDist": true,
+  "importMap": true,
+  "fonts": false,
+  "loader": "mjs-module",
+  "themeInit": true,
+  "appMeta": false,
+  "headIndent": "  ",
+  "viewport": "width=device-width, initial-scale=1",
+  "styles": ["local:css/demo.css"],
+  "componentStyles": ["cdn/neon-glass.min.css"],
+  "preconnect": ["https://esm.sh", "https://code.iconify.design"],
+  "libs": ["iconify", "loader-mjs"]
+}

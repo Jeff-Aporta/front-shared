@@ -46,7 +46,7 @@ Tras un `POST /api/isa/{project}/checks` exitoso, el orquestador emite a todos l
 
 | Módulo | Descripción |
 |--------|-------------|
-| `cdn/isa/js/core/realtime.js` | Cliente WebSocket + reconexión + evento `isa:realtime` |
+| `cdn/isa/js/core/realtime/realtime.js` | Cliente WebSocket + reconexión + evento `isa:realtime` (shim: `core/realtime.js`) |
 | `cdn/isa/js/ui/toast.js` | Toasts DOM ligeros (`ISAFront.showToast`) |
 
 ## Registro (opt-in)

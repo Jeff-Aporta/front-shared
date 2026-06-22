@@ -1,4 +1,4 @@
-import { DODGER } from "../core/constants.js";
+import { DODGER } from "../core/config/constants.js";
 
 const NEON = {
   blue: DODGER,

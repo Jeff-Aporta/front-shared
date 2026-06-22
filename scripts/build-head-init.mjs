@@ -16,8 +16,8 @@ const ref = versions.frontSharedRef || "9318276";
 
 const parts = [
   join(cdn, "base-href.js"),
-  join(cdn, "isa/js/core/app-meta.js"),
-  join(cdn, "isa/js/core/theme-init.mjs"),
+  join(cdn, "isa/js/core/platform/app-meta.js"),
+  join(cdn, "isa/js/core/boot/theme-init.mjs"),
   join(cdn, "src/head-init-tail.js"),
 ];
 

@@ -1,5 +1,5 @@
 /** CodeMirror 5 — panel reutilizable con botón copiar (ISAFront). */
-import { ensureCodeMirrorLoaded, ensureCodeMirrorStyles } from "../core/lazy-assets.js";
+import { ensureCodeMirrorLoaded, ensureCodeMirrorStyles } from "../core/util/lazy-assets.js";
 import { attachFoldGutterIcons } from "./code-mirror-fold-gutter.js";
 
 export function ensureCodeMirrorCss() {
@@ -167,10 +167,14 @@ function syncCmFillSize(cm, host) {
 
 function syncCmBoundedSize(cm, maxHeight, host, minHeight) {
   if (!cm || !maxHeight) return;
-  const minH = parseCssLength(minHeight ?? "5rem", 80);
+  const minH = parseCssLength(minHeight ?? "0", 0);
   const maxH = parseCssLength(maxHeight, 160);
-  const h = Math.max(maxH, minH);
   const wrap = cm.getOption?.("lineWrapping") === true;
+
+  cm.refresh();
+  const contentH = cm.getScrollInfo?.().height || minH;
+  const pad = 4;
+  const h = Math.min(Math.max(contentH + pad, minH), maxH);
 
   const chain = [
     host?.closest?.(".isa-cm-panel--bounded"),

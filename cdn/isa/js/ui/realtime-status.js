@@ -1,4 +1,4 @@
-import { REALTIME_STATUS_EVENT, realtimeStatusTip, realtimeDotTone } from "../core/realtime.js";
+import { REALTIME_STATUS_EVENT, realtimeStatusTip, realtimeDotTone } from "../core/realtime/realtime.js";
 
 /** UI compartida — dot de conexión WebSocket del orquestador (CF Realtime). */
 export function createRealtimeStatusUI(React, MUI, ns) {

@@ -13,11 +13,16 @@ apps/components/front-shared/
 │   ├── importmap.html         # pins esm.sh
 │   ├── versions.json
 │   ├── isa/                   # Runtime ESM (.js, sin build) — lógica + widgets base
-│   │   ├── css/base.css
+│   │   ├── css/
+│   │   │   ├── base.css
+│   │   │   └── kits/neon-glass/neon-glass.css  # un archivo por look & feel
 │   │   └── js/
 │   │       ├── index.js       # window.ISAFront
-│   │       ├── core/          # config, auth, constants, register-app
-│   │       └── ui/            # theme, widgets, login-gate
+│   │       ├── core/          # boot, config, auth, http, caps, …
+│   │       └── ui/kits/       # neon-glass, kit-assets (lazy CSS)
+│   ├── _dist/                 # npm run build:cdn — minificado para jsDelivr prod
+│   │   ├── manifest.json
+│   │   └── isa/css|js/*.min.*
 │   └── ui/                    # TSX compartido (Babel en runtime, homogeneidad visual)
 │       └── layouts/
 │           └── AppShell.jsx   # AppBar + tema + TargetSwitch + LoginGate
@@ -52,7 +57,8 @@ index.html (import map + Babel)
 
 - **Estilos:** `isa/css/base.css` + tema dodgerblue (`Theme.useThemeMode`).
 - **Shell:** `ISAFront.Layout.AppShell({ ns, navRows, toolbarExtra, children })` — `navRows[0]` (tier `primary`) en toolbar del AppBar; `navRows[1+]` (tier `secondary` por defecto) compactos (26px) bajo la barra vía AppShell + `base.css` + tema dodger; chip Local/Producción + body sin scroll global.
-- **Login modal:** estándar único en `ui/login-button.js` + `ui/login-surface.js` (`isa-login-dialog`, `LoginHeaderBand`, `contapymeLoginTextFieldProps`, botones Cancelar/Entrar). **No duplicar** modales de login en apps — usar `UI.LoginButton` registrado vía `registerApp({ loginButton: … })`.
+- **Login modal:** estándar único en `ui/kits/neon-glass/login/` (`login-button.js`, `login-surface.js`, `login-form-fields.js`, `login-gate.js`). **No duplicar** modales de login en apps — usar `UI.LoginButton` registrado vía `registerApp({ loginButton: … })`.
+- **Kits visuales:** `ISAFront.Kits` + `ISAFront.activeKit`. Kit por defecto: **neon-glass** (`ui/kits/neon-glass/`) — `ISAFront.Glass`, `GlassCard`, `GlassPageSurface`, `useGlassColors`, etc. CSS en `css/kits/neon-glass/` (importados por `base.css`). Rutas legacy en `ui/login-*.js` y `ui/neon-glass/` reexportan el kit. Catálogo visual: [demo/neon-glass](https://jeff-aporta.github.io/front-shared/neon-glass/) (GH Pages del mismo repo).
 - **Tabs:** `NavTabRow`, `ViewFrame` (tercer nivel dentro de vistas).
 - **Auth / API local-prod:** `ISAFront.registerApp({ ns, api, … })` en `js/core/isa-setup.ts` (único archivo por app).
 
@@ -64,7 +70,7 @@ Cuando se modifica o pushea **`components/front-shared`**, propagar el pin y ref
 cd Personal/apps/src/scripts
 npm run sync:front-shared-ref:git    # HEAD → versions.json + pins @commit en fronts
 npm run sync:cdn-refs:git             # stack/base.css y assets CDN alineados
-npm run sync:component-refs:git       # swagger, lightbox, neon-glass
+npm run sync:component-refs:git       # swagger, lightbox
 ```
 
 Opcional por app: `npm run gen:front-dist -- --slug <app>` si el front usa `_dist`.
@@ -89,8 +95,17 @@ Ver también `push-personal` — el push de front-shared debe ir seguido de sync
 
 Un solo repo GitHub **`Jeff-Aporta/front-shared`**, rama `@main` en jsDelivr:
 
-- `…/cdn/isa/js/index.js`
+- **Producción (recomendado):** `…/cdn/_dist/isa/js/index.min.js` — `boot-helper` lo usa fuera de localhost.
+- **Desarrollo / fuente:** `…/cdn/isa/js/index.js`
 - `…/cdn/ui/layouts/AppShell.jsx`
 - `…/cdn/stack.mjs`
 
-Local monorepo: `boot-resolver.mjs` + `boot-helper.mjs` desde `apps/components/front-shared/cdn/`; assets (stack/isa/ui) vía jsDelivr.
+Tras cambiar `cdn/isa/` o CSS de kits: `npm run build:cdn` y commit de `cdn/_dist/`.
+
+### Look & feel (kits)
+
+- Un CSS por kit: `cdn/isa/css/kits/<id>/<id>.css` (p. ej. `neon-glass/neon-glass.css`).
+- El CSS del kit **no** va en `index.html`; `attachDefaultKit()` lo inyecta lazy (`ensureKitCss`).
+- Chunk JS opcional: `cdn/_dist/isa/js/kits/<id>.min.js` vía `ISAFront.loadKitModule(id)`.
+
+Local monorepo: `boot-resolver.mjs` + `boot-helper.mjs` desde `apps/components/front-shared/cdn/`; runtime ISA desde `cdn/_dist/` (minificado). Para depurar fuente: `window.__ISA_CDN_SRC__ = true` antes del boot (requiere grafo sin JSX en imports estáticos).

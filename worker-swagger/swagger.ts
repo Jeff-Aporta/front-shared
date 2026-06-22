@@ -43,7 +43,7 @@ export type OpenApiSpec = {
 };
 
 export const SYSTEM_LOGIN_URL_PROD = "https://system-login.jeffaporta.workers.dev";
-export const SYSTEM_LOGIN_URL_LOCAL = "http://localhost:8781";
+export const SYSTEM_LOGIN_URL_LOCAL = "http://localhost:8791";
 
 export type MountSwaggerOpts = {
   docPath?: string;

@@ -17,6 +17,7 @@ Recursos compartidos para micro-frontends Jeff-Aporta (GH Pages + Babel + MUI 9)
 | `cdn/versions.json`, `boot-esm-imports.mjs` | Pin esm.sh (import map + module-graph) |
 | `cdn/isa/js/core/app-meta.js` | Metadatos HTML por front (title, OG, favicon vía Iconify API) |
 | `cdn/isa/` | Runtime JS: `ISAFront.registerApp`, tema, auth, widgets, login |
+| `cdn/_dist/` | **Build minificado** para jsDelivr (`npm run build:cdn`) |
 | `cdn/ui/` | **JSX compartidos** (layouts/componentes) vía jsDelivr + Babel |
 | `docs/` | Stack, MUI llms, CORS, deploy |
 | `worker-swagger/` | OpenAPI Workers (no CDN) |
@@ -85,7 +86,7 @@ Todos los micro-frontends ISA usan **una sola URL**, definida solo aquí:
 | Local | `MAIN_ORCHESTRATOR_URL_LOCAL` | `http://localhost:8780` |
 | Panel hub (GH Pages) | `MAIN_ORCHESTRATOR_PAGES_URL` | `https://jeff-aporta.github.io/main-orchestrator-front/` |
 
-Archivo: `cdn/isa/js/core/constants.js`
+Archivo: `cdn/isa/js/core/config/constants.js`
 
 Los fronts **no** repiten la URL en `isa-setup.ts`; `registerApp()` aplica estos defaults.
 
@@ -93,13 +94,29 @@ Tras cambiar la URL: **push a front-shared** (jsDelivr) y redeploy del worker `m
 
 ## jsDelivr
 
+**Producción** (minificado, vía `boot-helper`):
+
 ```
-https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@main/cdn/isa/css/base.css
-https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@main/cdn/isa/js/index.js
-https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@main/cdn/ui/layouts/AppShell.jsx
+https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@{pin}/cdn/_dist/isa/js/index.min.js
+https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@{pin}/cdn/_dist/isa/css/base.min.css
 ```
 
-Local (Live Server en monorepo): los loaders importan `boot-resolver.mjs` y `boot-helper.mjs` desde `apps/components/front-shared/cdn/`; **stack, isa y ui** siguen yendo a jsDelivr. GH Pages: todo el arranque desde jsDelivr.
+**Fuente** (debug local o `__ISA_CDN_SRC__`):
+
+```
+https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@{pin}/cdn/isa/js/index.js
+https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@{pin}/cdn/isa/css/base.css
+```
+
+Kit look & feel (lazy, un archivo): `…/_dist/isa/css/kits/neon-glass.min.css` — no enlazar en HTML; lo carga `ISAFront.ensureKitCss('neon-glass')`.
+
+## Build CDN (`_dist`)
+
+```bash
+cd apps/components/front-shared && npm run build:cdn
+```
+
+Genera `cdn/_dist/` (CSS/JS minificados + `manifest.json`). Commitear tras cambios en runtime o kits.
 
 ## MUI llms
 

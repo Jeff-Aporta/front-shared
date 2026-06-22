@@ -7,6 +7,7 @@ const MODULES = [
   { icon: "mdi:shield-key-outline", title: "Auth", desc: "Sesión compartida vía system-login." },
   { icon: "mdi:code-braces", title: "Boot", desc: "stack.mjs, boot-helper, import maps." },
   { icon: "mdi:bell-outline", title: "Toast", desc: "Feedback y notificaciones MUI." },
+  { icon: "mdi:palette-swatch-outline", title: "neon-glass", desc: "Kit glass — catálogo en demo/neon-glass/." },
   { icon: "mdi:github", title: "CDN", desc: "jsDelivr gh/Jeff-Aporta/front-shared@pin/cdn" },
 ];
 
