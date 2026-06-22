@@ -148,9 +148,7 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
         if (e?.code === "MULTI_EMPRESA" && Array.isArray(e.terceros) && e.terceros.length) {
           setTerceros(e.terceros);
           setSelectedItercero(String(e.terceros[0]?.itercero || ""));
-          const msg = sanitizeLoginError(e instanceof Error ? e.message : String(e));
-          setErr(msg);
-          toast("warning", msg);
+          setErr("");
           return;
         }
         const msg = sanitizeLoginError(e instanceof Error ? e.message : String(e));

@@ -286,7 +286,7 @@ export function createLoginPageFormComponent(React, MUI, defaultNs) {
         if (e?.code === "MULTI_EMPRESA" && Array.isArray(e.terceros) && e.terceros.length) {
           setTerceros(e.terceros);
           setSelectedItercero(String(e.terceros[0]?.itercero || ""));
-          setErr(e?.message || String(e));
+          setErr("");
           return;
         }
         setErr(e?.message || String(e));
