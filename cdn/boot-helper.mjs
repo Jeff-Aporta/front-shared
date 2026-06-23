@@ -17,11 +17,9 @@ function useCdnDist() {
 }
 
 function resolveCdnBase() {
-  if (isLocalHost()) {
-    try {
-      return new URL("./", import.meta.url).href;
-    } catch (_) { /* ignore */ }
-  }
+  try {
+    return new URL("./", import.meta.url).href;
+  } catch (_) { /* ignore */ }
   return "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@" + FRONT_SHARED_REF + "/cdn/";
 }
 
