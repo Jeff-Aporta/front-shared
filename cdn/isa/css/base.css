@@ -437,6 +437,18 @@ html {
   box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.28);
 }
 
+/* Tooltips MUI — no bloquean hover/clicks bajo el popper (default todas las apps ISA). */
+.MuiTooltip-popper,
+.MuiTooltip-tooltip {
+  pointer-events: none !important;
+}
+
+/* Casos excepcionales con contenido clickeable: slotProps.popper.className = "isa-tooltip--interactive" */
+.MuiTooltip-popper.isa-tooltip--interactive,
+.MuiTooltip-popper.isa-tooltip--interactive .MuiTooltip-tooltip {
+  pointer-events: auto !important;
+}
+
 
 @media (max-width: 899px) {
   .isa-app-brand {

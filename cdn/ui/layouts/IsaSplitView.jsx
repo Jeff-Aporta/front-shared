@@ -43,6 +43,16 @@
     const panelWidth = panel.collapsed ? COLLAPSED_W : panel.width;
     const showResize = !drawerMode && !panel.collapsed;
 
+    function expandPanel() {
+      if (panel.collapsed) panel.toggleCollapsed();
+    }
+
+    const collapsedRailContent = panel.collapsed && props.collapsedRail
+      ? (typeof props.collapsedRail === "function"
+        ? props.collapsedRail({ expand: expandPanel, UI: UI })
+        : props.collapsedRail)
+      : null;
+
     const headInner = panel.collapsed
       ? React.createElement(
           Tooltip,
@@ -142,6 +152,24 @@
               )
             : null,
         ),
+        collapsedRailContent
+          ? React.createElement(
+            Box,
+            {
+              className: "isa-split-view__collapsed-rail",
+              sx: {
+                flex: 1,
+                minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 0.5,
+                py: 1,
+              },
+            },
+            collapsedRailContent,
+          )
+          : null,
         !panel.collapsed
           ? React.createElement(
               Box,

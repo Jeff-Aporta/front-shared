@@ -170,7 +170,7 @@
           props.signalDot || null,
           React.createElement(
             MUI.Tooltip,
-            { title: (sessionRole ? (tooltipLabel || headerLabel) + " · rol " + sessionRole : (tooltipLabel || headerLabel)) + " — menú", arrow: true },
+            { title: tooltipLabel || headerLabel, arrow: true },
             useChipFallback
               ? React.createElement(MUI.Chip, {
                 size: "small",

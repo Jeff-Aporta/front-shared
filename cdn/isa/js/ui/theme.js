@@ -248,6 +248,19 @@ export const dodgerComponentOverrides = {
       },
     },
   },
+  MuiTooltip: {
+    defaultProps: {
+      disableInteractive: true,
+    },
+    styleOverrides: {
+      popper: {
+        pointerEvents: "none",
+      },
+      tooltip: {
+        pointerEvents: "none",
+      },
+    },
+  },
 };
 
 export function makeDodgerTheme(MUI, mode) {
