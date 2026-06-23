@@ -3,6 +3,7 @@ import { formatLocalDateTime, resolveSessionHeaderLabel, normalizeContapymeLogin
 import { readLoginCredentials, saveLoginCredentials } from "../../../../core/auth/login-credentials.js";
 import { LoginHeaderBand, loginDialogProps, resolveLoginUi } from "./login-surface.js";
 import { createLoginFormFields, createLoginActionButtons, loginFormContentSx } from "./login-form-fields.js";
+import { loginWithInsoftAutoRetry, defaultIterceroFromTerceros } from "./login-multiempresa.js";
 /**
  * Botón de sesión + modal login (MUI). Usa window[ns].Session → main-orchestrator /api/auth/token.
  * Opciones: showRealtimeDot, showPasswordToggle, showRemember, showExpiryInTooltip.
@@ -131,11 +132,14 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
       setErr("");
       try {
         if (showRemember) saveLoginCredentials(formatContapymeLoginInput(user) || user.trim(), pass, remember);
-        const itercero = String(
-          selectedItercero || (terceros.length ? terceros[0]?.itercero : "") || "",
-        ).trim();
+        const itercero = String(selectedItercero || "").trim();
         const loginOpts = itercero ? { itercero } : {};
-        const session = await auth.login(loginId, pass, loginOpts);
+        const session = await loginWithInsoftAutoRetry(
+          (id, p, o) => auth.login(id, p, o),
+          loginId,
+          pass,
+          loginOpts,
+        );
         setPass("");
         setShowPass(false);
         setTerceros([]);
@@ -147,7 +151,7 @@ export function createLoginButton(React, MUI, ns, opts = {}) {
       } catch (e) {
         if (e?.code === "MULTI_EMPRESA" && Array.isArray(e.terceros) && e.terceros.length) {
           setTerceros(e.terceros);
-          setSelectedItercero(String(e.terceros[0]?.itercero || ""));
+          setSelectedItercero(defaultIterceroFromTerceros(e.terceros));
           setErr("");
           return;
         }

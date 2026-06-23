@@ -93,8 +93,19 @@
               noWrap: true,
             }, panelTitle)
             : null,
-          props.panelHeaderEnd || null,
         );
+
+    const headEnd = !panel.collapsed && props.panelHeaderEnd
+      ? React.createElement(
+          Box,
+          {
+            className: "isa-split-view__panel-head-end",
+            onClick: function (e) { e.stopPropagation(); },
+            onKeyDown: function (e) { e.stopPropagation(); },
+          },
+          props.panelHeaderEnd,
+        )
+      : null;
 
     const panelSx = Object.assign(
       {
@@ -140,6 +151,7 @@
           Box,
           { className: "isa-split-view__panel-head", sx: { flexShrink: 0 } },
           headInner,
+          headEnd,
           props.onClose
             ? React.createElement(
                 Tooltip,

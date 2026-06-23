@@ -13,6 +13,7 @@ import {
 } from "./login-surface.js";
 import { readLoginCredentials, saveLoginCredentials } from "../../../../core/auth/login-credentials.js";
 import { normalizeContapymeLoginId, formatContapymeLoginInput } from "../../../../core/util/format.js";
+import { loginWithInsoftAutoRetry, defaultIterceroFromTerceros } from "./login-multiempresa.js";
 
 export function loginFormActionsSx() {
   return {
@@ -277,15 +278,19 @@ export function createLoginPageFormComponent(React, MUI, defaultNs) {
         if (props.showRemember !== false) saveLoginCredentials(formatContapymeLoginInput(user) || user.trim(), pass, remember);
         const loginOpts = { remember };
         if (selectedItercero) loginOpts.itercero = selectedItercero;
-        else if (terceros.length) loginOpts.itercero = String(terceros[0]?.itercero || "").trim();
-        await props.onLogin(loginId, pass, loginOpts);
+        await loginWithInsoftAutoRetry(
+          (id, p, o) => props.onLogin(id, p, o),
+          loginId,
+          pass,
+          loginOpts,
+        );
         setTerceros([]);
         setSelectedItercero("");
         props.onSuccess?.();
       } catch (e) {
         if (e?.code === "MULTI_EMPRESA" && Array.isArray(e.terceros) && e.terceros.length) {
           setTerceros(e.terceros);
-          setSelectedItercero(String(e.terceros[0]?.itercero || ""));
+          setSelectedItercero(defaultIterceroFromTerceros(e.terceros));
           setErr("");
           return;
         }
