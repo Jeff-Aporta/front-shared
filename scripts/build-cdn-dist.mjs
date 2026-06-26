@@ -22,8 +22,19 @@ const ref = versions.frontSharedRef || "main";
 const REACT_BANNER =
   "const React=globalThis.React;const MaterialUI=globalThis.MaterialUI;const ReactDOM=globalThis.ReactDOM;";
 
+function readBaseCssBundled() {
+  const kitParts = [
+    "isa/css/kits/neon-glass/theme.css",
+    "isa/css/kits/neon-glass/glass.css",
+    "isa/css/kits/neon-glass/page.css",
+    "isa/css/kits/neon-glass/split-view.css",
+  ].map((rel) => readFileSync(join(cdn, rel), "utf8"));
+  const baseBody = readFileSync(join(cdn, "isa/css/base.css"), "utf8").replace(/@import\s+[^;]+;/g, "");
+  return kitParts.join("\n") + "\n" + baseBody;
+}
+
 const CSS_BUNDLES = [
-  { out: "isa/css/base.min.css", src: ["isa/css/base.css"] },
+  { out: "isa/css/base.min.css", bundle: readBaseCssBundled },
   { out: "isa/css/feedback.min.css", src: ["isa/css/feedback.css"] },
   { out: "isa/css/code-mirror.min.css", src: ["isa/css/code-mirror.css"] },
   { out: "isa/css/kits/neon-glass.min.css", src: ["isa/css/kits/neon-glass/neon-glass.css"] },
@@ -40,13 +51,13 @@ function ensureDir(filePath) {
 
 function buildCss() {
   const manifest = {};
-  for (const { out, src } of CSS_BUNDLES) {
-    const raw = src.map((rel) => readFileSync(join(cdn, rel), "utf8")).join("\n");
+  for (const { out, src, bundle } of CSS_BUNDLES) {
+    const raw = bundle ? bundle() : src.map((rel) => readFileSync(join(cdn, rel), "utf8")).join("\n");
     const min = minifyCss(raw);
     const dest = join(dist, out);
     ensureDir(dest);
     writeFileSync(dest, min, "utf8");
-    manifest[out] = { bytes: Buffer.byteLength(min), src };
+    manifest[out] = { bytes: Buffer.byteLength(min), src: src || ["bundled"] };
     console.log("  css", out, `(${manifest[out].bytes} B)`);
   }
   return manifest;

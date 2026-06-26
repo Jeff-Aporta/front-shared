@@ -8,11 +8,16 @@ const JSDELIVR_CDN = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@" + F
 
 /** Raíz `cdn/` sin barra final (local Live Server). */
 export function resolveCdnRoot() {
-  if (typeof location !== "undefined" && /localhost|127\.0\.0\.1|\[::1\]/.test(location.hostname)) {
-    try {
-      return new URL("../../../../", import.meta.url).href.replace(/\/?$/, "");
-    } catch (_) { /* ignore */ }
-  }
+  try {
+    const meta = new URL(import.meta.url);
+    if (
+      meta.protocol === "file:"
+      && typeof location !== "undefined"
+      && /localhost|127\.0\.0\.1|\[::1\]/.test(location.hostname)
+    ) {
+      return new URL("../../../../", meta).href.replace(/\/?$/, "");
+    }
+  } catch (_) { /* ignore */ }
   return JSDELIVR_CDN;
 }
 

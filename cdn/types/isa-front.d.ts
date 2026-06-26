@@ -110,6 +110,8 @@ interface AppShellProps {
   toolbarExtra?: ReactNode;
   toolbarActions?: ReactNode;
   toolbarEnd?: ReactNode;
+  /** Fila compacta bajo nav secundaria (p. ej. exports IS-Swagger). */
+  headerSub?: ReactNode;
   showTarget?: boolean;
   showTheme?: boolean;
   showAuthChip?: boolean;

@@ -6,6 +6,22 @@ const NEON = {
   purple: "#6366f1",
 };
 
+/** Velo Menu/Popover — 10% oscuridad + blur sutil. */
+export function contextMenuBackdropSx(theme) {
+  const dark = theme?.palette?.mode === "dark";
+  return {
+    backgroundColor: dark ? "rgba(0, 0, 0, 0.1)" : "rgba(10, 37, 64, 0.1)",
+    backdropFilter: "blur(4px)",
+    WebkitBackdropFilter: "blur(4px)",
+    opacity: 1,
+  };
+}
+
+const contextMenuBackdropSlot = {
+  invisible: false,
+  sx: (theme) => contextMenuBackdropSx(theme),
+};
+
 /** Sub-nav AppShell (navRows[1+], tier secondary) — ~60% del alto MUI default. */
 export const SUB_NAV_TAB_H = 26;
 const SUB_NAV_TABS = ".isa-layout-root > header.MuiAppBar-root > &";
@@ -233,11 +249,30 @@ export const dodgerComponentOverrides = {
   },
   MuiBackdrop: {
     styleOverrides: {
-      root: ({ theme }) => ({
-        backgroundColor: theme.palette.mode === "dark"
-          ? "rgba(3, 8, 16, 0.72)"
-          : "rgba(10, 37, 64, 0.32)",
-      }),
+      root: ({ theme }) => {
+        const menuVeil = theme.palette.mode === "dark" ? "rgba(0, 0, 0, 0.1)" : "rgba(10, 37, 64, 0.1)";
+        const modalVeil = theme.palette.mode === "dark" ? "rgba(3, 8, 16, 0.72)" : "rgba(10, 37, 64, 0.32)";
+        return {
+          "&.MuiBackdrop-invisible": { backgroundColor: "transparent" },
+          "&:not(.MuiBackdrop-invisible)": { backgroundColor: modalVeil },
+          ".MuiMenu-root &, .MuiPopover-root &": {
+            backgroundColor: menuVeil,
+            backdropFilter: "blur(4px)",
+            WebkitBackdropFilter: "blur(4px)",
+            opacity: "1 !important",
+          },
+        };
+      },
+    },
+  },
+  MuiMenu: {
+    defaultProps: {
+      slotProps: { backdrop: contextMenuBackdropSlot },
+    },
+  },
+  MuiPopover: {
+    defaultProps: {
+      slotProps: { backdrop: contextMenuBackdropSlot },
     },
   },
   MuiIconButton: {

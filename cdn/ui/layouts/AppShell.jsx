@@ -505,8 +505,8 @@
           showLogout && Auth
             ? React.createElement(MUI.Button, { size: "small", onClick: function () { Auth.logout(); } }, "Salir")
             : null,
-          showTheme ? React.createElement(UI.ThemeSwitch, { mode: tm.mode, onToggle: tm.toggle }) : null,
           props.toolbarEnd || null,
+          showTheme ? React.createElement(UI.ThemeSwitch, { mode: tm.mode, onToggle: tm.toggle }) : null,
         ),
       ),
       subNavRows.length
@@ -516,6 +516,26 @@
               sx: Object.assign({ px: 0.75, borderTop: 1, borderColor: "divider" }, row.sx || {}),
             }));
           })
+        : null,
+      props.headerSub
+        ? React.createElement(
+            MUI.Box,
+            {
+              className: "isa-header-sub",
+              sx: {
+                borderTop: 1,
+                borderColor: "divider",
+                flexShrink: 0,
+                display: "flex",
+                alignItems: "center",
+                minHeight: 26,
+                maxHeight: 30,
+                px: 0.75,
+                overflow: "hidden",
+              },
+            },
+            props.headerSub,
+          )
         : null,
     );
 

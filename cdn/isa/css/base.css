@@ -466,4 +466,18 @@ html {
 
 }
 
+/* Menús contextuales (Menu/Popover) — velo 10% + blur sutil */
+.MuiMenu-root > .MuiBackdrop-root,
+.MuiPopover-root > .MuiBackdrop-root {
+  opacity: 1 !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html[data-mui-color-scheme="light"] .MuiMenu-root > .MuiBackdrop-root,
+html[data-mui-color-scheme="light"] .MuiPopover-root > .MuiBackdrop-root {
+  background-color: rgba(10, 37, 64, 0.1) !important;
+}
+
 /* nest-css-max:processed */
