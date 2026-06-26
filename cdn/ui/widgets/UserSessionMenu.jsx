@@ -20,6 +20,11 @@
     return "https://ui-avatars.com/api/?" + params.toString();
   }
 
+  function isLocalHost() {
+    const h = window.location?.hostname || "";
+    return h === "localhost" || /^127\.0\.0(?:\.|$)/.test(h) || h === "::1" || h === "[::1]";
+  }
+
   function UserSessionMenu(props) {
     const ns = props.ns || "ISA";
     const bag = window[ns] || {};
@@ -150,6 +155,7 @@
     function envSwitchAllowed() {
       if (props.showTarget === false) return false;
       if (props.showTarget === true) return true;
+      if (isLocalHost()) return true;
       const Session = bag.Session;
       return !!(Session && Session.can && Session.can("infra.target.switch"));
     }

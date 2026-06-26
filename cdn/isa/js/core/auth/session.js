@@ -1,4 +1,4 @@
-import { AUTH_DEFAULTS as D, MAIN_ORCHESTRATOR_LS_KEY } from "../config/constants.js";
+import { AUTH_DEFAULTS as D } from "../config/constants.js";
 import { wrapPassword } from "./caesar.js";
 import { createTokenStore, isTokenValid } from "./token-store.js";
 import { blockReasonFor, resolveCapId } from "../caps/capabilities.js";
@@ -24,11 +24,6 @@ export function registerSession(ns, opts = {}) {
   const store = createTokenStore(sessionKey);
 
   function authBase() {
-    try {
-      if (localStorage.getItem(MAIN_ORCHESTRATOR_LS_KEY) === "1") return authLocal;
-    } catch (e) {
-      /* ignore */
-    }
     return authOnline;
   }
 

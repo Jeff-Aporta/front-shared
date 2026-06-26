@@ -33,9 +33,14 @@ export function createWidgets(React, MUI, ns, opts = {}) {
     return bag.Session || bag.Auth || null;
   }
 
+  function isLocalHost() {
+    const h = window.location?.hostname || "";
+    return h === "localhost" || /^127\.0\.0(?:\.|$)/.test(h) || h === "::1" || h === "[::1]";
+  }
+
   function TargetSwitchChip() {
-    const { loggedIn, isLocal, setLocal } = useTargetSwitchState();
-    const tip = loggedIn
+    const { canSwitch, isLocal, setLocal } = useTargetSwitchState();
+    const tip = canSwitch
       ? (isLocal ? "Local — clic para producción" : "Producción — clic para local")
       : "Producción (inicia sesión para cambiar el entorno)";
 
@@ -49,16 +54,16 @@ export function createWidgets(React, MUI, ns, opts = {}) {
           size: "small",
           color: isLocal ? "warning" : "primary",
           variant: "outlined",
-          disabled: !loggedIn,
+          disabled: !canSwitch,
           "aria-label": tip,
           icon: React.createElement(Icon, {
             icon: isLocal ? "mdi:laptop" : "mdi:earth",
             size: 16,
           }),
           label: "",
-          onClick: loggedIn ? () => setLocal(!isLocal) : undefined,
+          onClick: canSwitch ? () => setLocal(!isLocal) : undefined,
           sx: {
-            cursor: loggedIn ? "pointer" : "default",
+            cursor: canSwitch ? "pointer" : "default",
             height: 28,
             width: 28,
             minHeight: 28,
@@ -93,7 +98,8 @@ export function createWidgets(React, MUI, ns, opts = {}) {
   function useTargetSwitchState() {
     const sess = sessionApi();
     const [loggedIn, setLoggedIn] = React.useState(() => sess?.isLoggedIn?.() ?? false);
-    const [local, setLocal] = React.useState(() => (loggedIn ? cfg().isLocal() : false));
+    const canSwitch = loggedIn || isLocalHost();
+    const [local, setLocal] = React.useState(() => (canSwitch ? cfg().isLocal() : false));
 
     React.useEffect(() => {
       const onAuth = () => setLoggedIn(sess?.isLoggedIn?.() ?? false);
@@ -103,26 +109,26 @@ export function createWidgets(React, MUI, ns, opts = {}) {
     }, []);
 
     React.useEffect(() => {
-      const onEvt = () => setLocal(loggedIn ? cfg().isLocal() : false);
+      const onEvt = () => setLocal(canSwitch ? cfg().isLocal() : false);
       window.addEventListener(cfg().EVENT, onEvt);
       return () => window.removeEventListener(cfg().EVENT, onEvt);
-    }, [loggedIn]);
+    }, [canSwitch]);
 
     React.useEffect(() => {
-      if (!loggedIn) {
+      if (!canSwitch) {
         if (cfg().isLocal()) cfg().setLocal(false);
         setLocal(false);
       }
-    }, [loggedIn]);
+    }, [canSwitch]);
 
-    return { loggedIn, isLocal: loggedIn && local, setLocal: (v) => cfg().setLocal(v) };
+    return { loggedIn, canSwitch, isLocal: canSwitch && local, setLocal: (v) => cfg().setLocal(v) };
   }
 
   /** Switch de entorno para menú de sesión: icono + etiqueta alineados al resto del menú; switch a la derecha. */
   function TargetSwitchMenu() {
-    const { loggedIn, isLocal, setLocal } = useTargetSwitchState();
+    const { canSwitch, isLocal, setLocal } = useTargetSwitchState();
     const label = isLocal ? "Local" : "Producción";
-    const tip = loggedIn
+    const tip = canSwitch
       ? (isLocal ? "Local — activar para producción" : "Producción — activar para local")
       : "Producción (inicia sesión para cambiar el entorno)";
 
@@ -155,8 +161,8 @@ export function createWidgets(React, MUI, ns, opts = {}) {
       React.createElement(MUI.Switch, {
         size: "small",
         checked: isLocal,
-        disabled: !loggedIn,
-        onChange: (_e, v) => { if (loggedIn) setLocal(v); },
+        disabled: !canSwitch,
+        onChange: (_e, v) => { if (canSwitch) setLocal(v); },
         inputProps: { "aria-label": tip },
         sx: {
           flexShrink: 0,

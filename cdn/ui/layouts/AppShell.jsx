@@ -242,9 +242,14 @@
     const tm = bag.Theme.useThemeMode();
     const Auth = bag.Auth;
     const Session = bag.Session;
+    function isLocalHost() {
+      const h = window.location?.hostname || "";
+      return h === "localhost" || /^127\.0\.0(?:\.|$)/.test(h) || h === "::1" || h === "[::1]";
+    }
     function targetSwitchAllowed() {
       if (props.showTarget === false) return false;
       if (props.showTarget === true) return true;
+      if (isLocalHost()) return true;
       return !!(Session && Session.can && Session.can("infra.target.switch"));
     }
     /** Chip suelto en barra: solo si no hay sesión en toolbarEnd/Extra (ahí va TargetSwitchMenu). */
