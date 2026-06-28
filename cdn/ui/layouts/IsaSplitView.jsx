@@ -38,6 +38,8 @@
       defaultWidth: defaultWidth,
       minWidth: minWidth,
       maxWidth: maxWidth,
+      readPersistedWidth: props.readPersistedWidth,
+      writePersistedWidth: props.writePersistedWidth,
     });
 
     const panelWidth = panel.collapsed ? COLLAPSED_W : panel.width;

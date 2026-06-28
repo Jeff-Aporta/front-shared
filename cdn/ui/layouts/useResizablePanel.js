@@ -15,7 +15,12 @@
     return Math.min(maxW, Math.max(minW, Math.round(w)));
   }
 
-  function readStoredWidth(storageKey, fallback, minW, maxW) {
+  function readStoredWidth(storageKey, fallback, minW, maxW, readPersisted) {
+    if (typeof readPersisted === "function") {
+      const n = readPersisted();
+      if (Number.isFinite(n) && n > 0) return clampWidth(n, minW, maxW);
+      return fallback;
+    }
     if (!storageKey) return fallback;
     try {
       const n = Number(localStorage.getItem(storageKey));
@@ -24,7 +29,11 @@
     return fallback;
   }
 
-  function persistWidth(storageKey, w) {
+  function persistWidth(storageKey, w, writePersisted) {
+    if (typeof writePersisted === "function") {
+      writePersisted(w);
+      return;
+    }
     if (!storageKey) return;
     try {
       localStorage.setItem(storageKey, String(w));
@@ -37,9 +46,11 @@
     const maxW = opts.maxWidth != null ? opts.maxWidth : MAX_W;
     const defaultW = opts.defaultWidth != null ? opts.defaultWidth : DEFAULT_W;
     const storageKey = opts.storageKey || "";
+    const readPersisted = opts.readPersistedWidth;
+    const writePersisted = opts.writePersistedWidth;
 
     const [width, setWidth] = React.useState(function () {
-      return readStoredWidth(storageKey, defaultW, minW, maxW);
+      return readStoredWidth(storageKey, defaultW, minW, maxW, readPersisted);
     });
     const [collapsed, setCollapsed] = React.useState(false);
     const [dragging, setDragging] = React.useState(false);
@@ -76,7 +87,7 @@
         setDragging(false);
         setWidth(function (w) {
           const next = clampWidth(w, minW, maxW);
-          persistWidth(storageKey, next);
+          persistWidth(storageKey, next, writePersisted);
           return next;
         });
       }
@@ -88,7 +99,7 @@
         global.removeEventListener("mousemove", onMove);
         global.removeEventListener("mouseup", onUp);
       };
-    }, [dragging, minW, maxW, storageKey]);
+    }, [dragging, minW, maxW, storageKey, writePersisted]);
 
     return {
       width: width,
