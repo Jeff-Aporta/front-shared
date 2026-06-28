@@ -328,36 +328,72 @@ export function makeDodgerTheme(MUI, mode) {
   });
 }
 
-export function createThemeApi(React, MUI, lsKey) {
-  function initialMode() {
-    try {
-      const v = localStorage.getItem(lsKey);
-      if (v === "light" || v === "dark") return v;
-    } catch (e) {}
-    return "dark";
+const themeStores = new Map();
+
+function readStoredMode(lsKey) {
+  try {
+    const v = localStorage.getItem(lsKey);
+    if (v === "light" || v === "dark") return v;
+  } catch (e) {
+    /* ignore */
   }
+  return "dark";
+}
 
-  function useThemeMode() {
-    const [mode, setMode] = React.useState(initialMode());
+function applyDomColorScheme(mode) {
+  try {
+    document.documentElement.setAttribute("data-mui-color-scheme", mode);
+    document.documentElement.style.colorScheme = mode;
+  } catch (e) {
+    /* ignore */
+  }
+}
 
-    React.useEffect(() => {
-      try {
-        document.documentElement.setAttribute("data-mui-color-scheme", mode);
-        document.documentElement.style.colorScheme = mode;
-      } catch (e) {}
-    }, [mode]);
-
-    const toggle = React.useCallback(() => {
-      setMode((m) => {
-        const n = m === "dark" ? "light" : "dark";
+function getThemeStore(lsKey) {
+  if (!themeStores.has(lsKey)) {
+    let mode = readStoredMode(lsKey);
+    const listeners = new Set();
+    applyDomColorScheme(mode);
+    themeStores.set(lsKey, {
+      getMode: () => mode,
+      subscribe(fn) {
+        listeners.add(fn);
+        return () => listeners.delete(fn);
+      },
+      setMode(next) {
+        if (next !== "light" && next !== "dark") return;
+        if (next === mode) return;
+        mode = next;
         try {
-          localStorage.setItem(lsKey, n);
-          document.documentElement.setAttribute("data-mui-color-scheme", n);
-          document.documentElement.style.colorScheme = n;
-        } catch (e) {}
-        return n;
-      });
-    }, []);
+          localStorage.setItem(lsKey, mode);
+        } catch (e) {
+          /* ignore */
+        }
+        applyDomColorScheme(mode);
+        listeners.forEach((fn) => {
+          try {
+            fn(mode);
+          } catch (e) {
+            /* ignore */
+          }
+        });
+      },
+      toggle() {
+        this.setMode(mode === "dark" ? "light" : "dark");
+      },
+    });
+  }
+  return themeStores.get(lsKey);
+}
+
+export function createThemeApi(React, MUI, lsKey) {
+  function useThemeMode() {
+    const store = getThemeStore(lsKey);
+    const [mode, setMode] = React.useState(() => store.getMode());
+
+    React.useEffect(() => store.subscribe(setMode), [store]);
+
+    const toggle = React.useCallback(() => store.toggle(), [store]);
     const theme = React.useMemo(() => makeDodgerTheme(MUI, mode), [mode]);
     return { mode, toggle, theme };
   }
@@ -373,7 +409,8 @@ export function registerTheme(ns, opts) {
   const React = window.React;
   const MUI = window.MaterialUI;
   if (!React || !MUI) throw new Error("ISAFront.registerTheme requiere React/MUI (cargar stack.mjs antes)");
-  const lsKey = opts?.lsKey || ns.toLowerCase() + ":theme";
+  const metaKey = globalThis.AppMeta?.cfg?.theme?.lsKey || globalThis.ThemeInit?.lsKey;
+  const lsKey = opts?.lsKey || metaKey || ns.toLowerCase() + ":theme";
   window[ns] = window[ns] || {};
   window[ns].Theme = createThemeApi(React, MUI, lsKey);
 }

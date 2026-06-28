@@ -30,10 +30,13 @@
 * {
   scrollbar-width: thin; scrollbar-color: rgba(30, 144, 255, 0.5) transparent;
   &::-webkit-scrollbar {
-    width: 10px; height: 10px;
+    width: var(--isa-scrollbar-size, 7px); height: var(--isa-scrollbar-size, 7px);
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
   }
   &::-webkit-scrollbar-thumb {
-    background: rgba(30, 144, 255, 0.45); border-radius: 6px;
+    background: rgba(30, 144, 255, 0.45); border-radius: 999px;
   }
 }
 

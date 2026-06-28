@@ -520,5 +520,6 @@ export function registerCodeMirror(React, MUI) {
   window.ISAFront.mountCodeMirror = mountCodeMirror;
   window.ISAFront.destroyCodeMirror = destroyCodeMirror;
   window.ISAFront.ensureCodeMirrorCss = ensureCodeMirrorCss;
+  window.ISAFront.resolveCodeMirrorTheme = resolveCodeMirrorTheme;
   return api;
 }
