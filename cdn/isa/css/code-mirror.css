@@ -24,6 +24,8 @@
 
 .isa-cm-host {
   min-height: 8rem;
+  overflow-x: auto;
+  overflow-y: hidden;
   & .CodeMirror {
     height: 100% !important;
     font-family: ui-monospace, Consolas, "Cascadia Code", monospace;
@@ -144,7 +146,8 @@
     & .isa-cm-host {
       flex: 1 1 auto;
       min-height: 0;
-      overflow: hidden;
+      overflow-x: auto;
+      overflow-y: hidden;
     }
     & .isa-cm-host .CodeMirror {
       height: 100% !important;

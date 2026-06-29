@@ -182,12 +182,13 @@ function syncCmBoundedSize(cm, maxHeight, host, minHeight) {
     host,
   ].filter(Boolean);
 
-  for (const el of chain) {
-    el.style.height = `${h}px`;
-    el.style.maxHeight = String(maxHeight);
-    if (minHeight) el.style.minHeight = String(minHeight);
-    el.style.overflow = "hidden";
-  }
+for (const el of chain) {
+        el.style.height = `${h}px`;
+        el.style.maxHeight = String(maxHeight);
+        if (minHeight) el.style.minHeight = String(minHeight);
+        el.style.overflowX = "auto";
+        el.style.overflowY = "hidden";
+    }
 
   const wrapper = cm.getWrapperElement?.();
   if (wrapper) {
@@ -369,10 +370,11 @@ export function createCodeMirrorPanel(React, MUI) {
       className,
     ].filter(Boolean).join(" ");
 
-    const hostStyle = { minHeight };
+const hostStyle = { minHeight };
     if (maxHeight) {
-      hostStyle.maxHeight = maxHeight;
-      hostStyle.overflow = "hidden";
+        hostStyle.maxHeight = maxHeight;
+        hostStyle.overflowX = "auto";
+        hostStyle.overflowY = "hidden";
     }
     const panelStyle = fill
       ? { minHeight: 0, height: "100%", flex: "1 1 auto" }
