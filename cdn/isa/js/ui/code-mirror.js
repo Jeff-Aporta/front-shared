@@ -223,6 +223,21 @@ export function createCodeMirrorPanel(React, MUI) {
     return mode === "sql" || mode === "text/x-sql";
   }
 
+  const WRAP_STORAGE_KEY = "isa:cm:wrap";
+  function readWrapDefault() {
+    try {
+      const v = window.localStorage?.getItem?.(WRAP_STORAGE_KEY);
+      return v == null ? false : v === "1" || v === "true";
+    } catch {
+      return false;
+    }
+  }
+  function writeWrapDefault(v) {
+    try {
+      window.localStorage?.setItem?.(WRAP_STORAGE_KEY, v ? "1" : "0");
+    } catch { /* ignore */ }
+  }
+
   function CodeMirrorPanel({
     value = "",
     onChange,
@@ -240,13 +255,24 @@ export function createCodeMirrorPanel(React, MUI) {
     lineWrapping = false,
     lineNumbers = true,
     toolbarExtra = null,
+    enableWrapToggle = true,
   }) {
     const hostRef = useRef(null);
     const cmRef = useRef(null);
     const onChangeRef = useRef(onChange);
     const syncingRef = useRef(false);
+    const wrapControlled = lineWrapping !== false && lineWrapping != null;
+    const [wrap, setWrap] = useState(() => (wrapControlled ? !!lineWrapping : readWrapDefault()));
     const [fullOpen, setFullOpen] = useState(false);
     const [cmReady, setCmReady] = useState(() => typeof window.CodeMirror !== "undefined");
+
+    function toggleWrap() {
+      const next = !wrap;
+      setWrap(next);
+      writeWrapDefault(next);
+      const cm = cmRef.current;
+      if (cm?.setOption) cm.setOption("lineWrapping", next);
+    }
 
     useEffect(() => {
       onChangeRef.current = onChange;
@@ -272,7 +298,7 @@ export function createCodeMirrorPanel(React, MUI) {
         json,
         mode,
         readOnly,
-        lineWrapping,
+        lineWrapping: wrapControlled ? !!lineWrapping : wrap,
         lineNumbers,
         viewportMargin: readOnly && !(maxHeight && !fill) ? Infinity : 10,
         onChange: readOnly
@@ -385,6 +411,25 @@ const hostStyle = { minHeight };
         "div",
         { className: "isa-cm-panel__toolbar", "aria-label": "Acciones del editor" },
         toolbarExtra,
+        enableWrapToggle && !wrapControlled && React.createElement(
+          MUI.Tooltip,
+          { title: wrap ? "Quitar ajuste de línea" : "Ajustar línea (word wrap)" },
+          React.createElement(
+            MUI.IconButton,
+            {
+              size: "small",
+              className: "isa-cm-panel__fab isa-cm-panel__wrap",
+              "aria-label": wrap ? "Quitar word wrap" : "Activar word wrap",
+              "aria-pressed": wrap,
+              onClick: toggleWrap,
+            },
+            React.createElement("iconify-icon", {
+              icon: wrap ? "mdi:wrap-disabled" : "mdi:wrap",
+              width: "14",
+              height: "14",
+            }),
+          ),
+        ),
         enableFullPage && React.createElement(
           MUI.Tooltip,
           { title: "Ver a pantalla completa" },
