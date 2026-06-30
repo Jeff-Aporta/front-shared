@@ -1,2 +1,2 @@
 /** Pin jsDelivr — sincronizado con versions.json.frontSharedRef al ejecutar npm run build:head. */
-export const FRONT_SHARED_REF = "release-2026-06-30";
+export const FRONT_SHARED_REF = "e584b60";
