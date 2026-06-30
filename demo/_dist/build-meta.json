@@ -1,18 +1,20 @@
 {
-  "builtAt": "2026-06-19T23:30:10.042Z",
+  "builtAt": "2026-06-30T18:17:11.321Z",
   "kind": "component-demo",
   "demoRoot": "..\\..\\..\\components\\front-shared\\demo",
   "files": 4,
-  "bytesIn": 5088,
-  "bytesOut": 3771,
-  "ratio": 0.741,
-  "hash": "89c6d52042f5",
+  "bytesIn": 5203,
+  "bytesOut": 3881,
+  "ratio": 0.746,
+  "hash": "75e349192094",
   "appBundle": "_dist/app.min.js",
+  "appBundleHashed": "_dist/app.75e349192094.min.js",
   "entries": [
     {
       "rel": "js\\app\\main.jsx",
-      "bytesIn": 2742,
-      "bytesOut": 2050
+      "bytesIn": 2860,
+      "bytesOut": 2162,
+      "hash": "75e349192094"
     },
     {
       "rel": "css/demo.css",
@@ -20,14 +22,14 @@
       "bytesOut": 379
     },
     {
-      "rel": "js/boot/loader.mjs",
-      "bytesIn": 1073,
-      "bytesOut": 749
-    },
-    {
       "rel": "js/boot/cdn.mjs",
       "bytesIn": 786,
       "bytesOut": 593
+    },
+    {
+      "rel": "js/boot/loader.mjs",
+      "bytesIn": 1070,
+      "bytesOut": 747
     }
   ]
 }

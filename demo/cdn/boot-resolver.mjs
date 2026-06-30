@@ -31,10 +31,10 @@ async function importFirst(urls, label) {
 
 function localSharedUrls(file) {
   const urls = [];
-  if (!isDevHost()) return urls;
   try {
     urls.push(new URL("./" + file, import.meta.url).href);
   } catch (_) { /* ignore */ }
+  if (!isDevHost()) return urls;
   const fsLocal = globalThis.__FS_LOCAL__;
   if (typeof fsLocal === "string" && fsLocal) {
     try {
@@ -44,12 +44,14 @@ function localSharedUrls(file) {
   return urls;
 }
 
-/** @param {string} [_localFsRel] ignorado — siempre jsDelivr */
+/** @param {string} [_localFsRel] reservado — en dev host prioriza cdn/ local */
 export async function importBootHelper(_localFsRel) {
-  return import(cdnAsset("boot-helper.mjs?v=" + FRONT_SHARED_REF));
+  const urls = [...localSharedUrls("boot-helper.mjs"), cdnAsset("boot-helper.mjs?v=" + FRONT_SHARED_REF)];
+  return importFirst(urls, "boot-helper");
 }
 
-/** @param {string} [_localFsRel] ignorado — siempre jsDelivr */
+/** @param {string} [_localFsRel] reservado — en dev host prioriza cdn/ local */
 export async function importBootLoader(_localFsRel) {
-  return import(cdnAsset("boot-loader.mjs?v=" + FRONT_SHARED_REF));
+  const urls = [...localSharedUrls("boot-loader.mjs"), cdnAsset("boot-loader.mjs?v=" + FRONT_SHARED_REF)];
+  return importFirst(urls, "boot-loader");
 }

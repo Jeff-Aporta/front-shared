@@ -6,11 +6,25 @@ import { FRONT_SHARED_REF } from "./front-shared-ref.mjs";
 
 /** Bump al publicar front-shared (evita caché stale de jsDelivr @main). */
 export { FRONT_SHARED_REF };
+
+function isLocalHost() {
+  return typeof location !== "undefined" && /localhost|127\.0\.0\.1|\[::1\]/.test(location.hostname);
+}
+
+function useCdnDist() {
+  if (typeof globalThis !== "undefined" && globalThis.__ISA_CDN_SRC__) return false;
+  return true;
+}
+
 function resolveCdnBase() {
+  try {
+    return new URL("./", import.meta.url).href;
+  } catch (_) { /* ignore */ }
   return "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@" + FRONT_SHARED_REF + "/cdn/";
 }
 
 const CDN = resolveCdnBase();
+const useDist = useCdnDist();
 initModuleGraph(CDN);
 
 export { babelPresets, importAppEntry, importAppModules };
@@ -40,14 +54,20 @@ export function assertStack() {
 
 export async function loadIsaFront() {
   ensureFeedbackCss();
-  await import(CDN + "isa/js/index.js");
+  const entry = useDist ? "_dist/isa/js/index.min.js" : "isa/js/index.js";
+  try {
+    await import(CDN + entry);
+  } catch (err) {
+    if (useDist) throw err;
+    await import(CDN + "_dist/isa/js/index.min.js");
+  }
 }
 
 export function ensureFeedbackCss() {
   if (document.querySelector("link[data-isa-feedback-css]")) return;
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = CDN + "isa/css/feedback.css";
+  link.href = useDist ? CDN + "_dist/isa/css/feedback.min.css" : CDN + "isa/css/feedback.css";
   link.setAttribute("data-isa-feedback-css", "1");
   document.head.appendChild(link);
 }
@@ -64,6 +84,9 @@ export async function transpileUrl(url, Babel) {
 
 /** JSX compartidos — transpilados en runtime (mismo Babel que la app). */
 export const SHARED_UI_FILES = [
+  "layouts/split-view-constants.js",
+  "layouts/useResizablePanel.js",
+  "layouts/IsaSplitView.jsx",
   "widgets/UserSessionMenu.jsx",
   "widgets/ViewAsDialog.jsx",
   "widgets/UnitTestStreamModal.jsx",
