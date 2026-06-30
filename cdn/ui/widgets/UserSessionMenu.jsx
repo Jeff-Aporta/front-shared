@@ -208,7 +208,7 @@
                     loading: "lazy",
                     width: 18,
                     height: 18,
-                    style: { borderRadius: "50%", marginLeft: 4 },
+                    style: { borderRadius: "50%", margin: 0 },
                   }),
                 label: headerLabel,
                 onClick: function (e) { setAnchor(e.currentTarget); },

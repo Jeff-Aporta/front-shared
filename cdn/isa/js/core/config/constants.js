@@ -31,7 +31,7 @@ export const AUTH_DEFAULTS = {
 };
 
 /** jsDelivr — pin de commit (mismo ref que boot-helper.mjs FRONT_SHARED_REF). */
-export const FRONT_SHARED_REF = "e584b60";
+export const FRONT_SHARED_REF = "6177587";
 export const CDN_BASE = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@" + FRONT_SHARED_REF + "/cdn/isa";
 export const UI_CDN_BASE = "https://cdn.jsdelivr.net/gh/Jeff-Aporta/front-shared@" + FRONT_SHARED_REF + "/cdn/ui";
 export const FEEDBACK_CSS_URL = CDN_BASE + "/css/feedback.css";

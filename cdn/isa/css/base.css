@@ -82,7 +82,7 @@
     height: 18px;
     border-radius: 50%;
     object-fit: cover;
-    margin-left: 2px;
+    margin: 0;
   }
 }
 
