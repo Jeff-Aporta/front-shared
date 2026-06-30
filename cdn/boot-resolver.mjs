@@ -31,10 +31,10 @@ async function importFirst(urls, label) {
 
 function localSharedUrls(file) {
   const urls = [];
-  if (!isDevHost()) return urls;
   try {
     urls.push(new URL("./" + file, import.meta.url).href);
   } catch (_) { /* ignore */ }
+  if (!isDevHost()) return urls;
   const fsLocal = globalThis.__FS_LOCAL__;
   if (typeof fsLocal === "string" && fsLocal) {
     try {
